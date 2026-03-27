@@ -233,6 +233,18 @@ async function buildTimeSlots() {
         });
       });
     } catch(e) { /* continue without blocking */ }
+
+    // Check pro_hours_off and pro_days_off
+    try {
+      var dayOffRes = await sb.from("pro_days_off").select("id").eq("pro_id", proId).eq("off_date", bkSelDateStr);
+      if (dayOffRes.data && dayOffRes.data.length) {
+        // Whole day is off — block all slots
+        times.forEach(function(tt) { blockedSlots[tt] = "dayoff"; });
+      } else {
+        var hoursOffRes = await sb.from("pro_hours_off").select("off_hour").eq("pro_id", proId).eq("off_date", bkSelDateStr);
+        (hoursOffRes.data || []).forEach(function(h) { blockedSlots[h.off_hour] = "houroff"; });
+      }
+    } catch(e) { /* continue */ }
   }
 
   slots.innerHTML = times.map(function(tt) {
@@ -241,7 +253,10 @@ async function buildTimeSlots() {
     var isPast = isToday && (hr < curHr || (hr === curHr && mn <= curMin));
     var isBlocked = blockedSlots[tt];
     var cls = (isPast || isBlocked) ? " dis" : "";
-    var title = isBlocked ? " title=\"Not available — professional is booked nearby\"" : "";
+    var title = isBlocked === "dayoff" ? " title=\"Professional is unavailable this day\""
+              : isBlocked === "houroff" ? " title=\"Professional marked this hour unavailable\""
+              : isBlocked ? " title=\"Not available — professional is booked nearby\""
+              : "";
     return "<div class=\"ts" + cls + "\" onclick=\"pickTs(this)\" style=\"padding:9px 6px;font-size:13px\"" + title + ">" + tt + "</div>";
   }).join("");
 }

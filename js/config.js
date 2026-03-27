@@ -331,6 +331,12 @@ var EXTRA_SQL = [
   "grant all on public.pro_tasks to anon, authenticated;",
   "grant all on public.pro_days_off to anon, authenticated;",
   "",
+  "-- Hourly availability blocking",
+  "create table if not exists public.pro_hours_off (id uuid default gen_random_uuid() primary key, pro_id uuid references public.professionals(id) on delete cascade, off_date date not null, off_hour text not null, created_at timestamptz default now());",
+  "alter table public.pro_hours_off disable row level security;",
+  "grant all on public.pro_hours_off to anon, authenticated;",
+  "create unique index if not exists pro_hours_off_uniq on public.pro_hours_off(pro_id, off_date, off_hour);",
+  "",
   "-- Travel buffer column for professionals",
   "alter table public.professionals add column if not exists travel_buffer integer default 60;"
 ].join("\n");
