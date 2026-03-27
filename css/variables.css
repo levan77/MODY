@@ -1,0 +1,56 @@
+/* ══════════════════════════════════════════════
+   MODY — Design Tokens & Theme Variables
+   All CSS custom properties live here.
+   To rebrand, only this file needs to change.
+   ══════════════════════════════════════════════ */
+
+/* ── LIGHT MODE (default) ── */
+:root {
+  /* Brand */
+  --g:  #D4AF37;   /* gold accent */
+  --gd: #A8892A;   /* gold dark (hover) */
+
+  /* Backgrounds */
+  --bg:  #F8F6F3;  /* page background */
+  --bg2: #F0EDE8;  /* subtle surface */
+  --bg3: #E8E3DC;  /* stronger surface */
+
+  /* Text */
+  --tx: #2C2C2C;   /* primary text */
+  --mu: #7A7672;   /* muted / label text */
+
+  /* Surfaces */
+  --cd: #fff;      /* card background */
+  --nv: #fff;      /* nav background */
+  --ip: #F8F6F3;   /* input background */
+
+  /* Borders */
+  --br: rgba(0, 0, 0, .1);
+
+  /* Radii */
+  --r:  16px;      /* standard radius */
+  --rs: 10px;      /* small radius */
+
+  /* Shadows */
+  --sh: 0 2px 20px rgba(0, 0, 0, .07);   /* card shadow */
+  --sl: 0 8px 40px rgba(0, 0, 0, .14);   /* elevated shadow */
+}
+
+/* ── DARK MODE ── */
+html.dark {
+  --bg:  #1A1A1A;
+  --bg2: #222;
+  --bg3: #2C2C2C;
+
+  --tx: #E8E4DF;
+  --mu: #8A8480;
+
+  --cd: #1C1B1B;
+  --nv: #161514;
+  --ip: #242322;
+
+  --br: rgba(255, 255, 255, .1);
+
+  --sh: 0 2px 20px rgba(0, 0, 0, .45);
+  --sl: 0 8px 40px rgba(0, 0, 0, .65);
+}
