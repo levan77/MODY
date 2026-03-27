@@ -238,7 +238,7 @@ function proListCard(p) {
     : "<span style=\"display:inline-flex;align-items:center;gap:3px;background:rgba(150,150,150,.1);color:var(--mu);border:1px solid rgba(150,150,150,.25);padding:2px 8px;border-radius:50px;font-size:11px\">Unverified</span>";
   return "<div style=\"background:var(--cd);border-radius:var(--r);padding:16px;display:grid;grid-template-columns:80px 1fr auto;gap:11px;align-items:center;box-shadow:var(--sh);cursor:pointer;transition:all .25s;border:1.5px solid transparent\""
        + " onclick=\"viewPro('" + p.id + "')\""
-       + " onmouseover=\"this.style.borderColor='rgba(212,175,55,.4)'\""
+       + " onmouseover=\"this.style.borderColor='rgba(234,184,183,.4)'\""
        + " onmouseout=\"this.style.borderColor='transparent'\">"
        + "<div style=\"width:80px;height:80px;background:var(--bg2);border-radius:var(--rs);display:flex;align-items:center;justify-content:center;font-size:36px;overflow:hidden;position:relative\">" + img + emo + "</div>"
        + "<div>"

@@ -55,7 +55,7 @@
       <source src="https://fjlmzaecjxxbukrbohyy.supabase.co/storage/v1/object/public/assets/hero.mp4" type="video/mp4">
     </video>
     <div class="hero-w">
-      <div id="heroBadge" style="display:inline-flex;align-items:center;gap:7px;background:rgba(212,175,55,.15);border:1px solid rgba(212,175,55,.3);color:var(--g);padding:5px 13px;border-radius:50px;font-size:13px;margin-bottom:16px"></div>
+      <div id="heroBadge" style="display:inline-flex;align-items:center;gap:7px;background:rgba(234,184,183,.15);border:1px solid rgba(234,184,183,.3);color:var(--g);padding:5px 13px;border-radius:50px;font-size:13px;margin-bottom:16px"></div>
       <h1 id="heroTitle"></h1>
       <p id="heroSub" style="color:rgba(255,255,255,.6);font-size:15px;margin-bottom:24px;line-height:1.75;max-width:490px"></p>
       <div style="background:var(--cd);border-radius:var(--r);padding:5px;display:flex;gap:6px;max-width:440px;box-shadow:var(--sl)">
@@ -146,7 +146,7 @@
   </div>
 
   <div style="background:#1A1A1A;padding:40px 20px">
-    <div style="max-width:1100px;margin:0 auto;background:rgba(212,175,55,.06);border:1px solid rgba(212,175,55,.2);border-radius:var(--r);padding:28px 32px;display:grid;grid-template-columns:1fr auto;gap:18px;align-items:center" class="proCta">
+    <div style="max-width:1100px;margin:0 auto;background:rgba(234,184,183,.06);border:1px solid rgba(234,184,183,.2);border-radius:var(--r);padding:28px 32px;display:grid;grid-template-columns:1fr auto;gap:18px;align-items:center" class="proCta">
       <div>
         <div id="proTag" style="color:var(--g);font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:7px"></div>
         <h2 id="proTitle" style="font-size:clamp(16px,3vw,26px);font-weight:300;color:#fff;margin-bottom:6px"></h2>
@@ -427,7 +427,7 @@
         <p id="pWelcome" style="color:rgba(255,255,255,.5);font-size:13px;margin-top:1px"></p>
       </div>
       <div style="display:flex;gap:7px;align-items:center">
-        <span id="pStatusBadge" style="padding:4px 10px;border-radius:50px;font-size:12px;font-weight:500;background:rgba(234,179,8,.15);border:1px solid rgba(234,179,8,.3);color:#a16207">⏳ Pending</span>
+        <span id="pStatusBadge" style="padding:4px 10px;border-radius:50px;font-size:12px;font-weight:500;background:rgba(234,184,183,.15);border:1px solid rgba(234,184,183,.3);color:#C9918F">⏳ Pending</span>
         <button class="btn btn-dk" onclick="signOut()">Sign Out</button>
       </div>
     </div>
@@ -460,7 +460,7 @@
           <div class="st"><div class="st-v" id="pS4">0</div><div class="st-l">Pending</div></div>
         </div>
         <div class="card" style="margin-bottom:12px">
-          <div class="c-hdr"><h3>Incoming Requests</h3><span id="pPendBadge" style="background:rgba(234,179,8,.12);color:#a16207;padding:2px 8px;border-radius:50px;font-size:12px">0 pending</span></div>
+          <div class="c-hdr"><h3>Incoming Requests</h3><span id="pPendBadge" style="background:rgba(234,184,183,.12);color:#C9918F;padding:2px 8px;border-radius:50px;font-size:12px">0 pending</span></div>
           <div id="pIncoming"><p style="color:var(--mu);font-size:14px">No pending requests.</p></div>
         </div>
         <div class="card">
@@ -537,7 +537,7 @@
       <div id="pTab-edit" class="hide">
         <div class="card" style="margin-bottom:12px">
           <div class="c-hdr"><h3>Edit Profile</h3></div>
-          <div id="pEditStatus" style="background:rgba(212,175,55,.08);border:1px solid rgba(212,175,55,.25);border-radius:var(--rs);padding:9px 12px;margin-bottom:13px;font-size:13px;color:var(--mu)">Changes require admin approval.</div>
+          <div id="pEditStatus" style="background:rgba(234,184,183,.08);border:1px solid rgba(234,184,183,.25);border-radius:var(--rs);padding:9px 12px;margin-bottom:13px;font-size:13px;color:var(--mu)">Changes require admin approval.</div>
           <div style="text-align:center;margin-bottom:14px">
             <div class="ava-ring" id="pAvaEdit" onclick="document.getElementById('pAvaFile').click()"><span id="pAvaEditEmoji">💅</span></div>
             <div style="font-size:12px;color:var(--mu);margin-top:4px">Click to change photo</div>
@@ -612,7 +612,7 @@
   <div id="adminGrid" style="max-width:1400px;margin:0 auto;padding:16px 20px;display:grid;grid-template-columns:175px 1fr;gap:14px">
     <div class="d-side">
       <button class="ni on" id="aN-ov" onclick="aTab('ov')">📊 Overview</button>
-      <button class="ni" id="aN-app" onclick="aTab('app')">✅ Approvals <span id="appBadge" style="background:rgba(234,179,8,.2);color:#a16207;padding:1px 6px;border-radius:50px;font-size:11px;margin-left:2px">0</span></button>
+      <button class="ni" id="aN-app" onclick="aTab('app')">✅ Approvals <span id="appBadge" style="background:rgba(234,184,183,.2);color:#C9918F;padding:1px 6px;border-radius:50px;font-size:11px;margin-left:2px">0</span></button>
       <button class="ni" id="aN-bks" onclick="aTab('bks')">📋 Bookings</button>
       <button class="ni" id="aN-pros" onclick="aTab('pros')">💅 Pros</button>
       <button class="ni" id="aN-usr" onclick="aTab('usr')">👤 Users</button>
@@ -641,7 +641,7 @@
       </div>
       <div id="aTab-app" class="hide">
         <div class="card">
-          <div class="c-hdr"><h3>Pending Approvals</h3><span id="aPendCount" style="background:rgba(234,179,8,.12);color:#a16207;padding:2px 8px;border-radius:50px;font-size:12px">0</span></div>
+          <div class="c-hdr"><h3>Pending Approvals</h3><span id="aPendCount" style="background:rgba(234,184,183,.12);color:#C9918F;padding:2px 8px;border-radius:50px;font-size:12px">0</span></div>
           <div id="aAppList"></div>
         </div>
       </div>
@@ -770,7 +770,7 @@
           </div>
           <div style="padding:10px 0;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--br);flex-wrap:wrap">
             <div style="flex:1;min-width:120px"><div style="font-weight:500;font-size:14px">Accent Color</div><div style="font-size:12px;color:var(--mu)">Primary gold accent</div></div>
-            <input type="color" id="setAccentColor" value="#D4AF37" style="width:50px;height:36px;border-radius:var(--rs);border:1.5px solid var(--br);cursor:pointer;padding:2px">
+            <input type="color" id="setAccentColor" value="#EAB8B7" style="width:50px;height:36px;border-radius:var(--rs);border:1.5px solid var(--br);cursor:pointer;padding:2px">
             <button class="btn btn-g" style="font-size:13px" onclick="applyAccentColor(document.getElementById('setAccentColor').value)">Apply</button>
           </div>
           <div style="padding:10px 0;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--br);flex-wrap:wrap">
@@ -1047,7 +1047,7 @@
         <select class="fi" id="spAr"><option>Vake</option><option>Saburtalo</option><option>Isani</option><option>Didi Dighomi</option><option>Vera</option></select>
       </div>
       <div class="fg"><label class="fl" id="lPass3">Password</label><input class="fi" id="spP" type="password" placeholder="6+ characters"></div>
-      <div id="proWarnTxt" style="background:rgba(212,175,55,.08);border:1px solid rgba(212,175,55,.2);border-radius:var(--rs);padding:8px 11px;margin-bottom:9px;font-size:12px;color:var(--mu)"></div>
+      <div id="proWarnTxt" style="background:rgba(234,184,183,.08);border:1px solid rgba(234,184,183,.2);border-radius:var(--rs);padding:8px 11px;margin-bottom:9px;font-size:12px;color:var(--mu)"></div>
       <div id="spErr" style="color:#ef4444;font-size:13px;min-height:16px;margin-bottom:7px"></div>
       <button class="btn btn-g" id="spBtnEl" style="width:100%;justify-content:center;padding:11px" onclick="doSignUpPro()">Apply as Professional</button>
     </div>
@@ -1120,7 +1120,7 @@
     <input type="hidden" id="colorId">
     <div class="fg"><label class="fl">Color Name</label><input class="fi" id="colorName" placeholder="Cherry Red"></div>
     <div class="fi2">
-      <div class="fg"><label class="fl">Color Swatch</label><input type="color" id="colorHex" value="#D4AF37" style="width:100%;height:42px;border-radius:var(--rs);border:1.5px solid var(--br);cursor:pointer;padding:2px 3px;background:var(--ip)"></div>
+      <div class="fg"><label class="fl">Color Swatch</label><input type="color" id="colorHex" value="#EAB8B7" style="width:100%;height:42px;border-radius:var(--rs);border:1.5px solid var(--br);cursor:pointer;padding:2px 3px;background:var(--ip)"></div>
       <div class="fg"><label class="fl">Brand (optional)</label><input class="fi" id="colorBrand" placeholder="OPI, Essie..."></div>
     </div>
     <div class="fg"><label class="fl">Code (optional)</label><input class="fi" id="colorCode" placeholder="NL-B01"></div>
