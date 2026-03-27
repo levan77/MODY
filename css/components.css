@@ -344,8 +344,8 @@ input:checked + .sw-t:before   { transform: translateX(18px); }
   display: flex; justify-content: space-between; align-items: center;
   font-size: 14px; font-weight: 500;
 }
-.chat-threads { padding: 8px; border-bottom: 1px solid var(--br); display: flex; gap: 5px; flex-wrap: wrap; }
-.chat-tb      { padding: 5px 10px; border-radius: 50px; border: 1px solid var(--br); background: var(--bg2); color: var(--mu); font-size: 12px; cursor: pointer; transition: all .2s; }
+.chat-threads { padding: 8px; border-bottom: 1px solid var(--br); display: flex; gap: 5px; flex-direction: column; max-height: 140px; overflow-y: auto; }
+.chat-tb      { padding: 7px 10px; border-radius: var(--rs); border: 1px solid var(--br); background: var(--bg2); color: var(--tx); font-size: 12px; cursor: pointer; transition: all .2s; text-align: left; }
 .chat-tb.on, .chat-tb:hover { background: rgba(212,175,55,.15); border-color: var(--g); color: var(--gd); font-weight: 500; }
 .chat-msgs { flex: 1; overflow-y: auto; padding: 10px; display: flex; flex-direction: column; gap: 6px; }
 .msg      { max-width: 82%; padding: 7px 10px; border-radius: 13px; font-size: 13px; line-height: 1.5; }

@@ -338,6 +338,9 @@ var EXTRA_SQL = [
   "create unique index if not exists pro_hours_off_uniq on public.pro_hours_off(pro_id, off_date, off_hour);",
   "",
   "-- Travel buffer column for professionals",
-  "alter table public.professionals add column if not exists travel_buffer integer default 60;"
+  "alter table public.professionals add column if not exists travel_buffer integer default 60;",
+  "",
+  "-- Read status for chat messages",
+  "alter table public.messages add column if not exists is_read boolean default false;"
 ].join("\n");
 

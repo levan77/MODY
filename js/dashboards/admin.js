@@ -30,7 +30,7 @@ function aTab(tab) {
   if (tab === "cats")  loadAdminCats();
   if (tab === "promo") loadAdminPromos();
   if (tab === "rev")   loadAdminRevs();
-  if (tab === "sup")   loadAdminSupport();
+  if (tab === "sup")   { loadAdminSupport(); loadAdminChats(); }
   if (tab === "set") {
     loadSettings();
     var sb2 = ge("sqlBlock"); if (sb2) sb2.textContent = SETUP_SQL;
@@ -1260,6 +1260,13 @@ async function adminForceStatus(bookingId) {
     loadAdminBks();
     loadAdminData();
   } catch(e) { toast("Error: " + e.message, "err"); }
+}
+
+// ── ADMIN: VIEW BOOKING CHAT FROM DETAIL ────────────────────
+function adminViewBookingChat(bookingId, clientName, proName) {
+  aTab("sup");
+  // Small delay to let tab render
+  setTimeout(function() { adminOpenChat("booking_" + bookingId, clientName, proName); }, 200);
 }
 
 // ── MASTER CALENDAR ─────────────────────────────────────────
