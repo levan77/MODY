@@ -628,6 +628,7 @@ var proCalSelDate = null;
 var proCalBookings = [];
 var proCalTasks = [];
 var proCalDaysOff = [];
+var proCalHoursOff = [];
 
 function proCalNav(dir) {
   proCalDate.setMonth(proCalDate.getMonth() + dir);
@@ -662,6 +663,12 @@ async function renderProCal() {
     var dr = await sb.from("pro_days_off").select("*").eq("pro_id", proId).gte("off_date", y + "-" + String(m+1).padStart(2,"0") + "-01").lte("off_date", y + "-" + String(m+1).padStart(2,"0") + "-31");
     proCalDaysOff = (dr.data || []).map(function(d) { return d.off_date; });
   } catch(e) { proCalDaysOff = []; }
+
+  // Fetch hours off
+  try {
+    var hr = await sb.from("pro_hours_off").select("*").eq("pro_id", proId).gte("off_date", y + "-" + String(m+1).padStart(2,"0") + "-01").lte("off_date", y + "-" + String(m+1).padStart(2,"0") + "-31");
+    proCalHoursOff = hr.data || [];
+  } catch(e) { proCalHoursOff = []; }
 
   renderCalGrid("proCalGrid", y, m, now, proCalBookings, proCalTasks, proCalDaysOff, "onProCalSelect");
   if (proCalSelDate) renderProCalEvents(proCalSelDate);
@@ -707,30 +714,61 @@ function renderProCalEvents(dateStr) {
   var title = ge("proCalDateTitle");
   if (title) title.textContent = new Date(dateStr + "T00:00:00").toLocaleDateString("default", { weekday: "long", month: "long", day: "numeric" });
 
+  var isDayOff = proCalDaysOff.indexOf(dateStr) > -1;
+  var hoursOffForDate = proCalHoursOff.filter(function(h) { return h.off_date === dateStr; }).map(function(h) { return h.off_hour; });
+
+  // Hour grid for availability
+  var hours = ["09:00","09:30","10:00","10:30","11:00","11:30","12:00","13:00","14:00","15:00","16:00","17:00","18:00","19:00"];
+  var hourGrid = "<div style=\"margin-bottom:12px\">"
+    + "<div style=\"font-size:12px;font-weight:600;margin-bottom:6px;color:var(--tx)\">Hourly Availability <span style=\"font-weight:400;color:var(--mu)\">(tap to toggle)</span></div>"
+    + "<div class=\"ts-grid\">";
+  hours.forEach(function(h) {
+    var isOff = isDayOff || hoursOffForDate.indexOf(h) > -1;
+    // Check if there's a booking at this hour
+    var hasBooking = proCalBookings.some(function(b) {
+      var bkDate = (b.time_slot || "").substring(0, 10);
+      var bkTime = (b.time_slot || "").substring(11, 16);
+      return bkDate === dateStr && bkTime === h;
+    });
+    var cls = "ts";
+    var style = "padding:7px 4px;font-size:12px;";
+    if (hasBooking) {
+      cls += " booked";
+      style += "background:var(--g);color:#1a1a1a;border-color:var(--g);opacity:.7;cursor:default;";
+    } else if (isOff) {
+      cls += " off";
+      style += "background:#ef4444;color:#fff;border-color:#ef4444;";
+    }
+    var onclick = hasBooking ? "" : "onclick=\"toggleHourOff('" + dateStr + "','" + h + "')\"";
+    hourGrid += "<div class=\"" + cls + "\" style=\"" + style + "\" " + onclick + ">" + h + "</div>";
+  });
+  hourGrid += "</div></div>";
+
+  // Events list
   var evs = [];
-  // Bookings on this date
   proCalBookings.forEach(function(b) {
     var bkDate = (b.time_slot || b.created_at || "").substring(0, 10);
     if (bkDate === dateStr || (b.created_at || "").substring(0, 10) === dateStr) {
       evs.push({ color: "var(--g)", text: (b.time_slot || "ASAP") + " — " + (b.client_name || "Client") + " · " + (b.service_name || ""), type: "booking" });
     }
   });
-  // Tasks on this date
   proCalTasks.forEach(function(t) {
     if (t.task_date === dateStr) {
       evs.push({ color: "#7e22ce", text: (t.task_time || "") + " " + t.title + (t.notes ? " — " + t.notes : ""), type: "task", id: t.id });
     }
   });
-  // Day off
-  if (proCalDaysOff.indexOf(dateStr) > -1) {
-    evs.unshift({ color: "#ef4444", text: "Marked as unavailable", type: "off" });
+  if (isDayOff) {
+    evs.unshift({ color: "#ef4444", text: "Entire day marked unavailable", type: "off" });
+  } else if (hoursOffForDate.length) {
+    evs.unshift({ color: "#ef4444", text: hoursOffForDate.length + " hour(s) blocked", type: "info" });
   }
 
-  if (!evs.length) { el.innerHTML = "<p style=\"color:var(--mu);font-size:13px\">No events on this day.</p>"; return; }
-  el.innerHTML = evs.map(function(ev) {
+  var evHtml = evs.length ? evs.map(function(ev) {
     var del = ev.type === "task" ? " <button class=\"btn-sm btn-no\" style=\"margin-left:auto;font-size:10px\" onclick=\"deleteProTask('" + ev.id + "')\">✕</button>" : "";
     return "<div class=\"cal-ev\"><div class=\"cal-ev-dot\" style=\"background:" + ev.color + "\"></div><span style=\"flex:1\">" + ev.text + "</span>" + del + "</div>";
-  }).join("");
+  }).join("") : "<p style=\"color:var(--mu);font-size:13px\">No events on this day.</p>";
+
+  el.innerHTML = hourGrid + evHtml;
 }
 
 // ── PRO TASKS ────────────────────────────────────────────────
@@ -779,6 +817,40 @@ async function toggleProDayOff() {
     } else {
       await sb.from("pro_days_off").insert({ pro_id: proId, off_date: proCalSelDate });
       toast("Marked as unavailable.");
+    }
+    renderProCal();
+  } catch(e) { toast("Error: " + e.message, "err"); }
+}
+
+// ── PRO HOURS OFF ─────────────────────────────────────────────
+async function toggleHourOff(dateStr, hour) {
+  var proId = profile ? profile.pro_id : null;
+  if (!proId) return;
+
+  // If whole day is off, toggling individual hours removes the day-off and sets all OTHER hours as off
+  var isDayOff = proCalDaysOff.indexOf(dateStr) > -1;
+  if (isDayOff) {
+    // Remove day off
+    await sb.from("pro_days_off").delete().eq("pro_id", proId).eq("off_date", dateStr);
+    // Add all hours except the tapped one
+    var allHours = ["09:00","09:30","10:00","10:30","11:00","11:30","12:00","13:00","14:00","15:00","16:00","17:00","18:00","19:00"];
+    var rows = allHours.filter(function(h) { return h !== hour; }).map(function(h) {
+      return { pro_id: proId, off_date: dateStr, off_hour: h };
+    });
+    if (rows.length) await sb.from("pro_hours_off").insert(rows);
+    toast(hour + " marked available.");
+    renderProCal();
+    return;
+  }
+
+  var isOff = proCalHoursOff.some(function(h) { return h.off_date === dateStr && h.off_hour === hour; });
+  try {
+    if (isOff) {
+      await sb.from("pro_hours_off").delete().eq("pro_id", proId).eq("off_date", dateStr).eq("off_hour", hour);
+      toast(hour + " marked available.");
+    } else {
+      await sb.from("pro_hours_off").insert({ pro_id: proId, off_date: dateStr, off_hour: hour });
+      toast(hour + " marked unavailable.");
     }
     renderProCal();
   } catch(e) { toast("Error: " + e.message, "err"); }
