@@ -1280,7 +1280,7 @@ async function renderMasterCal() {
 
   try {
     // Fetch all approved professionals
-    var pRes = await sb.from("professionals").select("id,name,avatar_url,emoji,travel_buffer,specialty").eq("approved", true);
+    var pRes = await sb.from("professionals").select("id,name,avatar_url,emoji,travel_buffer,specialty").eq("status", "approved");
     var pros = pRes.data || [];
     if (!pros.length) { timeline.innerHTML = "<p style=\"color:var(--mu)\">No approved professionals found.</p>"; return; }
 
