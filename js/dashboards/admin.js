@@ -184,7 +184,8 @@ async function loadAdminPros() {
            + "<td><input class=\"fi\" type=\"number\" min=\"0\" max=\"50\" style=\"width:60px;padding:3px 5px;font-size:12px\" value=\"" + (p.commission_rate || "") + "\" placeholder=\"—\" onchange=\"setProCommission('" + p.id + "',this.value)\">%</td>"
            + "<td>" + sBadge(p.status) + "</td>"
            + "<td style=\"display:flex;gap:5px;flex-wrap:wrap\">"
-           + "<button class=\"btn-sm btn-gh\" onclick=\"openAdminCal('" + p.id + "','" + p.name.replace(/'/g,"\\'") + "')\">📅</button>"
+           + "<button class=\"btn-sm btn-gh\" onclick=\"openAdminCal('" + p.id + "','" + p.name.replace(/'/g,"\\'") + "')\" title=\"Individual calendar\">📅</button>"
+           + "<button class=\"btn-sm btn-gh\" onclick=\"gotoMasterCal()\" title=\"Master Calendar — all pros\">🗓</button>"
            + (p.status !== "approved" ? "<button class=\"btn-sm btn-ok\" onclick=\"approvePro('" + p.id + "')\">Approve</button>" : "")
            + (p.status !== "rejected" ? "<button class=\"btn-sm btn-no\" onclick=\"rejectPro('" + p.id + "')\">Reject</button>" : "")
            + "<button class=\"btn-sm btn-gh\" onclick=\"suspendUser('" + p.user_id + "')\">Suspend</button>"
@@ -1262,6 +1263,10 @@ async function adminForceStatus(bookingId) {
 }
 
 // ── MASTER CALENDAR ─────────────────────────────────────────
+function gotoMasterCal() {
+  aTab("mcal");
+}
+
 async function renderMasterCal() {
   var dateEl = ge("mcalDate");
   var timeline = ge("mcalTimeline");
