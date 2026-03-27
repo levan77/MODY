@@ -1280,9 +1280,10 @@ async function renderMasterCal() {
 
   try {
     // Fetch all approved professionals
-    var pRes = await sb.from("professionals").select("id,name,avatar_url,emoji,travel_buffer,specialty").eq("status", "approved");
+    var pRes = await sb.from("professionals").select("*").eq("status", "approved");
+    if (pRes.error) { timeline.innerHTML = "<p style=\"color:#ef4444\">DB error: " + pRes.error.message + "</p>"; return; }
     var pros = pRes.data || [];
-    if (!pros.length) { timeline.innerHTML = "<p style=\"color:var(--mu)\">No approved professionals found.</p>"; return; }
+    if (!pros.length) { timeline.innerHTML = "<p style=\"color:var(--mu)\">No approved professionals found. Check that pros have status = 'approved' in the database.</p>"; return; }
 
     // Fetch all bookings for this date
     var activeStatuses = ["pending","accepted","on_the_way","arrived","in_progress","completed"];
