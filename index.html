@@ -552,6 +552,12 @@
           </div>
           <div class="fg"><label class="fl">Starting Price (₾)</label><input class="fi" id="pEditPrice" type="number" min="0"></div>
           <div class="fg"><label class="fl">Years of Experience</label><input class="fi" id="pEditYears" type="number" min="0" max="50" placeholder="e.g. 5"></div>
+          <div class="fg">
+            <label class="fl">🚗 Travel Buffer (minutes between bookings)</label>
+            <input class="fi" id="pEditBuffer" type="range" min="30" max="90" step="5" value="60" oninput="ge('pBufferVal').textContent=this.value+' min'">
+            <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--mu);margin-top:4px"><span>30 min</span><span id="pBufferVal" style="font-weight:600;color:var(--g)">60 min</span><span>90 min</span></div>
+            <p style="font-size:12px;color:var(--mu);margin-top:4px">Time blocked before &amp; after each booking for travel across the city.</p>
+          </div>
           <button class="btn btn-g" onclick="saveProProfile()">Submit for Approval</button>
         </div>
         <div class="card">
@@ -616,6 +622,7 @@
       <button class="ni" id="aN-sup" onclick="aTab('sup')">💬 Support</button>
       <button class="ni" id="aN-set" onclick="aTab('set')">⚙️ Settings</button>
       <button class="ni" id="aN-tr" onclick="aTab('tr')">🌐 Translations</button>
+      <button class="ni" id="aN-mcal" onclick="aTab('mcal')">🗓 Master Calendar</button>
       <button class="ni" id="aN-analytics" onclick="aTab('analytics')">📈 Analytics</button>
       <button class="ni" id="aN-blog" onclick="aTab('blog')">📝 Blog / Pages</button>
     </div>
@@ -899,6 +906,19 @@
           <p style="font-size:12px;color:var(--mu);margin-bottom:10px">Create pages like Terms, About, FAQ. Access via /page slug.</p>
           <div id="aPageList"><p style="color:var(--mu);font-size:14px">Loading...</p></div>
         </div>
+      <div id="aTab-mcal" class="hide">
+        <div class="card" style="margin-bottom:12px">
+          <div class="c-hdr">
+            <h3>🗓 Master Calendar — All Professionals</h3>
+            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+              <input type="date" class="fi" id="mcalDate" style="width:160px;padding:6px 10px;font-size:13px" onchange="renderMasterCal()">
+              <button class="btn btn-g" style="font-size:12px" onclick="ge('mcalDate').value=fmtDate(new Date());renderMasterCal()">Today</button>
+            </div>
+          </div>
+          <p style="font-size:13px;color:var(--mu);margin-bottom:14px">See every professional's schedule on one timeline. <strong style="color:var(--g)">Gold</strong> = working time. <strong style="color:#7e22ce">Purple</strong> = travel/gap buffer.</p>
+          <div id="mcalTimeline"><p style="color:var(--mu);font-size:13px">Select a date above to view the timeline.</p></div>
+        </div>
+      </div>
       </div>
     </div>
   </div><div class="mob-nav" id="aMobNav"><div class="mob-nav-inner">

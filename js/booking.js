@@ -8,13 +8,13 @@
 // ═══════════════════════════════════════════════════════════════
 
 // ── STATE ─────────────────────────────────────────────────────
-var selSvc = { id: null, name: "", price: 0, proId: null, proName: "", proSpec: "" };
+var selSvc = { id: null, name: "", price: 0, duration: 60, proId: null, proName: "", proSpec: "" };
 var selNailColors = [];
 var promoApplied  = null;
 var promoDisc     = 0;
 
 // ── SELECT SERVICE ────────────────────────────────────────────
-function selectService(id, name, price, proId, proName, proSpec) {
+function selectService(id, name, price, proId, proName, proSpec, duration) {
   // un-highlight previous selection
   document.querySelectorAll(".svc-btn").forEach(function(b) {
     b.classList.remove("on"); b.textContent = "Select";
@@ -23,7 +23,7 @@ function selectService(id, name, price, proId, proName, proSpec) {
     event.target.classList.add("on");
     event.target.textContent = "✓ Selected";
   }
-  selSvc = { id: id, name: name, price: price, proId: proId, proName: proName, proSpec: proSpec || "" };
+  selSvc = { id: id, name: name, price: price, duration: duration || 60, proId: proId, proName: proName, proSpec: proSpec || "" };
   // Update sidebar price box
   var pb = ge("sbPriceBox"); if (pb) pb.classList.remove("hide");
   var sn = ge("sbN"); if (sn) sn.textContent = name;
@@ -180,13 +180,69 @@ function buildCal() {
 }
 function fmtDate(d) { return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
 function pickDay(ds) { bkSelDateStr = ds; buildCal(); }
-function buildTimeSlots() {
+async function buildTimeSlots() {
   var slots = ge("bkSlots"); if (!slots) return;
-  var now = new Date(), isToday = bkSelDateStr === fmtDate(now), curHr = now.getHours();
+  var now = new Date(), isToday = bkSelDateStr === fmtDate(now), curHr = now.getHours(), curMin = now.getMinutes();
   var times = ["09:00","09:30","10:00","10:30","11:00","11:30","12:00","13:00","14:00","15:00","16:00","17:00","18:00","19:00"];
+
+  // Fetch existing bookings + pro buffer for collision check
+  var blockedSlots = {};
+  var proId = selSvc.proId;
+  var svcDuration = selSvc.duration || 60; // minutes
+  var arrivalBuffer = 60; // minutes before start
+  if (proId && ["d1","d2","d3","d4","d5","d6"].indexOf(proId) === -1) {
+    try {
+      // Get pro's travel buffer
+      var pRes = await sb.from("professionals").select("travel_buffer").eq("id", proId).single();
+      var travelBuffer = (pRes.data && pRes.data.travel_buffer) ? pRes.data.travel_buffer : 60;
+
+      // Get all active bookings for this pro on the selected date
+      var activeStatuses = ["pending","accepted","on_the_way","arrived","in_progress"];
+      var bRes = await sb.from("bookings").select("time_slot,service_name")
+        .eq("pro_id", proId).in("status", activeStatuses)
+        .like("time_slot", bkSelDateStr + "%");
+      var bookings = (bRes.data || []);
+
+      // Get service durations for booked services
+      var svcRes = await sb.from("services").select("name,duration").eq("pro_id", proId);
+      var svcMap = {};
+      (svcRes.data || []).forEach(function(s) { svcMap[s.name] = s.duration || 60; });
+
+      // For each existing booking, calculate blocked time range
+      bookings.forEach(function(bk) {
+        var parts = bk.time_slot.split(" ");
+        if (parts.length < 2) return;
+        var tp = parts[1].split(":");
+        var bkStartMin = parseInt(tp[0]) * 60 + parseInt(tp[1]); // minutes from midnight
+        var bkDuration = svcMap[bk.service_name] || 60;
+        var bkEndMin = bkStartMin + bkDuration;
+        // Blocked zone: [bkStartMin - arrivalBuffer - travelBuffer, bkEndMin + travelBuffer]
+        var blockStart = bkStartMin - arrivalBuffer - travelBuffer;
+        var blockEnd = bkEndMin + travelBuffer;
+
+        // Check each candidate slot against this blocked zone
+        times.forEach(function(tt) {
+          var sp = tt.split(":");
+          var slotStart = parseInt(sp[0]) * 60 + parseInt(sp[1]);
+          var slotEnd = slotStart + svcDuration;
+          // Overlap: new booking [slotStart - arrivalBuffer, slotEnd + travelBuffer] must not overlap [bkStartMin - arrivalBuffer, bkEndMin + travelBuffer]
+          // Simplified: slot is blocked if it overlaps with the blocked zone
+          if (slotEnd + travelBuffer > bkStartMin - arrivalBuffer && slotStart - arrivalBuffer < bkEndMin + travelBuffer) {
+            blockedSlots[tt] = true;
+          }
+        });
+      });
+    } catch(e) { /* continue without blocking */ }
+  }
+
   slots.innerHTML = times.map(function(tt) {
-    var hr = parseInt(tt); var isPast = isToday && hr <= curHr;
-    return "<div class=\"ts" + (isPast?" dis":"") + "\" onclick=\"pickTs(this)\" style=\"padding:9px 6px;font-size:13px\">" + tt + "</div>";
+    var sp = tt.split(":");
+    var hr = parseInt(sp[0]), mn = parseInt(sp[1]);
+    var isPast = isToday && (hr < curHr || (hr === curHr && mn <= curMin));
+    var isBlocked = blockedSlots[tt];
+    var cls = (isPast || isBlocked) ? " dis" : "";
+    var title = isBlocked ? " title=\"Not available — professional is booked nearby\"" : "";
+    return "<div class=\"ts" + cls + "\" onclick=\"pickTs(this)\" style=\"padding:9px 6px;font-size:13px\"" + title + ">" + tt + "</div>";
   }).join("");
 }
 function pickTs(el) {
@@ -207,13 +263,40 @@ async function submitBooking() {
   var timeSlot = bkSelDateStr + " " + slot.textContent;
   var proId = (selSvc.proId && ["d1","d2","d3","d4","d5","d6"].indexOf(selSvc.proId) === -1) ? selSvc.proId : null;
 
-  // Double-booking prevention
+  // Double-booking prevention with buffer logic
   if (proId) {
     try {
       var activeStatuses = ["pending","accepted","on_the_way","arrived","in_progress"];
-      var check = await sb.from("bookings").select("id").eq("pro_id", proId).eq("time_slot", timeSlot).in("status", activeStatuses);
-      if (check.data && check.data.length) {
-        toast("This professional is already booked at this time. Please choose another time.", "err");
+      var pRes2 = await sb.from("professionals").select("travel_buffer").eq("id", proId).single();
+      var travelBuf = (pRes2.data && pRes2.data.travel_buffer) ? pRes2.data.travel_buffer : 60;
+      var arrBuf = 60; // arrival buffer
+      var svcDur = selSvc.duration || 60;
+
+      var bkCheck = await sb.from("bookings").select("time_slot,service_name")
+        .eq("pro_id", proId).in("status", activeStatuses)
+        .like("time_slot", bkSelDateStr + "%");
+
+      var svcCheck = await sb.from("services").select("name,duration").eq("pro_id", proId);
+      var durMap = {};
+      (svcCheck.data || []).forEach(function(s) { durMap[s.name] = s.duration || 60; });
+
+      var tp2 = slot.textContent.split(":");
+      var newStart = parseInt(tp2[0]) * 60 + parseInt(tp2[1]);
+      var newEnd = newStart + svcDur;
+
+      var hasConflict = (bkCheck.data || []).some(function(bk) {
+        var parts = bk.time_slot.split(" ");
+        if (parts.length < 2) return false;
+        var bt = parts[1].split(":");
+        var exStart = parseInt(bt[0]) * 60 + parseInt(bt[1]);
+        var exDur = durMap[bk.service_name] || 60;
+        var exEnd = exStart + exDur;
+        // Check overlap with buffers
+        return (newEnd + travelBuf > exStart - arrBuf) && (newStart - arrBuf < exEnd + travelBuf);
+      });
+
+      if (hasConflict) {
+        toast("This professional is already booked at this time (including travel buffer). Please choose another time.", "err");
         return;
       }
     } catch(e) {}
