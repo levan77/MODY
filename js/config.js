@@ -329,6 +329,9 @@ var EXTRA_SQL = [
   "alter table public.pro_tasks disable row level security;",
   "alter table public.pro_days_off disable row level security;",
   "grant all on public.pro_tasks to anon, authenticated;",
-  "grant all on public.pro_days_off to anon, authenticated;"
+  "grant all on public.pro_days_off to anon, authenticated;",
+  "",
+  "-- Travel buffer column for professionals",
+  "alter table public.professionals add column if not exists travel_buffer integer default 60;"
 ].join("\n");
 

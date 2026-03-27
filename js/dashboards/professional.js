@@ -70,6 +70,7 @@ async function loadProDash() {
     if (ge("pEditArea"))  ge("pEditArea").value  = pro.area || "Vake";
     if (ge("pEditPrice")) ge("pEditPrice").value = pro.price_from || "";
     if (ge("pEditYears")) ge("pEditYears").value = pro.years_experience || "";
+    if (ge("pEditBuffer")) { ge("pEditBuffer").value = pro.travel_buffer || 60; var bv = ge("pBufferVal"); if (bv) bv.textContent = (pro.travel_buffer || 60) + " min"; }
     var pe = ge("pEditStatus");
     if (pe) pe.textContent = pro.status === "approved"
       ? "✅ Profile is live. Changes need re-approval."
@@ -281,6 +282,8 @@ async function saveProProfile() {
   var area  = ge("pEditArea").value;
   var price = parseInt(ge("pEditPrice").value) || 0;
   var years = parseInt(ge("pEditYears").value) || null;
+  var buffer = parseInt(ge("pEditBuffer").value) || 60;
+  if (buffer < 30) buffer = 30; if (buffer > 90) buffer = 90;
   if (!name) { toast("Name required", "err"); return; }
   var proId = profile ? profile.pro_id : null;
 
@@ -300,11 +303,11 @@ async function saveProProfile() {
     var r;
     if (proId) {
       r = await sb.from("professionals").update({
-        name: name, specialty: spec, bio: bio, area: area, price_from: price, years_experience: years, status: "pending"
+        name: name, specialty: spec, bio: bio, area: area, price_from: price, years_experience: years, travel_buffer: buffer, status: "pending"
       }).eq("id", proId).select();
     } else {
       r = await sb.from("professionals").insert({
-        user_id: user.id, name: name, specialty: spec, bio: bio, area: area, price_from: price, years_experience: years, status: "pending"
+        user_id: user.id, name: name, specialty: spec, bio: bio, area: area, price_from: price, years_experience: years, travel_buffer: buffer, status: "pending"
       }).select().single();
       if (r.data && r.data.id) {
         proId = r.data.id;

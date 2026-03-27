@@ -395,6 +395,23 @@ html.dark .bk-dot-now { background: #E8E4DF; color: #1a1a1a; }
 .ts.on   { background: var(--g); border-color: var(--g); color: #1a1a1a; font-weight: 500; }
 .ts.dis  { opacity: .35; cursor: default; pointer-events: none; }
 
+/* ── MASTER CALENDAR TIMELINE ── */
+.mcal-wrap   { overflow-x: auto; }
+.mcal-header { display: flex; align-items: flex-end; margin-bottom: 4px; }
+.mcal-row    { display: flex; align-items: center; margin-bottom: 6px; min-height: 48px; }
+.mcal-label  { width: 140px; min-width: 140px; display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 500; padding-right: 10px; }
+.mcal-name   { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 90px; }
+.mcal-avatar { width: 28px; height: 28px; border-radius: 50%; object-fit: cover; flex-shrink: 0; }
+.mcal-avatar-emoji { width: 28px; height: 28px; border-radius: 50%; background: var(--bg2); display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
+.mcal-hours  { flex: 1; position: relative; height: 20px; border-bottom: 1px solid var(--br); min-width: 600px; }
+.mcal-hr     { position: absolute; font-size: 10px; color: var(--mu); transform: translateX(-50%); bottom: 2px; }
+.mcal-track  { flex: 1; position: relative; height: 40px; background: var(--bg2); border-radius: 6px; min-width: 600px; overflow: hidden; }
+.mcal-block  { position: absolute; top: 2px; height: 36px; border-radius: 4px; overflow: hidden; display: flex; align-items: center; justify-content: center; }
+.mcal-work   { background: var(--g); color: #1a1a1a; z-index: 2; }
+.mcal-buf    { background: #7e22ce; opacity: .55; z-index: 1; }
+.mcal-blk-txt { font-size: 10px; line-height: 1.2; padding: 2px 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mcal-empty  { font-size: 11px; color: var(--mu); padding-left: 8px; line-height: 40px; }
+
 /* ── MODE TABS (dashboard tab switchers) ── */
 .mtabs { display: flex; background: var(--bg2); border-radius: var(--rs); padding: 3px; margin-bottom: 11px; }
 .mtab  { flex: 1; padding: 7px; text-align: center; border-radius: 8px; font-size: 12px; cursor: pointer; color: var(--mu); transition: all .2s; }

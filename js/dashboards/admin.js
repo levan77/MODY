@@ -11,7 +11,7 @@ var adminAllBks = [];
 
 // ── TAB SWITCHER ──────────────────────────────────────────────
 function aTab(tab) {
-  ["ov","app","bks","pros","usr","cats","promo","rev","sup","set","tr","analytics","blog"].forEach(function(x) {
+  ["ov","app","bks","pros","usr","cats","promo","rev","sup","set","tr","analytics","blog","mcal"].forEach(function(x) {
     var el = ge("aTab-" + x), ni = ge("aN-" + x);
     if (el) el.classList.toggle("hide", x !== tab);
     if (ni) ni.classList.toggle("on",   x === tab);
@@ -43,6 +43,9 @@ function aTab(tab) {
   }
   if (tab === "blog") {
     loadAdminBlog();
+  }
+  if (tab === "mcal") {
+    renderMasterCal();
   }
 }
 
@@ -1256,5 +1259,132 @@ async function adminForceStatus(bookingId) {
     loadAdminBks();
     loadAdminData();
   } catch(e) { toast("Error: " + e.message, "err"); }
+}
+
+// ── MASTER CALENDAR ─────────────────────────────────────────
+async function renderMasterCal() {
+  var dateEl = ge("mcalDate");
+  var timeline = ge("mcalTimeline");
+  if (!dateEl || !timeline) return;
+
+  // Default to today if no date selected
+  if (!dateEl.value) dateEl.value = fmtDate(new Date());
+  var selDate = dateEl.value;
+
+  timeline.innerHTML = "<p style=\"color:var(--mu);font-size:13px\">Loading...</p>";
+
+  try {
+    // Fetch all approved professionals
+    var pRes = await sb.from("professionals").select("id,name,avatar_url,emoji,travel_buffer,specialty").eq("approved", true);
+    var pros = pRes.data || [];
+    if (!pros.length) { timeline.innerHTML = "<p style=\"color:var(--mu)\">No approved professionals found.</p>"; return; }
+
+    // Fetch all bookings for this date
+    var activeStatuses = ["pending","accepted","on_the_way","arrived","in_progress","completed"];
+    var bRes = await sb.from("bookings").select("*").in("status", activeStatuses).like("time_slot", selDate + "%");
+    var allBookings = bRes.data || [];
+
+    // Fetch all services for duration lookup
+    var sRes = await sb.from("services").select("pro_id,name,duration");
+    var svcDurMap = {};
+    (sRes.data || []).forEach(function(s) {
+      if (!svcDurMap[s.pro_id]) svcDurMap[s.pro_id] = {};
+      svcDurMap[s.pro_id][s.name] = s.duration || 60;
+    });
+
+    // Timeline config: 8:00 to 22:00 (14 hours)
+    var startHr = 8, endHr = 22, totalMin = (endHr - startHr) * 60;
+
+    // Build header with hour markers
+    var html = "<div class=\"mcal-wrap\">";
+    html += "<div class=\"mcal-header\">";
+    html += "<div class=\"mcal-label\">Professional</div>";
+    html += "<div class=\"mcal-hours\">";
+    for (var h = startHr; h <= endHr; h++) {
+      var pct = ((h - startHr) * 60 / totalMin * 100);
+      html += "<span class=\"mcal-hr\" style=\"left:" + pct + "%\">" + String(h).padStart(2, "0") + ":00</span>";
+    }
+    html += "</div></div>";
+
+    // Render each pro row
+    pros.forEach(function(pro) {
+      var buffer = pro.travel_buffer || 60;
+      var arrivalBuf = 60;
+      var proBks = allBookings.filter(function(b) { return b.pro_id === pro.id; });
+      var proSvcMap = svcDurMap[pro.id] || {};
+
+      var avatar = pro.avatar_url
+        ? "<img src=\"" + pro.avatar_url + "\" class=\"mcal-avatar\">"
+        : "<span class=\"mcal-avatar-emoji\">" + (pro.emoji || "💅") + "</span>";
+
+      html += "<div class=\"mcal-row\">";
+      html += "<div class=\"mcal-label\">" + avatar + "<span class=\"mcal-name\">" + pro.name + "</span></div>";
+      html += "<div class=\"mcal-track\">";
+
+      if (!proBks.length) {
+        html += "<span class=\"mcal-empty\">No bookings</span>";
+      }
+
+      proBks.forEach(function(bk) {
+        var parts = bk.time_slot.split(" ");
+        if (parts.length < 2) return;
+        var tp = parts[1].split(":");
+        var bkStartMin = parseInt(tp[0]) * 60 + parseInt(tp[1]);
+        var svcDuration = proSvcMap[bk.service_name] || 60;
+        var bkEndMin = bkStartMin + svcDuration;
+
+        // Travel buffer before (arrival buffer)
+        var bufBeforeStart = bkStartMin - arrivalBuf;
+        if (bufBeforeStart < startHr * 60) bufBeforeStart = startHr * 60;
+        var bufBeforeLeft = (bufBeforeStart - startHr * 60) / totalMin * 100;
+        var bufBeforeWidth = (bkStartMin - bufBeforeStart) / totalMin * 100;
+
+        // Working time block
+        var workLeft = (bkStartMin - startHr * 60) / totalMin * 100;
+        var workWidth = svcDuration / totalMin * 100;
+
+        // Travel buffer after
+        var bufAfterEnd = bkEndMin + buffer;
+        if (bufAfterEnd > endHr * 60) bufAfterEnd = endHr * 60;
+        var bufAfterLeft = (bkEndMin - startHr * 60) / totalMin * 100;
+        var bufAfterWidth = (bufAfterEnd - bkEndMin) / totalMin * 100;
+
+        var startTime = parts[1];
+        var endH = Math.floor(bkEndMin / 60), endM = bkEndMin % 60;
+        var endTime = String(endH).padStart(2, "0") + ":" + String(endM).padStart(2, "0");
+
+        // Arrival buffer block (purple)
+        if (bufBeforeWidth > 0) {
+          html += "<div class=\"mcal-block mcal-buf\" style=\"left:" + bufBeforeLeft + "%;width:" + bufBeforeWidth + "%\" title=\"Arrival buffer: " + arrivalBuf + " min before\">"
+            + "<span class=\"mcal-blk-txt\">🚗</span></div>";
+        }
+
+        // Working time block (gold)
+        html += "<div class=\"mcal-block mcal-work\" style=\"left:" + workLeft + "%;width:" + workWidth + "%\" title=\"" + bk.service_name + " — " + startTime + " to " + endTime + "\">"
+          + "<span class=\"mcal-blk-txt\">" + (bk.client_name || "Client") + " · " + bk.service_name + "<br>" + startTime + "–" + endTime
+          + (bk.address ? "<br>📍 " + bk.address : "") + "</span></div>";
+
+        // Travel buffer after block (purple)
+        if (bufAfterWidth > 0) {
+          html += "<div class=\"mcal-block mcal-buf\" style=\"left:" + bufAfterLeft + "%;width:" + bufAfterWidth + "%\" title=\"Travel buffer: " + buffer + " min after\">"
+            + "<span class=\"mcal-blk-txt\">🚗</span></div>";
+        }
+      });
+
+      html += "</div></div>";
+    });
+
+    html += "</div>";
+
+    // Legend
+    html += "<div style=\"display:flex;gap:16px;margin-top:12px;font-size:12px;color:var(--mu)\">"
+      + "<span><span style=\"display:inline-block;width:14px;height:14px;background:var(--g);border-radius:3px;vertical-align:middle;margin-right:4px\"></span> Working Time</span>"
+      + "<span><span style=\"display:inline-block;width:14px;height:14px;background:#7e22ce;border-radius:3px;vertical-align:middle;margin-right:4px\"></span> Travel / Gap Buffer</span>"
+      + "</div>";
+
+    timeline.innerHTML = html;
+  } catch(e) {
+    timeline.innerHTML = "<p style=\"color:#ef4444\">Error loading calendar: " + e.message + "</p>";
+  }
 }
 
