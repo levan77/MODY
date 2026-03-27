@@ -465,6 +465,8 @@ function openBkDetail(bkJson, role) {
   + "</div>"
   + (bk.design_url ? "<div style=\"margin-top:11px\"><div class=\"fl\">🎨 Client Design Reference</div><div style=\"margin-top:6px\"><img src=\"" + bk.design_url + "\" style=\"max-width:100%;max-height:250px;border-radius:var(--rs);border:1.5px solid var(--br);cursor:pointer;object-fit:contain\" onclick=\"lbOpen(['" + bk.design_url + "'],0)\"></div></div>" : "")
   + nailHtml
+  + ((isC || isP) && bk.pro_id ? "<div style=\"margin-top:12px\"><button class=\"btn btn-gh\" style=\"display:flex;align-items:center;gap:6px;width:100%;justify-content:center;padding:12px;font-size:14px;border-radius:var(--rs)\" onclick=\"closeM('bkd');openChatFromBooking('" + bk.id + "','" + (isC ? (bk.pro_name || "Pro") : (bk.client_name || "Client")).replace(/'/g,"\\'") + "')\">💬 Chat with " + (isC ? (bk.pro_name || "Professional") : (bk.client_name || "Client")) + "</button></div>" : "")
+  + (isA && bk.pro_id ? "<div style=\"margin-top:12px\"><button class=\"btn btn-gh\" style=\"display:flex;align-items:center;gap:6px;width:100%;justify-content:center;padding:12px;font-size:14px;border-radius:var(--rs)\" onclick=\"closeM('bkd');adminViewBookingChat('" + bk.id + "','" + (bk.client_name || "Client").replace(/'/g,"\\'") + "','" + (bk.pro_name || "Pro").replace(/'/g,"\\'") + "')\">💬 View Chat</button></div>" : "")
   + (acts ? "<div style=\"margin-top:16px;padding-top:14px;border-top:2px solid var(--br)\">"
     + "<div style=\"font-size:11px;font-weight:600;color:var(--mu);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px\">Actions</div>"
     + "<div style=\"display:flex;flex-direction:column;gap:8px\">" + acts + "</div></div>" : "");
