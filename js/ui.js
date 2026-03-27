@@ -147,7 +147,7 @@ function updateNav() {
            : "show('dash-client');loadClientDash()";
   nb.innerHTML =
     "<span style=\"font-size:13px;color:var(--mu)\">Hi, " + nm + "</span>" +
-    "<span style=\"background:rgba(212,175,55,.15);color:var(--gd);padding:3px 10px;border-radius:50px;font-size:12px;font-weight:500\">" + rl + "</span>" +
+    "<span style=\"background:rgba(234,184,183,.15);color:var(--gd);padding:3px 10px;border-radius:50px;font-size:12px;font-weight:500\">" + rl + "</span>" +
     "<button class=\"btn btn-g\" onclick=\"" + dst + "\">Dashboard</button>" +
     "<button class=\"btn btn-o\" onclick=\"signOut()\">" + t("cmOutLbl") + "</button>";
 }

@@ -7,8 +7,8 @@
 /* ── LIGHT MODE (default) ── */
 :root {
   /* Brand */
-  --g:  #D4AF37;   /* gold accent */
-  --gd: #A8892A;   /* gold dark (hover) */
+  --g:  #EAB8B7;   /* pink accent */
+  --gd: #C9918F;   /* pink dark (hover) */
 
   /* Backgrounds */
   --bg:  #F8F6F3;  /* page background */

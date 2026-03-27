@@ -127,7 +127,7 @@ async function loadProDash() {
               : "<button class=\"btn btn-g\" style=\"font-size:13px\" onclick=\"startLocSharing('" + b.id + "')\">📍 Start Sharing</button>")
             + "</div></div>";
         } else {
-          return "<div class=\"share-loc-bar\" style=\"background:rgba(234,179,8,.1);border-color:rgba(234,179,8,.3)\">"
+          return "<div class=\"share-loc-bar\" style=\"background:rgba(234,184,183,.1);border-color:rgba(234,184,183,.3)\">"
             + "<div style=\"display:flex;align-items:center;gap:10px\">"
             + "<span style=\"font-size:20px\">⏳</span>"
             + "<div>"
@@ -546,18 +546,18 @@ async function openColorModal(id) {
   ge("colorId").value = id || "";
   ge("colorModalTitle").textContent = id ? "Edit Nail Color" : "Add Nail Color";
   if (!id) {
-    ge("colorName").value = ""; ge("colorHex").value = "#D4AF37"; ge("colorBrand").value = ""; ge("colorCode").value = "";
+    ge("colorName").value = ""; ge("colorHex").value = "#EAB8B7"; ge("colorBrand").value = ""; ge("colorCode").value = "";
   } else {
     try {
       var r = await sb.from("nail_colors").select("*").eq("id", id).single();
       if (r.data) {
         ge("colorName").value  = r.data.name || "";
-        ge("colorHex").value   = r.data.hex_code || "#D4AF37";
+        ge("colorHex").value   = r.data.hex_code || "#EAB8B7";
         ge("colorBrand").value = r.data.brand || "";
         ge("colorCode").value  = r.data.code || "";
       }
     } catch(e) {
-      ge("colorName").value = ""; ge("colorHex").value = "#D4AF37"; ge("colorBrand").value = ""; ge("colorCode").value = "";
+      ge("colorName").value = ""; ge("colorHex").value = "#EAB8B7"; ge("colorBrand").value = ""; ge("colorCode").value = "";
     }
   }
   openM("color");

@@ -152,7 +152,7 @@
 .tbl th { font-size: 11px; text-transform: uppercase; letter-spacing: .5px; color: var(--mu); font-weight: 500; padding: 7px 8px; text-align: left; border-bottom: 1px solid var(--br); }
 .tbl td { padding: 8px; font-size: 13px; border-bottom: 1px solid var(--br); vertical-align: middle; }
 .tbl tr:last-child td { border: none; }
-.tbl tbody tr:hover td { background: rgba(212,175,55,.04); }
+.tbl tbody tr:hover td { background: rgba(234,184,183,.04); }
 .tw { overflow-x: auto; }
 
 /* ── CALENDAR ── */
@@ -171,7 +171,7 @@
 .cal-day.off                 { background: rgba(239,68,68,.06); }
 .cal-day.has-bk::after       { content: ""; position: absolute; bottom: 3px; width: 5px; height: 5px; border-radius: 50%; background: var(--g); }
 .cal-day.has-task::after     { content: ""; position: absolute; bottom: 3px; width: 5px; height: 5px; border-radius: 50%; background: #7e22ce; }
-.cal-day.sel                 { background: rgba(212,175,55,.15); border-color: var(--g); }
+.cal-day.sel                 { background: rgba(234,184,183,.15); border-color: var(--g); }
 .cal-nav                     { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
 .cal-nav h3                  { font-size: 15px; font-weight: 500; }
 .cal-nav button              { background: var(--bg2); border: none; border-radius: var(--rs); padding: 6px 10px; cursor: pointer; color: var(--tx); font-size: 14px; }
@@ -311,7 +311,7 @@ input:checked + .sw-t:before   { transform: translateX(18px); }
   padding: 20px; text-align: center; cursor: pointer;
   transition: all .2s; position: relative;
 }
-.upload-zone:hover { border-color: var(--g); background: rgba(212,175,55,.03); }
+.upload-zone:hover { border-color: var(--g); background: rgba(234,184,183,.03); }
 .upload-zone input[type=file] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
 
 /* Avatar ring (profile edit) */
@@ -329,7 +329,7 @@ input:checked + .sw-t:before   { transform: translateX(18px); }
   width: 48px; height: 48px; border-radius: 50%; background: var(--g);
   border: none; cursor: pointer; font-size: 20px;
   display: flex; align-items: center; justify-content: center;
-  box-shadow: 0 4px 16px rgba(212,175,55,.45);
+  box-shadow: 0 4px 16px rgba(234,184,183,.45);
 }
 .chat-win {
   background: var(--cd); border-radius: var(--r);
@@ -346,7 +346,7 @@ input:checked + .sw-t:before   { transform: translateX(18px); }
 }
 .chat-threads { padding: 8px; border-bottom: 1px solid var(--br); display: flex; gap: 5px; flex-direction: column; max-height: 140px; overflow-y: auto; }
 .chat-tb      { padding: 7px 10px; border-radius: var(--rs); border: 1px solid var(--br); background: var(--bg2); color: var(--tx); font-size: 12px; cursor: pointer; transition: all .2s; text-align: left; }
-.chat-tb.on, .chat-tb:hover { background: rgba(212,175,55,.15); border-color: var(--g); color: var(--gd); font-weight: 500; }
+.chat-tb.on, .chat-tb:hover { background: rgba(234,184,183,.15); border-color: var(--g); color: var(--gd); font-weight: 500; }
 .chat-msgs { flex: 1; overflow-y: auto; padding: 10px; display: flex; flex-direction: column; gap: 6px; }
 .msg      { max-width: 82%; padding: 7px 10px; border-radius: 13px; font-size: 13px; line-height: 1.5; }
 .msg-in   { background: var(--bg2); align-self: flex-start; border-bottom-left-radius: 3px; }
@@ -367,7 +367,7 @@ input:checked + .sw-t:before   { transform: translateX(18px); }
 .app-ava img { width: 100%; height: 100%; object-fit: cover; }
 
 .bdg    { display: inline-block; padding: 2px 9px; border-radius: 50px; font-size: 11px; font-weight: 500; }
-.bdg-g  { background: rgba(212,175,55,.12); color: var(--gd); }
+.bdg-g  { background: rgba(234,184,183,.12); color: var(--gd); }
 .bdg-gr { background: rgba(34,197,94,.1);   color: #15803d; }
 
 .rev-item { padding: 14px; border-bottom: 1px solid var(--br); transition: background .15s; }

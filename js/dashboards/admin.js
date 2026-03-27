@@ -176,7 +176,7 @@ async function loadAdminPros() {
       return "<tr>"
            + "<td><strong>" + p.name + "</strong>"
            + (p.verified ? " <span class=\"vbadge\">Verified</span>" : "")
-           + (p.featured ? " <span style=\"display:inline-flex;align-items:center;gap:2px;background:rgba(234,179,8,.12);color:#a16207;border:1px solid rgba(234,179,8,.25);padding:2px 7px;border-radius:50px;font-size:10px;font-weight:600\">★ Featured</span>" : "")
+           + (p.featured ? " <span style=\"display:inline-flex;align-items:center;gap:2px;background:rgba(234,184,183,.12);color:#C9918F;border:1px solid rgba(234,184,183,.25);padding:2px 7px;border-radius:50px;font-size:10px;font-weight:600\">★ Featured</span>" : "")
            + "<div style=\"font-size:10px;color:var(--g);font-weight:600;letter-spacing:.5px\">" + uid + "</div></td>"
            + "<td>" + (p.specialty || "—") + "</td>"
            + "<td>" + (p.area || "—") + "</td>"
@@ -818,7 +818,7 @@ async function loadAnalytics() {
             + "<td style=\"font-weight:500\">" + s.name + "</td>"
             + "<td>" + s.d.count + "</td>"
             + "<td style=\"font-weight:600\">" + s.d.revenue + "₾</td>"
-            + "<td><span style=\"background:rgba(212,175,55,.12);color:var(--gd);padding:2px 8px;border-radius:50px;font-size:12px;font-weight:600\">" + s.d.commRate + "%</span></td>"
+            + "<td><span style=\"background:rgba(234,184,183,.12);color:var(--gd);padding:2px 8px;border-radius:50px;font-size:12px;font-weight:600\">" + s.d.commRate + "%</span></td>"
             + "<td style=\"color:#22c55e;font-weight:600\">" + s.d.platform + "₾</td>"
             + "<td style=\"color:#7e22ce;font-weight:600\">" + s.d.proEarn + "₾</td>"
             + "</tr>";
@@ -861,7 +861,7 @@ async function loadAnalytics() {
             + "<td style=\"font-weight:500\">" + p.name + "</td>"
             + "<td>" + p.count + "</td>"
             + "<td style=\"font-weight:600\">" + p.revenue + "₾</td>"
-            + "<td><span style=\"background:rgba(212,175,55,.12);color:var(--gd);padding:2px 8px;border-radius:50px;font-size:12px;font-weight:600\">" + p.commRate + "%</span></td>"
+            + "<td><span style=\"background:rgba(234,184,183,.12);color:var(--gd);padding:2px 8px;border-radius:50px;font-size:12px;font-weight:600\">" + p.commRate + "%</span></td>"
             + "<td style=\"color:#22c55e;font-weight:600\">" + p.platform + "₾</td>"
             + "<td style=\"color:#7e22ce;font-weight:600\">" + p.proEarn + "₾</td>"
             + "</tr>";
@@ -1119,7 +1119,7 @@ async function loadBlogPublic() {
     var posts = r.data || [];
     if (!posts.length) { el.innerHTML = "<p style=\"color:var(--mu);font-size:14px\">No posts yet. Check back soon!</p>"; return; }
     el.innerHTML = posts.map(function(p) {
-      return "<div style=\"background:var(--cd);border-radius:var(--r);overflow:hidden;box-shadow:var(--sh);margin-bottom:14px;cursor:pointer;transition:all .2s;border:1.5px solid transparent\" onclick=\"viewPost('" + p.id + "')\" onmouseover=\"this.style.borderColor='rgba(212,175,55,.4)'\" onmouseout=\"this.style.borderColor='transparent'\">"
+      return "<div style=\"background:var(--cd);border-radius:var(--r);overflow:hidden;box-shadow:var(--sh);margin-bottom:14px;cursor:pointer;transition:all .2s;border:1.5px solid transparent\" onclick=\"viewPost('" + p.id + "')\" onmouseover=\"this.style.borderColor='rgba(234,184,183,.4)'\" onmouseout=\"this.style.borderColor='transparent'\">"
         + (p.cover_url ? "<img src=\"" + p.cover_url + "\" style=\"width:100%;height:200px;object-fit:cover\">" : "")
         + "<div style=\"padding:16px\">"
         + "<div style=\"font-size:12px;color:var(--g);font-weight:600;margin-bottom:4px\">" + new Date(p.created_at).toLocaleDateString() + (p.tags ? " · " + p.tags : "") + "</div>"

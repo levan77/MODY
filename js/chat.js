@@ -358,7 +358,7 @@ async function adminOpenChat(threadId, clientName, proName) {
       var isClient = m.sender_role === "client";
       var time = m.created_at ? new Date(m.created_at).toLocaleString() : "";
       var roleBadge = m.sender_role === "pro"
-        ? "<span style=\"background:rgba(212,175,55,.15);color:var(--gd);padding:1px 6px;border-radius:50px;font-size:9px;font-weight:600\">PRO</span>"
+        ? "<span style=\"background:rgba(234,184,183,.15);color:var(--gd);padding:1px 6px;border-radius:50px;font-size:9px;font-weight:600\">PRO</span>"
         : "<span style=\"background:rgba(59,130,246,.12);color:#3b82f6;padding:1px 6px;border-radius:50px;font-size:9px;font-weight:600\">CLIENT</span>";
       return "<div class=\"msg " + (isClient ? "msg-in" : "msg-out") + "\" style=\"max-width:90%\">"
         + "<div style=\"font-size:10px;margin-bottom:3px;display:flex;align-items:center;gap:4px\">"

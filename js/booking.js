@@ -170,8 +170,8 @@ function buildCal() {
     var ds = fmtDate(d), isToday = ds === todayStr, isSel = ds === bkSelDateStr;
     var mo = d.toLocaleString("default",{month:"short"});
     return "<div style=\"padding:8px 4px;text-align:center;border-radius:var(--rs);cursor:pointer;"
-      + "border:2px solid " + (isSel ? "var(--g)" : isToday ? "rgba(212,175,55,.4)" : "transparent") + ";"
-      + (isSel ? "background:rgba(212,175,55,.15);" : "") + "transition:all .15s\" onclick=\"pickDay('" + ds + "')\">"
+      + "border:2px solid " + (isSel ? "var(--g)" : isToday ? "rgba(234,184,183,.4)" : "transparent") + ";"
+      + (isSel ? "background:rgba(234,184,183,.15);" : "") + "transition:all .15s\" onclick=\"pickDay('" + ds + "')\">"
       + (d.getDate()===1||idx===0 ? "<div style=\"font-size:9px;color:var(--g);font-weight:600\">" + mo + "</div>" : "")
       + "<div style=\"font-size:14px;font-weight:" + (isToday||isSel?"700":"500") + "\">" + d.getDate() + "</div>"
       + (isToday ? "<div style=\"font-size:8px;color:var(--g)\">Today</div>" : "") + "</div>";
@@ -400,7 +400,7 @@ function openBkDetail(bkJson, role) {
     if (bk.status === "on_the_way")
       acts += "<button class=\"btn\" style=\"display:block;width:100%;padding:14px;font-size:15px;justify-content:center;border-radius:var(--rs);margin-bottom:6px;font-weight:600;min-height:50px;background:#3b82f6;color:#fff;border:none;cursor:pointer\" onclick=\"chBkStatus('" + bk.id + "','arrived','pro')\">📍 " + t("iArrived") + "</button>";
     if (bk.status === "arrived")
-      acts += "<div style=\"background:rgba(234,179,8,.1);border:1px solid rgba(234,179,8,.25);border-radius:var(--rs);padding:10px 14px;font-size:13px;color:#a16207;display:flex;align-items:center;gap:8px\"><span style=\"font-size:18px\">⏳</span>Waiting for client to confirm your arrival…</div>";
+      acts += "<div style=\"background:rgba(234,184,183,.1);border:1px solid rgba(234,184,183,.25);border-radius:var(--rs);padding:10px 14px;font-size:13px;color:#a16207;display:flex;align-items:center;gap:8px\"><span style=\"font-size:18px\">⏳</span>Waiting for client to confirm your arrival…</div>";
     if (bk.status === "in_progress")
       acts += "<button class=\"btn btn-g\" style=\"display:block;width:100%;padding:14px;font-size:15px;justify-content:center;border-radius:var(--rs);margin-bottom:6px;font-weight:600;min-height:50px\" onclick=\"chBkStatus('" + bk.id + "','completed','pro')\">✓ " + t("markCompleted") + "</button>";
     if (bk.status === "pending")

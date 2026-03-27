@@ -46,7 +46,7 @@ nav {
 .lsw.open .ldrop { display: block; }
 .lopt { display: flex; align-items: center; gap: 9px; padding: 10px 13px; cursor: pointer; font-size: 13px; transition: background .15s; }
 .lopt:hover { background: var(--bg2); }
-.lopt.on    { background: rgba(212,175,55,.1); color: var(--gd); font-weight: 500; }
+.lopt.on    { background: rgba(234,184,183,.1); color: var(--gd); font-weight: 500; }
 
 /* ── PAGE WRAPPERS ── */
 /* All top-level pages are hidden by default; JS adds .on to reveal */
@@ -80,7 +80,7 @@ nav {
   border: none; background: none; width: 100%; text-align: left;
 }
 .ni:hover { background: var(--bg2); color: var(--tx); }
-.ni.on    { background: rgba(212,175,55,.12); color: var(--gd); font-weight: 500; }
+.ni.on    { background: rgba(234,184,183,.12); color: var(--gd); font-weight: 500; }
 
 /* ── HERO SECTION ── */
 .hero {
@@ -101,7 +101,7 @@ nav {
 .hero::before {
   content: ""; position: absolute; top: -40%; right: -5%;
   width: 480px; height: 480px;
-  background: radial-gradient(circle, rgba(212,175,55,.12), transparent 70%);
+  background: radial-gradient(circle, rgba(234,184,183,.12), transparent 70%);
   pointer-events: none; z-index: 2;
 }
 .hero-w { position: relative; z-index: 2; max-width: 1100px; margin: 0 auto; }
@@ -125,7 +125,7 @@ nav {
   box-shadow: var(--sh); position: relative;
   min-height: 140px; display: flex; align-items: flex-end; justify-content: center; padding: 0;
 }
-.cat-card:hover { transform: translateY(-3px); box-shadow: var(--sl); border-color: rgba(212,175,55,.4); z-index: 30; }
+.cat-card:hover { transform: translateY(-3px); box-shadow: var(--sl); border-color: rgba(234,184,183,.4); z-index: 30; }
 .cat-card-bg {
   position: absolute; inset: 0;
   background-size: cover; background-position: center;
@@ -166,7 +166,7 @@ html.dark .cat-subs::after { border-top-color: rgba(40,40,40,.92); }
   color: var(--tx); cursor: pointer; transition: all .15s;
   text-shadow: none; text-align: left; white-space: nowrap; letter-spacing: .3px;
 }
-.cat-sub-item:hover { background: rgba(212,175,55,.15); padding-left: 22px; color: var(--gd); }
+.cat-sub-item:hover { background: rgba(234,184,183,.15); padding-left: 22px; color: var(--gd); }
 
 /* ── HOW IT WORKS ── */
 .how      { background: #1A1A1A; color: #fff; padding: 60px 20px; overflow: hidden; }
@@ -183,7 +183,7 @@ html.dark .cat-subs::after { border-top-color: rgba(40,40,40,.92); }
 .hiw-tab.on::after { content: ""; position: absolute; bottom: 0; left: 0; right: 0; height: 2px; background: var(--g); animation: hiwSlide .3s ease; }
 .hiw-num  {
   width: 40px; height: 40px; border-radius: 50%;
-  border: 1.5px solid rgba(212,175,55,.3); background: rgba(212,175,55,.06); color: var(--g);
+  border: 1.5px solid rgba(234,184,183,.3); background: rgba(234,184,183,.06); color: var(--g);
   font-family: "Cormorant Garamond", serif; font-size: 17px;
   display: flex; align-items: center; justify-content: center;
   margin: 0 auto 10px; transition: all .3s;
@@ -197,7 +197,7 @@ html.dark .cat-subs::after { border-top-color: rgba(40,40,40,.92); }
 .hiw-visual   { background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); border-radius: var(--r); padding: 28px; display: flex; align-items: center; justify-content: center; min-height: 180px; }
 .hiw-icon     { font-size: 64px; animation: hiwBounce .6s ease; }
 .hiw-features { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
-.hiw-feat     { display: inline-flex; align-items: center; gap: 5px; padding: 5px 12px; border-radius: 50px; background: rgba(212,175,55,.08); border: 1px solid rgba(212,175,55,.2); color: var(--g); font-size: 12px; }
+.hiw-feat     { display: inline-flex; align-items: center; gap: 5px; padding: 5px 12px; border-radius: 50px; background: rgba(234,184,183,.08); border: 1px solid rgba(234,184,183,.2); color: var(--g); font-size: 12px; }
 
 /* ── PROFESSIONAL PROFILE PAGE ── */
 .profile-cover { height: 140px; background: linear-gradient(135deg, #1A1A1A, #2C2C2C); }
@@ -296,7 +296,7 @@ footer        { background: #1A1A1A; color: rgba(255,255,255,.4); padding: 38px 
   .hiw-tabs               { flex-direction: column; gap: 4px; }
   .hiw-tabs::before       { display: none; }
   .hiw-tab                { text-align: left; padding: 10px 14px; border-radius: var(--rs); }
-  .hiw-tab.on             { background: rgba(212,175,55,.1); }
+  .hiw-tab.on             { background: rgba(234,184,183,.1); }
   .hiw-tab.on::after      { display: none; }
 
   /* Grids */
