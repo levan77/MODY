@@ -341,6 +341,9 @@ var EXTRA_SQL = [
   "alter table public.professionals add column if not exists travel_buffer integer default 60;",
   "",
   "-- Read status for chat messages",
-  "alter table public.messages add column if not exists is_read boolean default false;"
+  "alter table public.messages add column if not exists is_read boolean default false;",
+  "",
+  "-- Years of experience for professionals",
+  "alter table public.professionals add column if not exists years_experience integer default 0;"
 ].join("\n");
 

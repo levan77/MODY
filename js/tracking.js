@@ -3,6 +3,24 @@
 //  Load order: 12 (depends on: config.js, ui.js)
 // ═══════════════════════════════════════════════════════════════
 
+var trackerMinimized = false;
+
+function toggleTrackerMin() {
+  trackerMinimized = !trackerMinimized;
+  var el = ge("fTracker");
+  if (el) {
+    var body = el.querySelector(".ft-body");
+    var toggle = el.querySelector(".ft-toggle");
+    if (trackerMinimized) {
+      if (body) body.style.display = "none";
+      if (toggle) toggle.style.display = "none";
+      el.innerHTML = "<div onclick=\"toggleTrackerMin()\" style=\"cursor:pointer;padding:6px 14px;font-size:13px;display:flex;align-items:center;gap:6px;color:var(--mu)\">📋 <span style=\"font-weight:600\">" + (el.querySelectorAll(".ft-pill").length || "0") + "</span> active ▲</div>" + el.innerHTML;
+    } else {
+      renderTracker();
+    }
+  }
+}
+
 function startTracker() {
   renderTracker();
   if (ftInterval) clearInterval(ftInterval);
@@ -73,11 +91,17 @@ async function renderTracker() {
       + "</div>" + actions + "</div>";
   }).join("");
 
+  if (trackerMinimized) {
+    el.innerHTML = "<div onclick=\"toggleTrackerMin()\" style=\"cursor:pointer;padding:6px 14px;font-size:13px;display:flex;align-items:center;gap:6px;color:var(--mu)\">📋 <span style=\"font-weight:600\">" + bks.length + "</span> active ▲</div>";
+    return;
+  }
+
   el.innerHTML = "<div class=\"ft-toggle\" onclick=\"toggleTracker()\">"
     + "<span>📋 Active Bookings</span>"
     + "<div style=\"display:flex;align-items:center;gap:8px\">"
     + "<span class=\"ft-count\">" + bks.length + "</span>"
     + "<span id=\"ftArrow\" style=\"font-size:10px\">" + (ftCollapsed ? "▲" : "▼") + "</span>"
+    + "<span onclick=\"event.stopPropagation();toggleTrackerMin()\" style=\"cursor:pointer;font-size:12px;margin-left:4px\" title=\"Minimize\">─</span>"
     + "</div></div>"
     + "<div class=\"ft-body" + (ftCollapsed ? " collapsed" : "") + "\">" + pills + "</div>";
 }

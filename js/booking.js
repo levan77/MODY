@@ -395,8 +395,15 @@ function openBkDetail(bkJson, role) {
       acts += "<div style=\"background:rgba(168,85,247,.1);border:2px solid rgba(168,85,247,.3);border-radius:var(--rs);padding:18px;text-align:center;width:100%\"><span style=\"font-size:28px\">🚗</span><div style=\"font-weight:600;color:#7e22ce;font-size:16px;margin-top:6px\">" + t("proOnWay") + "</div></div>";
   }
   if (isP) {
-    if (bk.status === "accepted")
-      acts += "<button class=\"btn\" style=\"display:block;width:100%;padding:14px;font-size:15px;justify-content:center;border-radius:var(--rs);margin-bottom:6px;font-weight:600;min-height:50px;background:#7e22ce;color:#fff;border:none;cursor:pointer\" onclick=\"chBkStatus('" + bk.id + "','on_the_way','pro')\">🚗 " + t("onTheWay") + "</button>";
+    if (bk.status === "accepted") {
+      var bkDateStr = (bk.time_slot || "").substring(0, 10);
+      var todayStr = new Date().getFullYear() + "-" + String(new Date().getMonth()+1).padStart(2,"0") + "-" + String(new Date().getDate()).padStart(2,"0");
+      if (bkDateStr === todayStr) {
+        acts += "<button class=\"btn\" style=\"display:block;width:100%;padding:14px;font-size:15px;justify-content:center;border-radius:var(--rs);margin-bottom:6px;font-weight:600;min-height:50px;background:#7e22ce;color:#fff;border:none;cursor:pointer\" onclick=\"chBkStatus('" + bk.id + "','on_the_way','pro')\">🚗 " + t("onTheWay") + "</button>";
+      } else {
+        acts += "<div style=\"display:block;width:100%;padding:14px;font-size:14px;text-align:center;border-radius:var(--rs);margin-bottom:6px;background:var(--bg2);color:var(--mu);border:1px solid var(--br)\">🚗 " + t("onTheWay") + "<div style=\"font-size:11px;margin-top:4px\">" + t("onTheWayRestrict") + "</div></div>";
+      }
+    }
     if (bk.status === "on_the_way")
       acts += "<button class=\"btn\" style=\"display:block;width:100%;padding:14px;font-size:15px;justify-content:center;border-radius:var(--rs);margin-bottom:6px;font-weight:600;min-height:50px;background:#3b82f6;color:#fff;border:none;cursor:pointer\" onclick=\"chBkStatus('" + bk.id + "','arrived','pro')\">📍 " + t("iArrived") + "</button>";
     if (bk.status === "arrived")
@@ -490,6 +497,18 @@ function openBkDetail(bkJson, role) {
 async function chBkStatus(id, status, actor) {
   if (!status) return;
   try {
+    // Same-day validation for on_the_way
+    if (status === "on_the_way") {
+      var bkCheck = await sb.from("bookings").select("time_slot").eq("id", id).single();
+      if (bkCheck.data) {
+        var bkDate = (bkCheck.data.time_slot || "").substring(0, 10);
+        var nowDate = new Date().getFullYear() + "-" + String(new Date().getMonth()+1).padStart(2,"0") + "-" + String(new Date().getDate()).padStart(2,"0");
+        if (bkDate !== nowDate) {
+          toast("You can only go 'On the Way' on the booking day.", "err");
+          return;
+        }
+      }
+    }
     var r = await sb.from("bookings").update({ status: status }).eq("id", id);
     if (r.error) throw r.error;
     toast("Status: " + status.replace(/_/g, " "), "ok");
