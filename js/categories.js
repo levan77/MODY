@@ -131,30 +131,57 @@ async function filterByAvailability() {
 
   try {
     var unavail = [];
-    var slotStr = date + (time ? " " + time : "");
 
-    // 1. Get pros with day off on this date
+    // 1. Get pros with day off
     var doff = await sb.from("pro_days_off").select("pro_id").eq("off_date", date);
     if (doff.data) doff.data.forEach(function(d) { if (unavail.indexOf(d.pro_id) === -1) unavail.push(d.pro_id); });
 
-    // 2. Get bookings on this date that are not cancelled
+    // 2. Get pros with this specific hour blocked
+    if (time) {
+      var hoff = await sb.from("pro_hours_off").select("pro_id").eq("off_date", date).eq("off_hour", time);
+      if (hoff.data) hoff.data.forEach(function(h) { if (unavail.indexOf(h.pro_id) === -1) unavail.push(h.pro_id); });
+    }
+
+    // 3. Check bookings with buffer overlap
     var activeStatuses = ["pending","accepted","on_the_way","arrived","in_progress"];
-    var bkRes = await sb.from("bookings").select("pro_id,time_slot,status").in("status", activeStatuses);
-    if (bkRes.data) {
+    var bkRes = await sb.from("bookings").select("pro_id,time_slot,service_name,status").in("status", activeStatuses).like("time_slot", date + "%");
+
+    if (bkRes.data && bkRes.data.length && time) {
+      // Get all services for duration lookup
+      var svcRes = await sb.from("services").select("pro_id,name,duration");
+      var svcDurMap = {};
+      (svcRes.data || []).forEach(function(s) {
+        if (!svcDurMap[s.pro_id]) svcDurMap[s.pro_id] = {};
+        svcDurMap[s.pro_id][s.name] = s.duration || 60;
+      });
+
+      // Get all pro buffers
+      var proRes = await sb.from("professionals").select("id,travel_buffer").eq("status", "approved");
+      var bufMap = {};
+      (proRes.data || []).forEach(function(p) { bufMap[p.id] = p.travel_buffer || 60; });
+
+      var reqParts = time.split(":");
+      var reqMin = parseInt(reqParts[0]) * 60 + parseInt(reqParts[1] || 0);
+
       bkRes.data.forEach(function(b) {
-        if (!b.pro_id || !b.time_slot) return;
-        // Match date
-        if (b.time_slot.indexOf(date) === 0) {
-          if (time) {
-            // Exact time match
-            if (b.time_slot.indexOf(time) > -1 && unavail.indexOf(b.pro_id) === -1) {
-              unavail.push(b.pro_id);
-            }
-          } else {
-            // Any booking on this date
-            if (unavail.indexOf(b.pro_id) === -1) unavail.push(b.pro_id);
-          }
+        if (!b.pro_id || unavail.indexOf(b.pro_id) > -1) return;
+        var parts = (b.time_slot || "").split(" ");
+        if (parts.length < 2) return;
+        var tp = parts[1].split(":");
+        var bkStart = parseInt(tp[0]) * 60 + parseInt(tp[1] || 0);
+        var bkDur = (svcDurMap[b.pro_id] && svcDurMap[b.pro_id][b.service_name]) || 60;
+        var bkEnd = bkStart + bkDur;
+        var buf = bufMap[b.pro_id] || 60;
+        var arrBuf = 60;
+        // Blocked zone: [bkStart - arrBuf, bkEnd + buf]
+        if (reqMin >= bkStart - arrBuf && reqMin < bkEnd + buf) {
+          unavail.push(b.pro_id);
         }
+      });
+    } else if (bkRes.data && !time) {
+      // No time selected — mark any pro with any booking on this date
+      bkRes.data.forEach(function(b) {
+        if (b.pro_id && unavail.indexOf(b.pro_id) === -1) unavail.push(b.pro_id);
       });
     }
 

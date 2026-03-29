@@ -96,7 +96,7 @@ async function viewPro(proId) {
   if (reviews.length > 0) {
     revHtml += reviews.map(function(rv) {
                 var stars = Array(5).fill(0).map(function(_, i) {
-                  return "<span style=\"color:" + (i < rv.rating ? "#facc15" : "var(--bg3)") + ";font-size:22px\">★</span>";
+                  return "<span style=\"color:" + (i < rv.rating ? "#facc15" : "#ddd") + ";font-size:20px\">★</span>";
                 }).join("");
                 var rName = fmtReviewerName(rv._name);
                 var ava = rv._avatar

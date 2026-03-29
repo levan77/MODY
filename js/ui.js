@@ -273,29 +273,51 @@ function renderStars(n) {
 // ── SHARED HELPERS ────────────────────────────────────────────
 // ── PHONE VISIBILITY ─────────────────────────────────────────
 
-function fmtReviewerName(fullName) {
-  if (!fullName) return "Anonymous";
-  var parts = fullName.trim().split(" ");
-  if (parts.length < 2) return parts[0];
-  return parts[0] + " " + parts[parts.length - 1].charAt(0) + ".";
+function fmtReviewerName(name) {
+  if (!name) return "Anonymous";
+  var parts = name.trim().split(/\s+/);
+  if (parts.length === 1) return parts[0];
+  return parts[0] + " " + parts[parts.length - 1].charAt(0).toUpperCase() + ".";
 }
 
 async function viewUserReviews(userId, userName) {
   try {
     var r = await sb.from("reviews").select("*").eq("reviewer_id", userId).order("created_at", { ascending: false });
     var revs = r.data || [];
-    var html = "<h2 style='font-size:18px;font-weight:300;margin-bottom:14px'>Reviews by " + (userName || "User") + "</h2>";
-    if (!revs.length) { html += "<p style='color:var(--mu)'>No reviews yet.</p>"; }
+    // Fetch reviewer profile for avatar
+    var avatarUrl = "";
+    var displayName = userName || "User";
+    try {
+      var prof = await sb.from("profiles").select("full_name,avatar_url").eq("id", userId).single();
+      if (prof.data) {
+        if (prof.data.full_name) displayName = fmtReviewerName(prof.data.full_name);
+        if (prof.data.avatar_url) avatarUrl = prof.data.avatar_url;
+      }
+    } catch(e) {}
+    var ava = avatarUrl
+      ? "<img src=\"" + avatarUrl + "\" style=\"width:100%;height:100%;object-fit:cover;border-radius:50%\">"
+      : "<span style=\"font-size:18px\">👤</span>";
+    var html = "<div style=\"display:flex;align-items:center;gap:12px;margin-bottom:16px\">"
+      + "<div style=\"width:44px;height:44px;border-radius:50%;background:var(--bg2);display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0\">" + ava + "</div>"
+      + "<h2 style=\"font-size:18px;font-weight:300;margin:0\">Reviews by " + displayName + "</h2>"
+      + "</div>";
+    if (!revs.length) { html += "<p style=\"color:var(--mu)\">No reviews yet.</p>"; }
     else {
       html += revs.map(function(rv) {
-        var stars = Array(5).fill(0).map(function(_, i) { return "<span style='color:" + (i < rv.rating ? "#facc15" : "var(--bg3)") + "'>★</span>"; }).join("");
-        return "<div style='padding:10px 0;border-bottom:1px solid var(--br)'>"
-          + "<div style='display:flex;justify-content:space-between'><div>" + stars + "</div><div style='font-size:11px;color:var(--mu)'>" + new Date(rv.created_at).toLocaleDateString() + "</div></div>"
-          + (rv.comment ? "<p style='font-size:13px;color:var(--mu);margin-top:4px'>" + rv.comment + "</p>" : "")
+        var stars = Array(5).fill(0).map(function(_, i) {
+          return "<span style=\"color:" + (i < rv.rating ? "#facc15" : "#ddd") + ";font-size:20px\">★</span>";
+        }).join("");
+        return "<div style=\"background:var(--bg2);border-radius:var(--rs);padding:14px;margin-bottom:10px\">"
+          + "<div style=\"display:flex;align-items:center;gap:8px;margin-bottom:6px\">"
+          + "<div>" + stars + "</div>"
+          + "<span style=\"font-size:14px;font-weight:600;color:var(--tx)\">" + rv.rating.toFixed(1) + "</span>"
+          + "</div>"
+          + (rv.comment ? "<p style=\"font-size:14px;color:var(--mu);line-height:1.6;margin-bottom:8px;font-style:italic\">\"" + rv.comment + "\"</p>" : "")
+          + "<div style=\"font-size:11px;color:var(--mu)\">" + new Date(rv.created_at).toLocaleDateString() + "</div>"
           + "</div>";
       }).join("");
     }
-    ge("bkdTitle").textContent = "Reviews by " + (userName || "User");
+    ge("bkdTitle").textContent = "Reviews by " + displayName;
     ge("bkdContent").innerHTML = html;
     openM("bkd");
   } catch(e) { toast("Error: " + e.message, "err"); }
