@@ -54,6 +54,15 @@
   display: flex; align-items: center; justify-content: center; flex-shrink: 0;
 }
 
+/* Notification badge for unread messages */
+.chat-badge {
+  animation: pulse-badge .8s infinite;
+}
+@keyframes pulse-badge {
+  0%, 100% { opacity: 1; }
+  50% { opacity: .7; }
+}
+
 /* ── TOAST NOTIFICATION ── */
 #toast {
   position: fixed; top: 72px; right: 18px;
