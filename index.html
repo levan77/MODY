@@ -821,6 +821,52 @@
           </div>
         </div>
         <div class="card" style="margin-bottom:12px">
+          <div class="c-hdr"><h3>📱 WhatsApp Notifications</h3></div>
+          <p style="font-size:12px;color:var(--mu);margin-bottom:10px">Send booking notifications via WhatsApp Cloud API. <a href="https://developers.facebook.com/docs/whatsapp/cloud-api/get-started" target="_blank" style="color:var(--g)">Setup Guide →</a></p>
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--br)">
+            <div><div style="font-weight:500;font-size:14px">Enable WhatsApp</div><div style="font-size:12px;color:var(--mu)">Send booking updates to clients & professionals</div></div>
+            <label class="sw"><input type="checkbox" id="setWaEnabled" onchange="saveSetting('wa_enabled',this.checked)"><span class="sw-t"></span></label>
+          </div>
+          <div style="padding:10px 0;border-bottom:1px solid var(--br)">
+            <div style="font-weight:500;font-size:14px;margin-bottom:6px">Phone Number ID</div>
+            <div style="font-size:12px;color:var(--mu);margin-bottom:4px">From Meta Business → WhatsApp → API Setup</div>
+            <div style="display:flex;gap:6px">
+              <input class="fi" id="setWaPhoneId" type="text" style="flex:1" placeholder="e.g. 123456789012345">
+              <button class="btn btn-g" style="font-size:13px" onclick="saveSetting('wa_phone_id',document.getElementById('setWaPhoneId').value)">Save</button>
+            </div>
+          </div>
+          <div style="padding:10px 0;border-bottom:1px solid var(--br)">
+            <div style="font-weight:500;font-size:14px;margin-bottom:6px">Access Token</div>
+            <div style="font-size:12px;color:var(--mu);margin-bottom:4px">Permanent token from Meta Business settings</div>
+            <div style="display:flex;gap:6px">
+              <input class="fi" id="setWaToken" type="password" style="flex:1" placeholder="EAAxxxxxxx...">
+              <button class="btn btn-g" style="font-size:13px" onclick="saveSetting('wa_api_token',document.getElementById('setWaToken').value)">Save</button>
+            </div>
+          </div>
+          <div style="padding:10px 0;border-bottom:1px solid var(--br)">
+            <div style="font-weight:500;font-size:14px;margin-bottom:6px">Edge Function URL <span style="font-size:11px;color:var(--mu);font-weight:400">(recommended)</span></div>
+            <div style="font-size:12px;color:var(--mu);margin-bottom:4px">Supabase Edge Function URL to proxy API calls securely. Leave empty for direct API calls.</div>
+            <div style="display:flex;gap:6px">
+              <input class="fi" id="setWaEdgeFn" type="url" style="flex:1" placeholder="https://your-project.supabase.co/functions/v1/whatsapp-send">
+              <button class="btn btn-g" style="font-size:13px" onclick="saveSetting('wa_edge_function_url',document.getElementById('setWaEdgeFn').value)">Save</button>
+            </div>
+          </div>
+          <div style="padding:10px 0;display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+            <div style="font-weight:500;font-size:14px">Notification Events</div>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px;width:100%">
+              <label style="display:flex;align-items:center;gap:4px;font-size:13px;background:var(--bg2);padding:4px 10px;border-radius:50px"><input type="checkbox" id="setWaNew" onchange="saveSetting('wa_on_new',this.checked)" checked> New Booking</label>
+              <label style="display:flex;align-items:center;gap:4px;font-size:13px;background:var(--bg2);padding:4px 10px;border-radius:50px"><input type="checkbox" id="setWaAccept" onchange="saveSetting('wa_on_accepted',this.checked)" checked> Accepted</label>
+              <label style="display:flex;align-items:center;gap:4px;font-size:13px;background:var(--bg2);padding:4px 10px;border-radius:50px"><input type="checkbox" id="setWaOtw" onchange="saveSetting('wa_on_otw',this.checked)" checked> On the Way</label>
+              <label style="display:flex;align-items:center;gap:4px;font-size:13px;background:var(--bg2);padding:4px 10px;border-radius:50px"><input type="checkbox" id="setWaArr" onchange="saveSetting('wa_on_arrived',this.checked)" checked> Arrived</label>
+              <label style="display:flex;align-items:center;gap:4px;font-size:13px;background:var(--bg2);padding:4px 10px;border-radius:50px"><input type="checkbox" id="setWaDone" onchange="saveSetting('wa_on_completed',this.checked)" checked> Completed</label>
+              <label style="display:flex;align-items:center;gap:4px;font-size:13px;background:var(--bg2);padding:4px 10px;border-radius:50px"><input type="checkbox" id="setWaCancel" onchange="saveSetting('wa_on_cancelled',this.checked)" checked> Cancelled</label>
+            </div>
+          </div>
+          <div style="padding:10px 0;border-top:1px solid var(--br);display:flex;gap:8px">
+            <button class="btn btn-g" style="font-size:13px" onclick="testWhatsApp()">📱 Send Test Message</button>
+          </div>
+        </div>
+        <div class="card" style="margin-bottom:12px">
           <div class="c-hdr"><h3>Districts / Service Areas</h3></div>
           <p style="font-size:13px;color:var(--mu);margin-bottom:10px">Manage the districts available for booking.</p>
           <div id="aDistrictList"></div>
@@ -1277,6 +1323,7 @@
 <script src="js/dashboards/client.js"></script>
 <script src="js/dashboards/professional.js"></script>
 <script src="js/dashboards/admin.js"></script>
+<script src="js/whatsapp.js"></script>
 <script src="js/tracking.js"></script>
 <script src="js/realtime.js"></script>
 <script src="js/app.js"></script>

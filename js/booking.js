@@ -374,6 +374,11 @@ async function submitBooking() {
 
   openM("bkconf");
   toast(t("bookingOk"), "ok");
+
+  // WhatsApp notification for new booking
+  if (settings.wa_on_new !== false && settings.wa_on_new !== "false") {
+    waNotifyBooking(bk, "new_booking");
+  }
 }
 
 // ── BOOKING DETAIL MODAL ──────────────────────────────────────
@@ -523,6 +528,16 @@ async function chBkStatus(id, status, actor) {
     setTimeout(function() { renderTracker(); }, 1000);
     setTimeout(function() { renderTracker(); }, 3000);
 
+    // WhatsApp notification for status change
+    var waEventMap = { accepted:"wa_on_accepted", on_the_way:"wa_on_otw", arrived:"wa_on_arrived", in_progress:"wa_on_in_progress", completed:"wa_on_completed", cancelled:"wa_on_cancelled", declined:"wa_on_cancelled" };
+    var waKey = waEventMap[status];
+    if (waKey && settings[waKey] !== false && settings[waKey] !== "false") {
+      try {
+        var bkWa = await sb.from("bookings").select("client_name,client_phone,pro_name,pro_phone,service_name,time_slot,address").eq("id", id).single();
+        if (bkWa.data) waNotifyBooking(bkWa.data, status);
+      } catch(e) {}
+    }
+
     // Auto-open review popup when pro completes
     if (actor === "pro" && status === "completed") {
       try {
@@ -544,6 +559,13 @@ async function acceptBk(id) {
     loadProDash();
     renderTracker();
     setTimeout(function() { renderTracker(); }, 1000);
+    // WhatsApp notification
+    if (settings.wa_on_accepted !== false && settings.wa_on_accepted !== "false") {
+      try {
+        var bkWa = await sb.from("bookings").select("client_name,client_phone,pro_name,pro_phone,service_name,time_slot,address").eq("id", id).single();
+        if (bkWa.data) waNotifyBooking(bkWa.data, "accepted");
+      } catch(e) {}
+    }
   } catch(e) { toast("Error: " + e.message, "err"); }
 }
 
