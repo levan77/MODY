@@ -198,6 +198,17 @@ async function loadSettings() {
   var sae = ge("setAlertEmail"); if (sae) sae.value = settings.alert_email || "";
   var sht = ge("setHeroTag");    if (sht) sht.value = settings.hero_tagline || "";
   var sft = ge("setFooterTxt");  if (sft) sft.value = settings.footer_text || "";
+  // WhatsApp settings
+  var swe = ge("setWaEnabled"); if (swe) swe.checked = settings.wa_enabled === true || settings.wa_enabled === "true";
+  var swp = ge("setWaPhoneId"); if (swp) swp.value = settings.wa_phone_id || "";
+  var swt = ge("setWaToken");   if (swt) swt.value = settings.wa_api_token || "";
+  var swu = ge("setWaEdgeFn");  if (swu) swu.value = settings.wa_edge_function_url || "";
+  var swn = ge("setWaNew");     if (swn) swn.checked = settings.wa_on_new !== false && settings.wa_on_new !== "false";
+  var swa = ge("setWaAccept");  if (swa) swa.checked = settings.wa_on_accepted !== false && settings.wa_on_accepted !== "false";
+  var swo = ge("setWaOtw");     if (swo) swo.checked = settings.wa_on_otw !== false && settings.wa_on_otw !== "false";
+  var swr = ge("setWaArr");     if (swr) swr.checked = settings.wa_on_arrived !== false && settings.wa_on_arrived !== "false";
+  var swd = ge("setWaDone");    if (swd) swd.checked = settings.wa_on_completed !== false && settings.wa_on_completed !== "false";
+  var swc = ge("setWaCancel");  if (swc) swc.checked = settings.wa_on_cancelled !== false && settings.wa_on_cancelled !== "false";
   // Apply accent color if saved
   if (settings.accent_color) {
     var sac = ge("setAccentColor"); if (sac) sac.value = settings.accent_color;
