@@ -31,6 +31,7 @@ async function init() {
       startTracker();
       subscribeRealtime();
       buildChatThreads();
+      updateChatBadge();
     } else {
       updateNav();
     }
@@ -46,6 +47,7 @@ async function init() {
       routeByRole();
       subscribeRealtime();
       buildChatThreads();
+      updateChatBadge();
     } else if (event === "SIGNED_OUT") {
       user = null; profile = null;
       if (ftInterval) { clearInterval(ftInterval); ftInterval = null; }

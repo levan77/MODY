@@ -42,6 +42,39 @@ function subscribeRealtime() {
       })
     .subscribe();
 
+  // Messages channel — chat notifications
+  sb.channel("messages-realtime")
+    .on("postgres_changes", { event: "INSERT", schema: "public", table: "messages" },
+      function(payload) {
+        var msg = payload.new || {};
+        if (!msg.sender_id || msg.sender_id === user.id) return;
+
+        // Update unread badge on chat float button
+        updateChatBadge();
+
+        // If chat window is open on this thread, just reload
+        var win = ge("chatWin");
+        if (win && win.classList.contains("on") && chatThread === msg.thread_id) return;
+
+        // Show notification toast
+        var senderName = msg.sender_name || "Someone";
+        var preview = (msg.content || "").substring(0, 50) + (msg.content && msg.content.length > 50 ? "…" : "");
+        toast("💬 " + senderName + ": " + preview, "ok");
+
+        // Notify via browser notification if permitted
+        if (typeof Notification !== "undefined" && Notification.permission === "granted") {
+          try {
+            new Notification("MODY — " + senderName, { body: preview, icon: "/favicon.ico" });
+          } catch(e) {}
+        }
+      })
+    .subscribe();
+
+  // Request browser notification permission
+  if (typeof Notification !== "undefined" && Notification.permission === "default") {
+    Notification.requestPermission();
+  }
+
   // Pros channel — admin approval notifications
   if (profile.role === "admin") {
     sb.channel("pros-realtime")

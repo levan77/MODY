@@ -8,6 +8,29 @@ var chatSub = null;
 var chatOtherName = "";
 var chatBookings = [];
 
+// ── UNREAD BADGE ON CHAT FLOAT BUTTON ──────────────────────
+async function updateChatBadge() {
+  if (!user) return;
+  try {
+    var r = await sb.from("messages").select("id", { count: "exact", head: true })
+      .neq("sender_id", user.id).eq("is_read", false).eq("thread_type", "booking");
+    var count = r.count || 0;
+    var btn = document.querySelector(".chat-float");
+    if (!btn) return;
+    // Remove old badge
+    var old = btn.querySelector(".chat-badge");
+    if (old) old.remove();
+    if (count > 0) {
+      var badge = document.createElement("span");
+      badge.className = "chat-badge";
+      badge.style.cssText = "position:absolute;top:-4px;right:-4px;background:#ef4444;color:#fff;border-radius:50%;font-size:10px;min-width:18px;height:18px;display:flex;align-items:center;justify-content:center;font-weight:700;padding:0 4px";
+      badge.textContent = count > 99 ? "99+" : count;
+      btn.style.position = "relative";
+      btn.appendChild(badge);
+    }
+  } catch(e) {}
+}
+
 // ── TOGGLE CHAT WINDOW ──────────────────────────────────────
 function toggleChat() {
   var win = ge("chatWin");
@@ -15,6 +38,7 @@ function toggleChat() {
   var opening = !win.classList.contains("on");
   win.classList.toggle("on");
   if (opening && user) buildChatThreads();
+  updateChatBadge();
 }
 
 // ── BUILD THREAD LIST FROM BOOKINGS ─────────────────────────
@@ -153,6 +177,7 @@ async function markMessagesRead(threadId) {
   try {
     await sb.from("messages").update({ is_read: true })
       .eq("thread_id", threadId).neq("sender_id", user.id).eq("is_read", false);
+    updateChatBadge();
   } catch(e) { /* is_read column may not exist */ }
 }
 
