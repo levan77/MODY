@@ -252,13 +252,7 @@ async function adminDeleteReview(id) {
 
 // ── CATEGORIES ────────────────────────────────────────────────
 
-var allSubCats = [];
-
-function catIcon(c, size) {
-  size = size || 28;
-  if (c.icon_url) return "<img src=\"" + c.icon_url + "\" style=\"width:" + size + "px;height:" + size + "px;object-fit:contain;display:block;border-radius:6px;filter:drop-shadow(0 1px 3px rgba(0,0,0,.15))\">";
-  return "<span style=\"font-size:" + size + "px;line-height:1\">" + (c.emoji || "💅") + "</span>";
-}
+// catIcon() is defined in categories.js (shared)
 
 function previewCatIcon(input) {
   if (!input.files || !input.files[0]) return;
@@ -289,15 +283,7 @@ async function uploadCatIcon(file) {
   } catch(e) { toast("Upload failed: " + e.message, "err"); return null; }
 }
 
-async function loadSubCategories() {
-  try {
-    var r = await sb.from("subcategories").select("*").order("sort_order");
-    if (r.error) r = await sb.from("subcategories").select("*");
-    allSubCats = r.data || [];
-  } catch(e) { allSubCats = []; }
-}
-
-// getSubsForCat() and subCatName() are defined in categories.js (shared)
+// loadSubCategories(), getSubsForCat(), subCatName() are defined in categories.js (shared)
 
 async function loadAdminCats() {
   var el = ge("aCatList"); if (!el) return;
@@ -713,22 +699,7 @@ async function saveTranslations() {
   } catch(e) { toast("Error: " + e.message, "err"); }
 }
 
-async function loadSavedTranslations() {
-  try {
-    var r = await sb.from("platform_settings").select("*").like("key", "translations_%");
-    if (r.data) {
-      r.data.forEach(function(row) {
-        var lg = row.key.replace("translations_", "");
-        if (TR[lg]) {
-          try {
-            var saved = JSON.parse(row.value);
-            for (var k in saved) { TR[lg][k] = saved[k]; }
-          } catch(e) {}
-        }
-      });
-    }
-  } catch(e) {}
-}
+// loadSavedTranslations() is defined in i18n.js (shared)
 
 
 // ── ANALYTICS ────────────────────────────────────────────────

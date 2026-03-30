@@ -8,6 +8,22 @@ var categories  = [];
 var activeFilter = "All";
 var allSubCats  = [];
 
+// ── CATEGORY ICON HELPER (shared) ────────────────────────────
+function catIcon(c, size) {
+  size = size || 28;
+  if (c.icon_url) return "<img src=\"" + c.icon_url + "\" style=\"width:" + size + "px;height:" + size + "px;object-fit:contain;display:block;border-radius:6px;filter:drop-shadow(0 1px 3px rgba(0,0,0,.15))\">";
+  return "<span style=\"font-size:" + size + "px;line-height:1\">" + (c.emoji || "💅") + "</span>";
+}
+
+// ── SUBCATEGORY LOAD (shared) ────────────────────────────────
+async function loadSubCategories() {
+  try {
+    var r = await sb.from("subcategories").select("*").order("sort_order");
+    if (r.error) r = await sb.from("subcategories").select("*");
+    allSubCats = r.data || [];
+  } catch(e) { allSubCats = []; }
+}
+
 // ── SUBCATEGORY HELPERS (shared, used by both public pages and admin) ──
 function getSubsForCat(catId) {
   return allSubCats.filter(function(s) { return s.category_id === catId && s.visible !== false; });

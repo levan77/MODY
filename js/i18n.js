@@ -419,3 +419,21 @@ document.addEventListener("click", function() {
   var s = document.getElementById("lsw");
   if (s) s.classList.remove("open");
 });
+
+// ── LOAD SAVED TRANSLATIONS FROM DB ─────────────────────────
+async function loadSavedTranslations() {
+  try {
+    var r = await sb.from("platform_settings").select("*").like("key", "translations_%");
+    if (r.data) {
+      r.data.forEach(function(row) {
+        var lg = row.key.replace("translations_", "");
+        if (TR[lg]) {
+          try {
+            var saved = JSON.parse(row.value);
+            for (var k in saved) { TR[lg][k] = saved[k]; }
+          } catch(e) {}
+        }
+      });
+    }
+  } catch(e) {}
+}
