@@ -378,6 +378,7 @@ async function submitBooking() {
   // WhatsApp notification for new booking
   if (settings.wa_on_new !== false && settings.wa_on_new !== "false") {
     waNotifyBooking(bk, "new_booking");
+    birdNotifyBooking(bk, "new_booking");
   }
 }
 
@@ -534,7 +535,7 @@ async function chBkStatus(id, status, actor) {
     if (waKey && settings[waKey] !== false && settings[waKey] !== "false") {
       try {
         var bkWa = await sb.from("bookings").select("client_name,client_phone,pro_name,pro_phone,service_name,time_slot,address").eq("id", id).single();
-        if (bkWa.data) waNotifyBooking(bkWa.data, status);
+        if (bkWa.data) { waNotifyBooking(bkWa.data, status); birdNotifyBooking(bkWa.data, status); }
       } catch(e) {}
     }
 
@@ -563,7 +564,7 @@ async function acceptBk(id) {
     if (settings.wa_on_accepted !== false && settings.wa_on_accepted !== "false") {
       try {
         var bkWa = await sb.from("bookings").select("client_name,client_phone,pro_name,pro_phone,service_name,time_slot,address").eq("id", id).single();
-        if (bkWa.data) waNotifyBooking(bkWa.data, "accepted");
+        if (bkWa.data) { waNotifyBooking(bkWa.data, "accepted"); birdNotifyBooking(bkWa.data, "accepted"); }
       } catch(e) {}
     }
   } catch(e) { toast("Error: " + e.message, "err"); }

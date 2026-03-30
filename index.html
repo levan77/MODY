@@ -874,6 +874,29 @@
           </div>
         </div>
         <div class="card" style="margin-bottom:12px">
+          <div class="c-hdr"><h3>🐦 Bird WhatsApp Notifications</h3></div>
+          <p style="font-size:12px;color:var(--mu);margin-bottom:10px">Send booking notifications via <a href="https://bird.com" target="_blank" style="color:var(--g)">Bird (bird.com)</a> WhatsApp channel. Requires a Supabase Edge Function.</p>
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--br)">
+            <div><div style="font-weight:500;font-size:14px">Enable Bird Notifications</div><div style="font-size:12px;color:var(--mu)">Send booking WhatsApp messages in Georgian via Bird</div></div>
+            <label class="sw"><input type="checkbox" id="setBirdEnabled" onchange="saveSetting('bird_enabled',this.checked)"><span class="sw-t"></span></label>
+          </div>
+          <div style="padding:10px 0;border-bottom:1px solid var(--br)">
+            <div style="font-weight:500;font-size:14px;margin-bottom:6px">Edge Function URL</div>
+            <div style="font-size:12px;color:var(--mu);margin-bottom:4px">Your deployed <code>bird-notifications</code> Supabase Edge Function URL</div>
+            <div style="display:flex;gap:6px">
+              <input class="fi" id="setBirdEdgeFn" type="url" style="flex:1" placeholder="https://your-project.supabase.co/functions/v1/bird-notifications">
+              <button class="btn btn-g" style="font-size:13px" onclick="saveSetting('bird_edge_function_url',document.getElementById('setBirdEdgeFn').value)">Save</button>
+            </div>
+          </div>
+          <div style="padding:10px 0;border-bottom:1px solid var(--br)">
+            <div style="font-weight:500;font-size:13px;color:var(--mu);margin-bottom:6px">Set these secrets in Supabase:</div>
+            <code style="font-size:11px;background:var(--bg2);padding:8px;border-radius:var(--rs);display:block;line-height:1.9;border:1px solid var(--br)">supabase secrets set BIRD_API_KEY=your_key<br>supabase secrets set BIRD_WORKSPACE_ID=your_workspace<br>supabase secrets set BIRD_CHANNEL_ID=your_channel</code>
+          </div>
+          <div style="padding:10px 0;border-top:1px solid var(--br);display:flex;gap:8px">
+            <button class="btn btn-g" style="font-size:13px" onclick="testBird()">📱 Send Test Message</button>
+          </div>
+        </div>
+        <div class="card" style="margin-bottom:12px">
           <div class="c-hdr"><h3>Districts / Service Areas</h3></div>
           <p style="font-size:13px;color:var(--mu);margin-bottom:10px">Manage the districts available for booking.</p>
           <div id="aDistrictList"></div>
@@ -1331,6 +1354,7 @@
 <script src="js/dashboards/professional.js"></script>
 <script src="js/dashboards/admin.js"></script>
 <script src="js/whatsapp.js"></script>
+<script src="js/bird.js"></script>
 <script src="js/tracking.js"></script>
 <script src="js/realtime.js"></script>
 <script src="js/app.js"></script>
