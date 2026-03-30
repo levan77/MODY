@@ -95,95 +95,119 @@ async function sendWhatsAppText(phone, text) {
   }
 }
 
+// ── DEFAULT MESSAGE TEMPLATES ──────────────────────────────
+// Placeholders: {client}, {pro}, {service}, {time}, {address}
+var WA_DEFAULTS = {
+  new_booking_pro:  "📋 MODY — New Booking!\n\nClient: {client}\nService: {service}\nTime: {time}\nAddress: {address}\n\nOpen the MODY app to accept or decline.",
+  new_booking_client: "✅ MODY — Booking Confirmed!\n\nService: {service}\nProfessional: {pro}\nTime: {time}\n\nWe'll notify you when your professional accepts.",
+  accepted_client: "🎉 MODY — Booking Accepted!\n\n{pro} has accepted your booking.\nService: {service}\nTime: {time}\n\nYour professional will arrive on time!",
+  on_the_way_client: "🚗 MODY — On The Way!\n\n{pro} is heading to your location now.\nAddress: {address}\n\nPlease be ready!",
+  arrived_client: "📍 MODY — Professional Arrived!\n\n{pro} has arrived at your location.\nPlease confirm the arrival in the app.",
+  completed_client: "⭐ MODY — Service Completed!\n\nYour {service} session with {pro} is complete.\n\nPlease leave a review in the app. Thank you!",
+  completed_pro: "✅ MODY — Service Completed!\n\n{service} for {client} is marked as complete.\nGreat job! 💅",
+  cancelled_client: "❌ MODY — Booking Cancelled\n\nYour booking for {service} has been cancelled.\nYou can book again anytime on MODY.",
+  cancelled_pro: "❌ MODY — Booking Cancelled\n\nBooking for {service} with {client} has been cancelled.\nTime: {time}",
+  declined_client: "😔 MODY — Booking Declined\n\n{pro} was unable to accept your booking for {service}.\nTime: {time}\n\nPlease try another professional or time slot."
+};
+
+function waTemplate(key, vars) {
+  // Use custom template from settings if available, otherwise use default
+  var tpl = settings["wa_tpl_" + key] || WA_DEFAULTS[key] || "";
+  return tpl
+    .replace(/\{client\}/g, vars.client || "Client")
+    .replace(/\{pro\}/g, vars.pro || "Professional")
+    .replace(/\{service\}/g, vars.service || "Service")
+    .replace(/\{time\}/g, vars.time || "")
+    .replace(/\{address\}/g, vars.address || "");
+}
+
 // ── BOOKING EVENT NOTIFICATIONS ────────────────────────────
 function waNotifyBooking(booking, event) {
   if (!settings.wa_enabled || settings.wa_enabled === "false") return;
 
   var clientPhone = booking.client_phone || "";
   var proPhone = booking.pro_phone || "";
-  var clientName = booking.client_name || "Client";
-  var proName = booking.pro_name || "Professional";
-  var service = booking.service_name || "Service";
-  var timeSlot = booking.time_slot || "";
-  var address = booking.address || "";
+  var vars = {
+    client: booking.client_name || "Client",
+    pro: booking.pro_name || "Professional",
+    service: booking.service_name || "Service",
+    time: booking.time_slot || "",
+    address: booking.address || ""
+  };
 
   switch(event) {
     case "new_booking":
-      // Notify professional about new booking
-      sendWhatsAppText(proPhone,
-        "📋 MODY — New Booking!\n\n"
-        + "Client: " + clientName + "\n"
-        + "Service: " + service + "\n"
-        + "Time: " + timeSlot + "\n"
-        + "Address: " + address + "\n\n"
-        + "Open the MODY app to accept or decline.");
-      // Confirm to client
-      sendWhatsAppText(clientPhone,
-        "✅ MODY — Booking Confirmed!\n\n"
-        + "Service: " + service + "\n"
-        + "Professional: " + proName + "\n"
-        + "Time: " + timeSlot + "\n\n"
-        + "We'll notify you when your professional accepts.");
+      sendWhatsAppText(proPhone, waTemplate("new_booking_pro", vars));
+      sendWhatsAppText(clientPhone, waTemplate("new_booking_client", vars));
       break;
-
     case "accepted":
-      sendWhatsAppText(clientPhone,
-        "🎉 MODY — Booking Accepted!\n\n"
-        + proName + " has accepted your booking.\n"
-        + "Service: " + service + "\n"
-        + "Time: " + timeSlot + "\n\n"
-        + "Your professional will arrive on time!");
+      sendWhatsAppText(clientPhone, waTemplate("accepted_client", vars));
       break;
-
     case "on_the_way":
-      sendWhatsAppText(clientPhone,
-        "🚗 MODY — On The Way!\n\n"
-        + proName + " is heading to your location now.\n"
-        + "Address: " + address + "\n\n"
-        + "Please be ready!");
+      sendWhatsAppText(clientPhone, waTemplate("on_the_way_client", vars));
       break;
-
     case "arrived":
-      sendWhatsAppText(clientPhone,
-        "📍 MODY — Professional Arrived!\n\n"
-        + proName + " has arrived at your location.\n"
-        + "Please confirm the arrival in the app.");
+      sendWhatsAppText(clientPhone, waTemplate("arrived_client", vars));
       break;
-
     case "in_progress":
-      // No WhatsApp needed, they're together
       break;
-
     case "completed":
-      sendWhatsAppText(clientPhone,
-        "⭐ MODY — Service Completed!\n\n"
-        + "Your " + service + " session with " + proName + " is complete.\n\n"
-        + "Please leave a review in the app. Thank you!");
-      sendWhatsAppText(proPhone,
-        "✅ MODY — Service Completed!\n\n"
-        + service + " for " + clientName + " is marked as complete.\n"
-        + "Great job! 💅");
+      sendWhatsAppText(clientPhone, waTemplate("completed_client", vars));
+      sendWhatsAppText(proPhone, waTemplate("completed_pro", vars));
       break;
-
     case "cancelled":
-      sendWhatsAppText(proPhone,
-        "❌ MODY — Booking Cancelled\n\n"
-        + "Booking for " + service + " with " + clientName + " has been cancelled.\n"
-        + "Time: " + timeSlot);
-      sendWhatsAppText(clientPhone,
-        "❌ MODY — Booking Cancelled\n\n"
-        + "Your booking for " + service + " has been cancelled.\n"
-        + "You can book again anytime on MODY.");
+      sendWhatsAppText(clientPhone, waTemplate("cancelled_client", vars));
+      sendWhatsAppText(proPhone, waTemplate("cancelled_pro", vars));
       break;
-
     case "declined":
-      sendWhatsAppText(clientPhone,
-        "😔 MODY — Booking Declined\n\n"
-        + proName + " was unable to accept your booking for " + service + ".\n"
-        + "Time: " + timeSlot + "\n\n"
-        + "Please try another professional or time slot.");
+      sendWhatsAppText(clientPhone, waTemplate("declined_client", vars));
       break;
   }
+}
+
+// ── RENDER TEMPLATE EDITOR ─────────────────────────────────
+function renderWaTemplates() {
+  var el = ge("waTemplateList");
+  if (!el) return;
+  var labels = {
+    new_booking_pro: "📋 New Booking → Professional",
+    new_booking_client: "✅ New Booking → Client",
+    accepted_client: "🎉 Accepted → Client",
+    on_the_way_client: "🚗 On the Way → Client",
+    arrived_client: "📍 Arrived → Client",
+    completed_client: "⭐ Completed → Client",
+    completed_pro: "✅ Completed → Professional",
+    cancelled_client: "❌ Cancelled → Client",
+    cancelled_pro: "❌ Cancelled → Professional",
+    declined_client: "😔 Declined → Client"
+  };
+  var keys = Object.keys(WA_DEFAULTS);
+  el.innerHTML = keys.map(function(key) {
+    var current = settings["wa_tpl_" + key] || WA_DEFAULTS[key];
+    return "<div style=\"margin-bottom:12px;border-bottom:1px solid var(--br);padding-bottom:12px\">"
+      + "<div style=\"font-weight:500;font-size:13px;margin-bottom:4px\">" + (labels[key] || key) + "</div>"
+      + "<textarea id=\"waTpl_" + key + "\" style=\"width:100%;min-height:80px;font-size:12px;font-family:inherit;padding:8px;border:1px solid var(--br);border-radius:var(--rs);background:var(--bg2);color:var(--tx);resize:vertical\">" + current.replace(/</g, "&lt;") + "</textarea>"
+      + "<div style=\"display:flex;justify-content:space-between;align-items:center;margin-top:4px\">"
+      + "<span style=\"font-size:10px;color:var(--mu)\">Placeholders: {client} {pro} {service} {time} {address}</span>"
+      + "<div style=\"display:flex;gap:4px\">"
+      + "<button class=\"btn-sm btn-gh\" onclick=\"resetWaTpl('" + key + "')\">Reset</button>"
+      + "<button class=\"btn-sm btn-ok\" onclick=\"saveWaTpl('" + key + "')\">Save</button>"
+      + "</div></div></div>";
+  }).join("");
+}
+
+function saveWaTpl(key) {
+  var el = ge("waTpl_" + key);
+  if (!el) return;
+  saveSetting("wa_tpl_" + key, el.value);
+}
+
+function resetWaTpl(key) {
+  var el = ge("waTpl_" + key);
+  if (!el) return;
+  el.value = WA_DEFAULTS[key];
+  saveSetting("wa_tpl_" + key, WA_DEFAULTS[key]);
+  toast("Reset to default", "ok");
 }
 
 // ── TEST WHATSAPP CONNECTION ───────────────────────────────
