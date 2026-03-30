@@ -209,6 +209,9 @@ async function loadSettings() {
   var swr = ge("setWaArr");     if (swr) swr.checked = settings.wa_on_arrived !== false && settings.wa_on_arrived !== "false";
   var swd = ge("setWaDone");    if (swd) swd.checked = settings.wa_on_completed !== false && settings.wa_on_completed !== "false";
   var swc = ge("setWaCancel");  if (swc) swc.checked = settings.wa_on_cancelled !== false && settings.wa_on_cancelled !== "false";
+  // Bird settings
+  var sbe = ge("setBirdEnabled"); if (sbe) sbe.checked = settings.bird_enabled === true || settings.bird_enabled === "true";
+  var sbu = ge("setBirdEdgeFn");  if (sbu) sbu.value = settings.bird_edge_function_url || "";
   // Apply accent color if saved
   if (settings.accent_color) {
     var sac = ge("setAccentColor"); if (sac) sac.value = settings.accent_color;
