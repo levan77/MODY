@@ -523,8 +523,8 @@ async function chBkStatus(id, status, actor) {
     if (actor === "pro" && (status === "arrived" || status === "completed" || status === "cancelled")) stopLocSharing();
     // Immediate refresh
     if (actor === "client") loadClientDash();
-    else if (actor === "pro") loadProDash();
-    else if (actor === "admin") { loadAdminBks(); loadAdminData(); }
+    else if (actor === "pro" && typeof loadProDash === "function") loadProDash();
+    else if (actor === "admin" && typeof loadAdminBks === "function") { loadAdminBks(); loadAdminData(); }
     renderTracker();
     setTimeout(function() { renderTracker(); }, 1000);
     setTimeout(function() { renderTracker(); }, 3000);
@@ -557,7 +557,7 @@ async function acceptBk(id) {
     if (r.error) throw r.error;
     toast("Booking accepted!", "ok");
     closeM("bkd");
-    loadProDash();
+    if (typeof loadProDash === "function") loadProDash();
     renderTracker();
     setTimeout(function() { renderTracker(); }, 1000);
     // WhatsApp notification
@@ -627,7 +627,7 @@ async function submitReview() {
     closeM("rev");
     toast("Review submitted!", "ok");
     if (role === "client") loadClientDash();
-    else loadProDash();
+    else if (typeof loadProDash === "function") loadProDash();
   } catch(e) { toast("Error: " + e.message, "err"); }
 }
 

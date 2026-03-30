@@ -83,8 +83,8 @@ window.addEventListener("popstate", function(e) {
   if (el) el.classList.add("on");
   var bb = ge("navBackBtn"); if (bb) bb.style.display = p === "home" ? "none" : "";
   if (p === "dash-client") loadClientDash();
-  if (p === "dash-pro") loadProDash();
-  if (p === "admin") loadAdminData();
+  if (p === "dash-pro" && typeof loadProDash === "function") loadProDash();
+  if (p === "admin" && typeof loadAdminData === "function") loadAdminData();
 });
 
 function goBack() {
@@ -142,8 +142,8 @@ function updateNav() {
   var rl = profile.role === "admin" ? "⚙️ Admin"
          : profile.role === "pro"   ? "💅 Pro"
          : "👤 " + t("cdRoleLbl");
-  var dst = profile.role === "admin" ? "show('admin');loadAdminData()"
-           : profile.role === "pro"   ? "show('dash-pro');loadProDash()"
+  var dst = profile.role === "admin" ? "loadScript('js/dashboards/admin.js').then(function(){show('admin');loadAdminData();})"
+           : profile.role === "pro"   ? "loadScript('js/dashboards/professional.js').then(function(){show('dash-pro');loadProDash();})"
            : "show('dash-client');loadClientDash()";
   nb.innerHTML =
     "<span style=\"font-size:13px;color:var(--mu)\">Hi, " + nm + "</span>" +

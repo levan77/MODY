@@ -21,7 +21,7 @@ function subscribeRealtime() {
           } else {
             toast("Booking update: " + (bk.status || "").replace(/_/g," "));
           }
-          loadProDash();
+          if (typeof loadProDash === "function") loadProDash();
         }
         if (profile.role === "client" && bk.client_id === user.id) {
           if (bk.status === "arrived") {
@@ -36,7 +36,7 @@ function subscribeRealtime() {
           }
           loadClientDash();
         }
-        if (profile.role === "admin") {
+        if (profile.role === "admin" && typeof loadAdminData === "function") {
           loadAdminData();
         }
       })
@@ -79,7 +79,7 @@ function subscribeRealtime() {
   if (profile.role === "admin") {
     sb.channel("pros-realtime")
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "professionals" },
-        function() { loadApprovals(); })
+        function() { if (typeof loadApprovals === "function") loadApprovals(); })
       .subscribe();
   }
 }

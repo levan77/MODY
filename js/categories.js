@@ -8,6 +8,17 @@ var categories  = [];
 var activeFilter = "All";
 var allSubCats  = [];
 
+// ── SUBCATEGORY HELPERS (shared, used by both public pages and admin) ──
+function getSubsForCat(catId) {
+  return allSubCats.filter(function(s) { return s.category_id === catId && s.visible !== false; });
+}
+
+function subCatName(sc) {
+  if (lang === "ka" && sc.name_ka) return sc.name_ka;
+  if (lang === "ru" && sc.name_ru) return sc.name_ru;
+  return sc.name_en;
+}
+
 // ── PROFILE LOAD ──────────────────────────────────────────────
 async function loadCategories() {
   try {
