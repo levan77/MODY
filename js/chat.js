@@ -8,25 +8,43 @@ var chatSub = null;
 var chatOtherName = "";
 var chatBookings = [];
 
-// ── UNREAD BADGE ON CHAT FLOAT BUTTON ──────────────────────
+// ── UNREAD BADGE ON CHAT ICONS ────────────────────────────
 async function updateChatBadge() {
   if (!user) return;
   try {
     var r = await sb.from("messages").select("id", { count: "exact", head: true })
       .neq("sender_id", user.id).eq("is_read", false).eq("thread_type", "booking");
     var count = r.count || 0;
-    var btn = document.querySelector(".chat-float");
-    if (!btn) return;
-    // Remove old badge
-    var old = btn.querySelector(".chat-badge");
-    if (old) old.remove();
-    if (count > 0) {
-      var badge = document.createElement("span");
-      badge.className = "chat-badge";
-      badge.style.cssText = "position:absolute;top:-4px;right:-4px;background:#ef4444;color:#fff;border-radius:50%;font-size:10px;min-width:18px;height:18px;display:flex;align-items:center;justify-content:center;font-weight:700;padding:0 4px";
-      badge.textContent = count > 99 ? "99+" : count;
-      btn.style.position = "relative";
-      btn.appendChild(badge);
+
+    // Update navbar notification bell
+    var navBtn = ge("navNotif");
+    if (navBtn) {
+      var oldBadge = navBtn.querySelector(".chat-badge");
+      if (oldBadge) oldBadge.remove();
+      if (count > 0) {
+        var badge = document.createElement("span");
+        badge.className = "chat-badge";
+        badge.style.cssText = "position:absolute;top:-6px;right:-6px;background:#ef4444;color:#fff;border-radius:50%;font-size:9px;min-width:16px;height:16px;display:flex;align-items:center;justify-content:center;font-weight:700;padding:0 3px;line-height:1";
+        badge.textContent = count > 99 ? "99+" : count;
+        badge.style.position = "absolute";
+        navBtn.style.position = "relative";
+        navBtn.appendChild(badge);
+      }
+    }
+
+    // Update chat float button
+    var floatBtn = document.querySelector(".chat-float");
+    if (floatBtn) {
+      var oldBadge = floatBtn.querySelector(".chat-badge");
+      if (oldBadge) oldBadge.remove();
+      if (count > 0) {
+        var badge = document.createElement("span");
+        badge.className = "chat-badge";
+        badge.style.cssText = "position:absolute;top:-4px;right:-4px;background:#ef4444;color:#fff;border-radius:50%;font-size:10px;min-width:18px;height:18px;display:flex;align-items:center;justify-content:center;font-weight:700;padding:0 4px";
+        badge.textContent = count > 99 ? "99+" : count;
+        floatBtn.style.position = "relative";
+        floatBtn.appendChild(badge);
+      }
     }
   } catch(e) {}
 }
