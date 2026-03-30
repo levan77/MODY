@@ -48,16 +48,32 @@ async function loadProfile(u) {
   } catch(e) {}
 }
 
+// ── DYNAMIC SCRIPT LOADER ─────────────────────────────────────
+var _loadedScripts = {};
+function loadScript(src) {
+  if (_loadedScripts[src]) return _loadedScripts[src];
+  _loadedScripts[src] = new Promise(function(resolve, reject) {
+    var s = document.createElement("script");
+    s.src = src;
+    s.onload = resolve;
+    s.onerror = function() { reject(new Error("Failed to load " + src)); };
+    document.head.appendChild(s);
+  });
+  return _loadedScripts[src];
+}
+
 // ── ROUTE BY ROLE ─────────────────────────────────────────────
-function routeByRole() {
+async function routeByRole() {
   updateNav();
   if (!profile) return;
   showUidBadges();
   startTracker();
   if (profile.role === "admin") {
+    await loadScript("js/dashboards/admin.js");
     show("admin");
     loadAdminData();
   } else if (profile.role === "pro") {
+    await loadScript("js/dashboards/professional.js");
     show("dash-pro");
     loadProDash();
   } else {

@@ -153,7 +153,7 @@ function startLocSharing(bookingId) {
     }
   }, 5000);
 
-  loadProDash(); // refresh UI to show "sharing" state
+  if (typeof loadProDash === "function") loadProDash(); // refresh UI to show "sharing" state
 }
 
 function stopLocSharing() {
@@ -171,7 +171,7 @@ function stopLocSharing() {
   }
   proLocBookingId = null;
   proLocLatest = null;
-  loadProDash();
+  if (typeof loadProDash === "function") loadProDash();
 }
 
 // ── CLIENT MAP TRACKING ──────────────────────────────────────

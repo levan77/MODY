@@ -297,15 +297,7 @@ async function loadSubCategories() {
   } catch(e) { allSubCats = []; }
 }
 
-function getSubsForCat(catId) {
-  return allSubCats.filter(function(s) { return s.category_id === catId && s.visible !== false; });
-}
-
-function subCatName(sc) {
-  if (lang === "ka" && sc.name_ka) return sc.name_ka;
-  if (lang === "ru" && sc.name_ru) return sc.name_ru;
-  return sc.name_en;
-}
+// getSubsForCat() and subCatName() are defined in categories.js (shared)
 
 async function loadAdminCats() {
   var el = ge("aCatList"); if (!el) return;
