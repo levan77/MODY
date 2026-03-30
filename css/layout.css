@@ -335,6 +335,12 @@ footer        { background: #1A1A1A; color: rgba(255,255,255,.4); padding: 38px 
   /* Pro CTA block */
   .proCta { grid-template-columns: 1fr !important; text-align: center; padding: 20px 18px !important; }
 
+  /* Hide dark mode toggle on mobile */
+  .dm-btn[onclick="toggleDark()"] { display: none !important; }
+
+  /* Hide sub-category dropdown on mobile — tap goes straight to category */
+  .cat-subs { display: none !important; }
+
   /* Touch targets — WCAG AA minimum */
   .btn, .btn-sm { min-height: 40px; min-width: 40px; }
   .fi, .fi select { min-height: 44px; font-size: 16px; }
