@@ -20,7 +20,8 @@ async function sendTwilioNotification(phone, type, name, details) {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": "Bearer " + token
+        "Authorization": "Bearer " + token,
+        "apikey": SB_KEY
       },
       body: JSON.stringify({ phone: phone, type: type, name: name, details: details })
     });
@@ -85,7 +86,7 @@ async function testTwilio() {
 
     var r = await fetch(edgeFnUrl, {
       method: "POST",
-      headers: { "Content-Type": "application/json", "Authorization": "Bearer " + token },
+      headers: { "Content-Type": "application/json", "Authorization": "Bearer " + token, "apikey": SB_KEY },
       body: JSON.stringify({ phone: testPhone, type: "new_booking", name: "სატესტო", details: "MODY Twilio test ✅" })
     });
     var data = await r.json();
