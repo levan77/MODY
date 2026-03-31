@@ -931,6 +931,12 @@ footer        { background: #1A1A1A; color: rgba(255,255,255,.4); padding: 38px 
   /* Hide sub-category dropdown on mobile — tap goes straight to category */
   .cat-subs { display: none !important; }
 
+  /* Hide filter chips on mobile when viewing category (not "All") */
+  body.viewing-category #filterChips { display: none !important; }
+
+  /* Push chat lower on mobile when category is active */
+  body.viewing-category .chat-float { bottom: 120px; }
+
   /* Touch targets — WCAG AA minimum */
   .btn, .btn-sm { min-height: 40px; min-width: 40px; }
   .fi, .fi select { min-height: 44px; font-size: 16px; }
@@ -4278,9 +4284,9 @@ async function loadPros() {
   renderPros();
 }
 
-function setFilter(cat)   { activeFilter = cat; renderPros(); }
-function filterGo(cat)    { activeFilter = cat; show("list"); renderPros(); }
-function filterGoSub(cat, sub) { activeFilter = cat; show("list"); renderPros(); toast("Showing: " + sub); }
+function setFilter(cat)   { activeFilter = cat; document.body.classList.toggle("viewing-category", cat !== "All"); renderPros(); }
+function filterGo(cat)    { activeFilter = cat; document.body.classList.toggle("viewing-category", cat !== "All"); show("list"); renderPros(); }
+function filterGoSub(cat, sub) { activeFilter = cat; document.body.classList.toggle("viewing-category", cat !== "All"); show("list"); renderPros(); toast("Showing: " + sub); }
 
 var unavailableProIds = [];
 var availFilterActive = false;

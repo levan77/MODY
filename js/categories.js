@@ -137,9 +137,9 @@ async function loadPros() {
   renderPros();
 }
 
-function setFilter(cat)   { activeFilter = cat; renderPros(); }
-function filterGo(cat)    { activeFilter = cat; show("list"); renderPros(); }
-function filterGoSub(cat, sub) { activeFilter = cat; show("list"); renderPros(); toast("Showing: " + sub); }
+function setFilter(cat)   { activeFilter = cat; document.body.classList.toggle("viewing-category", cat !== "All"); renderPros(); }
+function filterGo(cat)    { activeFilter = cat; document.body.classList.toggle("viewing-category", cat !== "All"); show("list"); renderPros(); }
+function filterGoSub(cat, sub) { activeFilter = cat; document.body.classList.toggle("viewing-category", cat !== "All"); show("list"); renderPros(); toast("Showing: " + sub); }
 
 var unavailableProIds = [];
 var availFilterActive = false;
