@@ -7,33 +7,34 @@
 /* ── LIGHT MODE (default) ── */
 :root {
   /* Brand */
-  --g:  #EAB8B7;   /* pink accent */
-  --gd: #C9918F;   /* pink dark (hover) */
+  --g:   #E8B4B8;   /* soft rose nude */
+  --gd:  #C28B90;   /* rose hover */
+  --acc: #D4AF37;   /* luxury gold accent */
 
   /* Backgrounds */
-  --bg:  #F8F6F3;  /* page background */
-  --bg2: #F0EDE8;  /* subtle surface */
-  --bg3: #E8E3DC;  /* stronger surface */
+  --bg:  #FAF7F5;   /* soft cream */
+  --bg2: #F3EEE9;   /* subtle surface */
+  --bg3: #EBE4DC;   /* stronger surface */
 
   /* Text */
-  --tx: #2C2C2C;   /* primary text */
-  --mu: #7A7672;   /* muted / label text */
+  --tx: #1F1F1F;    /* deep charcoal */
+  --mu: #857E78;    /* muted / label text */
 
   /* Surfaces */
-  --cd: #fff;      /* card background */
-  --nv: #fff;      /* nav background */
-  --ip: #F8F6F3;   /* input background */
+  --cd: #FFFFFF;    /* card background */
+  --nv: #FFFFFF;    /* nav background */
+  --ip: #FAF7F5;    /* input background */
 
   /* Borders */
-  --br: rgba(0, 0, 0, .1);
+  --br: rgba(0, 0, 0, .08);
 
   /* Radii */
-  --r:  16px;      /* standard radius */
-  --rs: 10px;      /* small radius */
+  --r:  12px;       /* standard radius */
+  --rs: 8px;        /* small radius */
 
-  /* Shadows */
-  --sh: 0 2px 20px rgba(0, 0, 0, .07);   /* card shadow */
-  --sl: 0 8px 40px rgba(0, 0, 0, .14);   /* elevated shadow */
+  /* Shadows — softer, more refined */
+  --sh: 0 1px 12px rgba(0, 0, 0, .05);    /* card shadow */
+  --sl: 0 6px 32px rgba(0, 0, 0, .10);    /* elevated shadow */
 }
 
 /* ── DARK MODE ── */
@@ -49,7 +50,7 @@ html.dark {
   --nv: #161514;
   --ip: #242322;
 
-  --br: rgba(255, 255, 255, .1);
+  --br: rgba(255, 255, 255, .08);
 
   --sh: 0 2px 20px rgba(0, 0, 0, .45);
   --sl: 0 8px 40px rgba(0, 0, 0, .65);

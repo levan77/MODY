@@ -8,33 +8,80 @@
 // ═══════════════════════════════════════════════════════════════
 
 // ── STATE ─────────────────────────────────────────────────────
-var selSvc = { id: null, name: "", price: 0, duration: 60, proId: null, proName: "", proSpec: "" };
+var selSvcs      = [];   // array of selected services (multi-service booking)
 var selNailColors = [];
 var promoApplied  = null;
 var promoDisc     = 0;
 
-// ── SELECT SERVICE ────────────────────────────────────────────
+// ── MULTI-SERVICE HELPERS ─────────────────────────────────────
+function selSvcPro()      { return selSvcs[0] || { proId: null, proName: "", proSpec: "" }; }
+function selSvcTotal()    { return selSvcs.reduce(function(s, x) { return s + x.price; }, 0); }
+function selSvcDuration() { return selSvcs.reduce(function(s, x) { return s + (x.duration || 60); }, 0); }
+function selSvcNames()    { return selSvcs.map(function(s) { return s.name; }).join(" + "); }
+
+// ── SELECT SERVICE (toggle add/remove) ───────────────────────
 function selectService(id, name, price, proId, proName, proSpec, duration) {
-  // un-highlight previous selection
-  document.querySelectorAll(".svc-btn").forEach(function(b) {
-    b.classList.remove("on"); b.textContent = "Select";
-  });
-  if (event && event.target) {
-    event.target.classList.add("on");
-    event.target.textContent = "✓ Selected";
+  var idx = selSvcs.findIndex(function(s) { return s.id === id; });
+
+  if (idx > -1) {
+    // Deselect
+    selSvcs.splice(idx, 1);
+    if (event && event.target) {
+      event.target.classList.remove("on");
+      event.target.textContent = "Add";
+    }
+  } else {
+    // If switching to a different professional, clear the cart first
+    if (selSvcs.length > 0 && selSvcs[0].proId !== proId) {
+      selSvcs = [];
+      document.querySelectorAll(".svc-btn").forEach(function(b) {
+        b.classList.remove("on"); b.textContent = "Add";
+      });
+    }
+    selSvcs.push({ id: id, name: name, price: price, duration: duration || 60, proId: proId, proName: proName, proSpec: proSpec || "" });
+    if (event && event.target) {
+      event.target.classList.add("on");
+      event.target.textContent = "✓ Added";
+    }
   }
-  selSvc = { id: id, name: name, price: price, duration: duration || 60, proId: proId, proName: proName, proSpec: proSpec || "" };
-  // Update sidebar price box
-  var pb = ge("sbPriceBox"); if (pb) pb.classList.remove("hide");
-  var sn = ge("sbN"); if (sn) sn.textContent = name;
-  var sp = ge("sbP"); if (sp) sp.textContent = price + "₾";
-  var st = ge("sbT"); if (st) st.textContent = (price + 5) + "₾";
+  updateSvcCart();
+}
+
+// ── UPDATE SIDEBAR CART ────────────────────────────────────────
+function updateSvcCart() {
+  var summary = ge("sbCartSummary");
+  var btn     = ge("sbContinueBtn");
+  if (!summary) return;
+
+  if (selSvcs.length === 0) {
+    summary.classList.add("hide");
+    if (btn) { btn.textContent = "Select a service"; btn.style.opacity = ".45"; btn.style.pointerEvents = "none"; }
+    return;
+  }
+
+  summary.classList.remove("hide");
+  var rows = ge("sbCartRows");
+  if (rows) {
+    rows.innerHTML = selSvcs.map(function(s) {
+      return "<div style=\"display:flex;justify-content:space-between;font-size:13px;padding:3px 0\">"
+        + "<span>" + s.name + "</span><span style=\"font-weight:500\">" + s.price + "₾</span></div>";
+    }).join("");
+  }
+  var total = selSvcTotal() + 5;
+  var st = ge("sbT"); if (st) st.textContent = total + "₾";
+  if (btn) {
+    btn.textContent = "Book " + selSvcs.length + " service" + (selSvcs.length > 1 ? "s" : "") + " — " + total + "₾";
+    btn.style.opacity = "1";
+    btn.style.pointerEvents = "";
+  }
 }
 
 // ── GO TO BOOKING PAGE ────────────────────────────────────────
 async function gotoBooking() {
-  if (!user)         { toast("Please sign in to book", "err"); openM("auth"); return; }
-  if (!selSvc.name)  { toast("Please select a service first", "err"); return; }
+  if (!user)           { toast("Please sign in to book", "err"); openM("auth"); return; }
+  if (!selSvcs.length) { toast("Please select at least one service", "err"); return; }
+
+  var pro = selSvcPro();
 
   // reset promo
   promoApplied = null; promoDisc = 0; selNailColors = [];
@@ -43,11 +90,11 @@ async function gotoBooking() {
   var dr = ge("bkDiscRow"); if (dr) dr.style.display = "none";
 
   // fill in service info
-  ge("bkSvcName").textContent  = selSvc.name;
-  ge("bkProName").textContent  = selSvc.proName;
-  ge("bkSvcPrice").textContent = selSvc.price + "₾";
-  ge("bkSumSvcLbl").textContent = selSvc.name;
-  var bsa = ge("bkSumSvcAmt"); if (bsa) bsa.textContent = selSvc.price + "₾";
+  ge("bkSvcName").textContent   = selSvcNames();
+  ge("bkProName").textContent   = pro.proName;
+  ge("bkSvcPrice").textContent  = selSvcTotal() + "₾";
+  ge("bkSumSvcLbl").textContent = selSvcNames();
+  var bsa = ge("bkSumSvcAmt"); if (bsa) bsa.textContent = selSvcTotal() + "₾";
   updateBkTotal();
 
   // show/hide promo card
@@ -64,16 +111,18 @@ async function gotoBooking() {
 // ── NAIL COLORS IN BOOKING ────────────────────────────────────
 async function setupNailCard() {
   var nc = ge("nailCard"); if (!nc) return;
-  if (settings.nail_colors_enabled === false || selSvc.proSpec !== "Nails") {
+  var pro = selSvcPro();
+  var hasNails = selSvcs.some(function(s) { return s.proSpec === "Nails"; });
+  if (settings.nail_colors_enabled === false || !hasNails) {
     nc.style.display = "none"; return;
   }
   var colors = [];
-  var demo = DEMOS.find(function(p) { return p.id === selSvc.proId; });
+  var demo = DEMOS.find(function(p) { return p.id === pro.proId; });
   if (demo && demo.nail_colors) {
     colors = demo.nail_colors;
   } else {
     try {
-      var r = await sb.from("nail_colors").select("*").eq("pro_id", selSvc.proId).order("created_at");
+      var r = await sb.from("nail_colors").select("*").eq("pro_id", pro.proId).order("created_at");
       colors = r.data || [];
     } catch(e) {}
   }
@@ -118,12 +167,12 @@ async function applyPromo() {
     if (p.max_uses && p.used_count >= p.max_uses) {
       res.innerHTML = "<p style=\"color:#ef4444;font-size:13px;margin-top:6px\">Usage limit reached.</p>"; return;
     }
-    if (selSvc.price < (p.min_order || 0)) {
+    if (selSvcTotal() < (p.min_order || 0)) {
       res.innerHTML = "<p style=\"color:#ef4444;font-size:13px;margin-top:6px\">Min order " + p.min_order + "₾ required.</p>"; return;
     }
     promoDisc = p.discount_type === "percent"
-      ? Math.round(selSvc.price * p.discount_value / 100)
-      : Math.min(Number(p.discount_value), selSvc.price);
+      ? Math.round(selSvcTotal() * p.discount_value / 100)
+      : Math.min(Number(p.discount_value), selSvcTotal());
     promoApplied = p;
     updateBkTotal();
     res.innerHTML = "<div class=\"promo-ok\">✓ " + p.code + " applied — <strong>-" + promoDisc + "₾</strong>"
@@ -143,7 +192,7 @@ function clearPromo() {
 }
 
 function updateBkTotal() {
-  var total = selSvc.price - promoDisc + 5;
+  var total = selSvcTotal() - promoDisc + 5;
   var bt = ge("bkTotal"); if (bt) bt.textContent = total + "₾";
   var cb = ge("confirmBtn"); if (cb) cb.textContent = t("confirmBtnTxt") + " — " + total + "₾";
 }
@@ -187,8 +236,8 @@ async function buildTimeSlots() {
 
   // Fetch existing bookings + pro buffer for collision check
   var blockedSlots = {};
-  var proId = selSvc.proId;
-  var svcDuration = selSvc.duration || 60; // minutes
+  var proId = selSvcPro().proId;
+  var svcDuration = selSvcDuration(); // combined duration of all selected services
   var arrivalBuffer = 60; // minutes before start
   if (proId && ["d1","d2","d3","d4","d5","d6"].indexOf(proId) === -1) {
     try {
@@ -276,7 +325,8 @@ async function submitBooking() {
   if (!slot) { toast("Please pick a time slot", "err"); return; }
 
   var timeSlot = bkSelDateStr + " " + slot.textContent;
-  var proId = (selSvc.proId && ["d1","d2","d3","d4","d5","d6"].indexOf(selSvc.proId) === -1) ? selSvc.proId : null;
+  var pro = selSvcPro();
+  var proId = (pro.proId && ["d1","d2","d3","d4","d5","d6"].indexOf(pro.proId) === -1) ? pro.proId : null;
 
   // Double-booking prevention with buffer logic
   if (proId) {
@@ -285,7 +335,7 @@ async function submitBooking() {
       var pRes2 = await sb.from("professionals").select("travel_buffer").eq("id", proId).single();
       var travelBuf = (pRes2.data && pRes2.data.travel_buffer) ? pRes2.data.travel_buffer : 60;
       var arrBuf = 60; // arrival buffer
-      var svcDur = selSvc.duration || 60;
+      var svcDur = selSvcDuration();
 
       var bkCheck = await sb.from("bookings").select("time_slot,service_name")
         .eq("pro_id", proId).in("status", activeStatuses)
@@ -317,7 +367,8 @@ async function submitBooking() {
     } catch(e) {}
   }
 
-  var total = selSvc.price - promoDisc + 5;
+  var total = selSvcTotal() - promoDisc + 5;
+  var pro = selSvcPro();
 
   // Upload design if present
   var designUrl = null;
@@ -332,9 +383,9 @@ async function submitBooking() {
     pro_id:                proId,
     client_name:           profile ? profile.full_name : user.email,
     client_phone:          profile ? (profile.phone || "") : "",
-    pro_name:              selSvc.proName,
-    service_name:          selSvc.name,
-    service_price:         selSvc.price,
+    pro_name:              pro.proName,
+    service_name:          selSvcNames(),
+    service_price:         selSvcTotal(),
     promo_code:            promoApplied ? promoApplied.code : null,
     discount_amount:       promoDisc,
     total:                 total,
@@ -364,9 +415,10 @@ async function submitBooking() {
   clearDesign();
 
   // Populate confirmation modal
+  var pro = selSvcPro();
   ge("bkConfDets").innerHTML =
-    "<div style=\"display:flex;justify-content:space-between;padding:3px 0;font-size:13px\"><span>Service</span><span>" + selSvc.name + "</span></div>"
-  + "<div style=\"display:flex;justify-content:space-between;padding:3px 0;font-size:13px\"><span>Professional</span><span>" + selSvc.proName + "</span></div>"
+    "<div style=\"display:flex;justify-content:space-between;padding:3px 0;font-size:13px\"><span>Service</span><span>" + selSvcNames() + "</span></div>"
+  + "<div style=\"display:flex;justify-content:space-between;padding:3px 0;font-size:13px\"><span>Professional</span><span>" + pro.proName + "</span></div>"
   + "<div style=\"display:flex;justify-content:space-between;padding:3px 0;font-size:13px\"><span>Time</span><span>" + slot.textContent + "</span></div>"
   + "<div style=\"display:flex;justify-content:space-between;padding:3px 0;font-size:13px\"><span>Address</span><span>" + addr + "</span></div>"
   + (promoDisc > 0 ? "<div style=\"display:flex;justify-content:space-between;padding:3px 0;font-size:13px;color:#15803d\"><span>Discount</span><span>-" + promoDisc + "₾</span></div>" : "")

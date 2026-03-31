@@ -5,6 +5,8 @@
 
 async function viewPro(proId) {
   show("profile");
+  // Reset cart when opening a new pro profile
+  if (typeof selSvcs !== "undefined") { selSvcs = []; }
   var DEMO_IDS = ["d1","d2","d3","d4","d5","d6"];
   var isDemo   = DEMO_IDS.indexOf(proId) > -1;
   var pro       = allPros.find(function(p) { return p.id === proId; });
@@ -119,7 +121,7 @@ async function viewPro(proId) {
   }
   revHtml += "</div>";
 
-  // Services list
+  // Services list — multi-select (Add/Remove per service)
   var svcsHtml = svcs.length === 0
     ? "<p style=\"color:var(--mu);font-size:14px\">No services listed yet.</p>"
     : svcs.map(function(s) {
@@ -130,7 +132,7 @@ async function viewPro(proId) {
              + "</div>"
              + "<div style=\"text-align:right\">"
              + "<div style=\"font-family:'Cormorant Garamond',serif;font-size:19px;font-weight:600\">" + s.price + "₾</div>"
-             + "<button class=\"svc-btn\" onclick=\"selectService('" + s.id + "','" + s.name.replace(/'/g,"\\'") + "'," + s.price + ",'" + pro.id + "','" + pro.name.replace(/'/g,"\\'") + "','" + (pro.specialty || "") + "'," + (s.duration || 60) + ")\">Select</button>"
+             + "<button class=\"svc-btn\" onclick=\"selectService('" + s.id + "','" + s.name.replace(/'/g,"\\'") + "'," + s.price + ",'" + pro.id + "','" + pro.name.replace(/'/g,"\\'") + "','" + (pro.specialty || "") + "'," + (s.duration || 60) + ")\">Add</button>"
              + "</div></div>";
       }).join("");
 
@@ -161,7 +163,16 @@ async function viewPro(proId) {
     + revHtml
     + "</div>"
     + "<div><div class=\"book-card\">"
-    + "<h3 style=\"font-size:16px;font-weight:400;margin-bottom:11px\">Book " + pro.name.split(" ")[0] + "</h3>"
+    + "<h3 style=\"font-size:16px;font-weight:400;margin-bottom:4px\">Book " + pro.name.split(" ")[0] + "</h3>"
+    + "<p style=\"font-size:12px;color:var(--mu);margin-bottom:12px\">Select one or more services, then choose a time.</p>"
+    // Service cart summary
+    + "<div id=\"sbCartSummary\" class=\"hide\" style=\"background:var(--bg2);border-radius:var(--rs);padding:10px;margin-bottom:10px\">"
+    + "<div style=\"font-size:11px;font-weight:600;color:var(--mu);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px\">Selected Services</div>"
+    + "<div id=\"sbCartRows\"></div>"
+    + "<div style=\"display:flex;justify-content:space-between;font-size:12px;padding:3px 0;color:var(--mu)\"><span>Platform fee</span><span>5₾</span></div>"
+    + "<div style=\"display:flex;justify-content:space-between;font-size:14px;font-weight:600;padding:6px 0 2px;border-top:1px solid var(--br);margin-top:4px\"><span>Total</span><span style=\"font-family:'Cormorant Garamond',serif;font-size:18px\" id=\"sbT\">—</span></div>"
+    + "</div>"
+    // Time selection
     + "<div class=\"mtabs\"><div class=\"mtab on\" onclick=\"swMode(this,'asap')\">⚡ ASAP</div><div class=\"mtab\" onclick=\"swMode(this,'sched')\">📅 Schedule</div></div>"
     + "<div id=\"schedW\" class=\"hide fg\"><label class=\"fl\">Date</label><input type=\"date\" class=\"fi\" id=\"schedDate\"></div>"
     + "<div class=\"fg\"><label class=\"fl\">Time</label><div class=\"ts-grid\">"
@@ -169,13 +180,11 @@ async function viewPro(proId) {
         return "<div class=\"ts" + (i === 2 ? " dis" : "") + "\" onclick=\"pickSbTs(this)\">" + tt + "</div>";
       }).join("")
     + "</div></div>"
-    + "<div id=\"sbPriceBox\" class=\"hide\" style=\"background:var(--bg2);border-radius:var(--rs);padding:10px;margin:9px 0\">"
-    + "<div style=\"display:flex;justify-content:space-between;font-size:13px;padding:2px 0\"><span id=\"sbN\">—</span><span id=\"sbP\">—</span></div>"
-    + "<div style=\"display:flex;justify-content:space-between;font-size:13px;padding:2px 0\"><span>Fee</span><span>5₾</span></div>"
-    + "<div style=\"display:flex;justify-content:space-between;font-size:14px;font-weight:500;padding:6px 0 2px;border-top:1px solid var(--br);margin-top:4px\"><span>Total</span><span style=\"font-family:'Cormorant Garamond',serif;font-size:18px\" id=\"sbT\">—</span></div>"
+    // Mobile sticky CTA (fixed at bottom on mobile, inline on desktop)
+    + "<div class=\"mobile-sticky-cta\">"
+    + "<button class=\"btn btn-g\" id=\"sbContinueBtn\" style=\"width:100%;justify-content:center;padding:13px;font-size:13px;opacity:.45;pointer-events:none\" onclick=\"gotoBooking()\">Select a service</button>"
     + "</div>"
-    + "<button class=\"btn btn-g\" style=\"width:100%;justify-content:center;padding:11px;font-size:14px\" onclick=\"gotoBooking()\">Continue to Book</button>"
-    + "<p style=\"font-size:11px;color:var(--mu);text-align:center;margin-top:6px\">Free cancellation up to 2 hours before</p>"
+    + "<p style=\"font-size:11px;color:var(--mu);text-align:center;margin-top:8px\">Free cancellation up to 2 hours before</p>"
     + "</div></div>";
 }
 

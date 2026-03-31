@@ -7,7 +7,7 @@
 
 <!-- External Dependencies -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,400&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
@@ -21,33 +21,34 @@
 /* ── LIGHT MODE (default) ── */
 :root {
   /* Brand */
-  --g:  #EAB8B7;   /* pink accent */
-  --gd: #C9918F;   /* pink dark (hover) */
+  --g:   #E8B4B8;   /* soft rose nude */
+  --gd:  #C28B90;   /* rose hover */
+  --acc: #D4AF37;   /* luxury gold accent */
 
   /* Backgrounds */
-  --bg:  #F8F6F3;  /* page background */
-  --bg2: #F0EDE8;  /* subtle surface */
-  --bg3: #E8E3DC;  /* stronger surface */
+  --bg:  #FAF7F5;   /* soft cream */
+  --bg2: #F3EEE9;   /* subtle surface */
+  --bg3: #EBE4DC;   /* stronger surface */
 
   /* Text */
-  --tx: #2C2C2C;   /* primary text */
-  --mu: #7A7672;   /* muted / label text */
+  --tx: #1F1F1F;    /* deep charcoal */
+  --mu: #857E78;    /* muted / label text */
 
   /* Surfaces */
-  --cd: #fff;      /* card background */
-  --nv: #fff;      /* nav background */
-  --ip: #F8F6F3;   /* input background */
+  --cd: #FFFFFF;    /* card background */
+  --nv: #FFFFFF;    /* nav background */
+  --ip: #FAF7F5;    /* input background */
 
   /* Borders */
-  --br: rgba(0, 0, 0, .1);
+  --br: rgba(0, 0, 0, .08);
 
   /* Radii */
-  --r:  16px;      /* standard radius */
-  --rs: 10px;      /* small radius */
+  --r:  12px;       /* standard radius */
+  --rs: 8px;        /* small radius */
 
-  /* Shadows */
-  --sh: 0 2px 20px rgba(0, 0, 0, .07);   /* card shadow */
-  --sl: 0 8px 40px rgba(0, 0, 0, .14);   /* elevated shadow */
+  /* Shadows — softer, more refined */
+  --sh: 0 1px 12px rgba(0, 0, 0, .05);    /* card shadow */
+  --sl: 0 6px 32px rgba(0, 0, 0, .10);    /* elevated shadow */
 }
 
 /* ── DARK MODE ── */
@@ -63,7 +64,7 @@ html.dark {
   --nv: #161514;
   --ip: #242322;
 
-  --br: rgba(255, 255, 255, .1);
+  --br: rgba(255, 255, 255, .08);
 
   --sh: 0 2px 20px rgba(0, 0, 0, .45);
   --sl: 0 8px 40px rgba(0, 0, 0, .65);
@@ -78,7 +79,7 @@ html.dark {
 
 /* ── TYPOGRAPHY ── */
 body {
-  font-family: "DM Sans", sans-serif;
+  font-family: "Jost", sans-serif;
   background: var(--bg);
   color: var(--tx);
   font-size: 15px;
@@ -89,10 +90,11 @@ body {
 h1, h2, h3, h4 {
   font-family: "Cormorant Garamond", serif;
   font-weight: 600;
+  letter-spacing: .03em;
 }
 
 button, input, select, textarea {
-  font-family: "DM Sans", sans-serif;
+  font-family: "Jost", sans-serif;
 }
 
 a { text-decoration: none; }
@@ -146,15 +148,16 @@ a { text-decoration: none; }
 /* ── BUTTONS ── */
 .btn {
   display: inline-flex; align-items: center; gap: 6px;
-  padding: 9px 20px; border-radius: 50px;
-  font-size: 14px; font-weight: 500;
+  padding: 11px 22px; border-radius: var(--rs);
+  font-size: 13px; font-weight: 500;
+  text-transform: uppercase; letter-spacing: .08em;
   cursor: pointer; border: none;
   transition: all .2s; white-space: nowrap;
 }
 .btn-g  { background: var(--g);  color: #1a1a1a; }
 .btn-g:hover { background: var(--gd); color: #fff; }
 
-.btn-o  { background: transparent; border: 1.5px solid var(--br); color: var(--tx); }
+.btn-o  { background: transparent; border: 1px solid var(--br); color: var(--tx); }
 .btn-o:hover { background: var(--tx); color: var(--bg); }
 
 .btn-red  { background: rgba(239,68,68,.1);  color: #b91c1c; border: 1px solid rgba(239,68,68,.2); }
@@ -243,8 +246,8 @@ a { text-decoration: none; }
 /* ── FORMS ── */
 .fg  { margin-bottom: 12px; }
 .fl  { font-size: 11px; font-weight: 600; color: var(--mu); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 5px; display: block; }
-.fi  { width: 100%; padding: 10px 12px; border: 1.5px solid var(--br); border-radius: var(--rs); font-size: 14px; color: var(--tx); outline: none; background: var(--ip); transition: border-color .2s; }
-.fi:focus { border-color: var(--g); }
+.fi  { width: 100%; padding: 12px 14px; border: 1px solid var(--br); border-radius: var(--rs); font-size: 14px; color: var(--tx); outline: none; background: var(--ip); transition: border-color .2s, box-shadow .2s; }
+.fi:focus { border-color: var(--g); box-shadow: 0 0 0 3px rgba(232,180,184,.18); }
 .fi2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 
 /* ── SPINNER ── */
@@ -267,15 +270,16 @@ a { text-decoration: none; }
 .s-lat { background: rgba(234,179,8,.2);   color: #92400e; }  /* late */
 .s-ref { background: rgba(20,184,166,.12); color: #0f766e; }  /* refunded */
 
-/* Verified badge */
+/* Verified badge — gold luxury styling */
 .vbadge {
   display: inline-flex; align-items: center; gap: 3px;
-  background: rgba(59,130,246,.1); color: #1d4ed8;
-  border: 1px solid rgba(59,130,246,.25);
+  background: rgba(212,175,55,.1); color: var(--acc);
+  border: 1px solid rgba(212,175,55,.3);
   padding: 2px 8px; border-radius: 50px;
-  font-size: 11px; font-weight: 600; white-space: nowrap;
+  font-size: 10px; font-weight: 600; white-space: nowrap;
+  text-transform: uppercase; letter-spacing: .06em;
 }
-.vbadge::before { content: "\2713"; font-size: 10px; }
+.vbadge::before { content: "\2713"; font-size: 9px; }
 
 /* ── CARDS ── */
 .card  { background: var(--cd); border-radius: var(--r); padding: 18px; box-shadow: var(--sh); }
@@ -557,6 +561,29 @@ html.dark .bk-dot-now { background: #E8E4DF; color: #1a1a1a; }
 .mtabs { display: flex; background: var(--bg2); border-radius: var(--rs); padding: 3px; margin-bottom: 11px; }
 .mtab  { flex: 1; padding: 7px; text-align: center; border-radius: 8px; font-size: 12px; cursor: pointer; color: var(--mu); transition: all .2s; }
 .mtab.on { background: var(--cd); color: var(--tx); font-weight: 500; box-shadow: 0 1px 3px rgba(0,0,0,.09); }
+
+/* ── MOBILE STICKY CTA ── */
+/* On desktop: renders inline in the booking sidebar */
+.mobile-sticky-cta { display: block; }
+
+@media (max-width: 768px) {
+  .mobile-sticky-cta {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    z-index: 350;
+    padding: 12px 16px calc(12px + env(safe-area-inset-bottom)) 16px;
+    background: var(--cd);
+    box-shadow: 0 -4px 24px rgba(0, 0, 0, .10);
+  }
+  .mobile-sticky-cta .btn {
+    width: 100%;
+    justify-content: center;
+    padding: 15px;
+    font-size: 14px;
+  }
+  /* Push page content up so sticky CTA doesn't overlap last element */
+  #pg-profile .prof-layout { padding-bottom: 80px; }
+}
 /* ══════════════════════════════════════════════
    MODY — Layout, Page Structures & Responsive
    Depends on: variables.css, base.css
@@ -2599,7 +2626,6 @@ var EXTRA_SQL = [
   "alter table public.professionals add column if not exists years_experience integer default 0;"
 ].join("\n");
 
-
 // ═══════════════════════════════════════════════════════════════
 //  MODY — Internationalization (i18n)
 //  Load order: 2 (depends on: config.js)
@@ -3039,7 +3065,6 @@ async function loadSavedTranslations() {
     }
   } catch(e) {}
 }
-
 // ═══════════════════════════════════════════════════════════════
 //  MODY — UI Utilities (dark mode, pages, modals, toast, etc.)
 //  Load order: 3 (depends on: config.js, i18n.js)
@@ -3381,7 +3406,6 @@ function canSeePhone(bk) {
 }
 
 // ── ADMIN CHANGE ANY STATUS ──────────────────────────────────
-
 // ═══════════════════════════════════════════════════════════════
 //  MODY — Authentication & User Management
 //  Load order: 4 (depends on: config.js, i18n.js, ui.js)
@@ -3719,7 +3743,6 @@ function showUidBadges() {
   var cBadge = ge("cUidBadge"); if (cBadge) cBadge.textContent = uid;
   var pBadge = ge("pUidBadge"); if (pBadge) pBadge.textContent = genUid("P", profile.pro_id || user.id);
 }
-
 
 // ═══════════════════════════════════════════════════════════════
 //  MODY — Chat: Client ↔ Professional + Support Tickets
@@ -4139,7 +4162,6 @@ async function adminOpenChat(threadId, clientName, proName) {
     msgsEl.innerHTML = "<p style=\"color:#ef4444\">Error loading chat.</p>";
   }
 }
-
 // ═══════════════════════════════════════════════════════════════
 //  MODY — Categories, Professionals List & Filtering
 //  Load order: 6 (depends on: config.js, i18n.js, ui.js)
@@ -4452,7 +4474,6 @@ function proListCard(p) {
 }
 
 // ── PROFESSIONAL PROFILE ──────────────────────────────────────
-
 // ═══════════════════════════════════════════════════════════════
 //  MODY — Professional Profile View
 //  Load order: 7 (depends on: config.js, i18n.js, ui.js, categories.js)
@@ -4460,6 +4481,8 @@ function proListCard(p) {
 
 async function viewPro(proId) {
   show("profile");
+  // Reset cart when opening a new pro profile
+  if (typeof selSvcs !== "undefined") { selSvcs = []; }
   var DEMO_IDS = ["d1","d2","d3","d4","d5","d6"];
   var isDemo   = DEMO_IDS.indexOf(proId) > -1;
   var pro       = allPros.find(function(p) { return p.id === proId; });
@@ -4574,7 +4597,7 @@ async function viewPro(proId) {
   }
   revHtml += "</div>";
 
-  // Services list
+  // Services list — multi-select (Add/Remove per service)
   var svcsHtml = svcs.length === 0
     ? "<p style=\"color:var(--mu);font-size:14px\">No services listed yet.</p>"
     : svcs.map(function(s) {
@@ -4585,7 +4608,7 @@ async function viewPro(proId) {
              + "</div>"
              + "<div style=\"text-align:right\">"
              + "<div style=\"font-family:'Cormorant Garamond',serif;font-size:19px;font-weight:600\">" + s.price + "₾</div>"
-             + "<button class=\"svc-btn\" onclick=\"selectService('" + s.id + "','" + s.name.replace(/'/g,"\\'") + "'," + s.price + ",'" + pro.id + "','" + pro.name.replace(/'/g,"\\'") + "','" + (pro.specialty || "") + "'," + (s.duration || 60) + ")\">Select</button>"
+             + "<button class=\"svc-btn\" onclick=\"selectService('" + s.id + "','" + s.name.replace(/'/g,"\\'") + "'," + s.price + ",'" + pro.id + "','" + pro.name.replace(/'/g,"\\'") + "','" + (pro.specialty || "") + "'," + (s.duration || 60) + ")\">Add</button>"
              + "</div></div>";
       }).join("");
 
@@ -4616,7 +4639,16 @@ async function viewPro(proId) {
     + revHtml
     + "</div>"
     + "<div><div class=\"book-card\">"
-    + "<h3 style=\"font-size:16px;font-weight:400;margin-bottom:11px\">Book " + pro.name.split(" ")[0] + "</h3>"
+    + "<h3 style=\"font-size:16px;font-weight:400;margin-bottom:4px\">Book " + pro.name.split(" ")[0] + "</h3>"
+    + "<p style=\"font-size:12px;color:var(--mu);margin-bottom:12px\">Select one or more services, then choose a time.</p>"
+    // Service cart summary
+    + "<div id=\"sbCartSummary\" class=\"hide\" style=\"background:var(--bg2);border-radius:var(--rs);padding:10px;margin-bottom:10px\">"
+    + "<div style=\"font-size:11px;font-weight:600;color:var(--mu);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px\">Selected Services</div>"
+    + "<div id=\"sbCartRows\"></div>"
+    + "<div style=\"display:flex;justify-content:space-between;font-size:12px;padding:3px 0;color:var(--mu)\"><span>Platform fee</span><span>5₾</span></div>"
+    + "<div style=\"display:flex;justify-content:space-between;font-size:14px;font-weight:600;padding:6px 0 2px;border-top:1px solid var(--br);margin-top:4px\"><span>Total</span><span style=\"font-family:'Cormorant Garamond',serif;font-size:18px\" id=\"sbT\">—</span></div>"
+    + "</div>"
+    // Time selection
     + "<div class=\"mtabs\"><div class=\"mtab on\" onclick=\"swMode(this,'asap')\">⚡ ASAP</div><div class=\"mtab\" onclick=\"swMode(this,'sched')\">📅 Schedule</div></div>"
     + "<div id=\"schedW\" class=\"hide fg\"><label class=\"fl\">Date</label><input type=\"date\" class=\"fi\" id=\"schedDate\"></div>"
     + "<div class=\"fg\"><label class=\"fl\">Time</label><div class=\"ts-grid\">"
@@ -4624,13 +4656,11 @@ async function viewPro(proId) {
         return "<div class=\"ts" + (i === 2 ? " dis" : "") + "\" onclick=\"pickSbTs(this)\">" + tt + "</div>";
       }).join("")
     + "</div></div>"
-    + "<div id=\"sbPriceBox\" class=\"hide\" style=\"background:var(--bg2);border-radius:var(--rs);padding:10px;margin:9px 0\">"
-    + "<div style=\"display:flex;justify-content:space-between;font-size:13px;padding:2px 0\"><span id=\"sbN\">—</span><span id=\"sbP\">—</span></div>"
-    + "<div style=\"display:flex;justify-content:space-between;font-size:13px;padding:2px 0\"><span>Fee</span><span>5₾</span></div>"
-    + "<div style=\"display:flex;justify-content:space-between;font-size:14px;font-weight:500;padding:6px 0 2px;border-top:1px solid var(--br);margin-top:4px\"><span>Total</span><span style=\"font-family:'Cormorant Garamond',serif;font-size:18px\" id=\"sbT\">—</span></div>"
+    // Mobile sticky CTA (fixed at bottom on mobile, inline on desktop)
+    + "<div class=\"mobile-sticky-cta\">"
+    + "<button class=\"btn btn-g\" id=\"sbContinueBtn\" style=\"width:100%;justify-content:center;padding:13px;font-size:13px;opacity:.45;pointer-events:none\" onclick=\"gotoBooking()\">Select a service</button>"
     + "</div>"
-    + "<button class=\"btn btn-g\" style=\"width:100%;justify-content:center;padding:11px;font-size:14px\" onclick=\"gotoBooking()\">Continue to Book</button>"
-    + "<p style=\"font-size:11px;color:var(--mu);text-align:center;margin-top:6px\">Free cancellation up to 2 hours before</p>"
+    + "<p style=\"font-size:11px;color:var(--mu);text-align:center;margin-top:8px\">Free cancellation up to 2 hours before</p>"
     + "</div></div>";
 }
 
@@ -4647,7 +4677,6 @@ function pickSbTs(el) {
 }
 
 
-
 // ═══════════════════════════════════════════════════════════════
 //  MODY — Booking Flow, Detail Modal & Reviews
 //  Load order: 8 (depends on: config.js, i18n.js, ui.js, auth.js)
@@ -4658,33 +4687,80 @@ function pickSbTs(el) {
 // ═══════════════════════════════════════════════════════════════
 
 // ── STATE ─────────────────────────────────────────────────────
-var selSvc = { id: null, name: "", price: 0, duration: 60, proId: null, proName: "", proSpec: "" };
+var selSvcs      = [];   // array of selected services (multi-service booking)
 var selNailColors = [];
 var promoApplied  = null;
 var promoDisc     = 0;
 
-// ── SELECT SERVICE ────────────────────────────────────────────
+// ── MULTI-SERVICE HELPERS ─────────────────────────────────────
+function selSvcPro()      { return selSvcs[0] || { proId: null, proName: "", proSpec: "" }; }
+function selSvcTotal()    { return selSvcs.reduce(function(s, x) { return s + x.price; }, 0); }
+function selSvcDuration() { return selSvcs.reduce(function(s, x) { return s + (x.duration || 60); }, 0); }
+function selSvcNames()    { return selSvcs.map(function(s) { return s.name; }).join(" + "); }
+
+// ── SELECT SERVICE (toggle add/remove) ───────────────────────
 function selectService(id, name, price, proId, proName, proSpec, duration) {
-  // un-highlight previous selection
-  document.querySelectorAll(".svc-btn").forEach(function(b) {
-    b.classList.remove("on"); b.textContent = "Select";
-  });
-  if (event && event.target) {
-    event.target.classList.add("on");
-    event.target.textContent = "✓ Selected";
+  var idx = selSvcs.findIndex(function(s) { return s.id === id; });
+
+  if (idx > -1) {
+    // Deselect
+    selSvcs.splice(idx, 1);
+    if (event && event.target) {
+      event.target.classList.remove("on");
+      event.target.textContent = "Add";
+    }
+  } else {
+    // If switching to a different professional, clear the cart first
+    if (selSvcs.length > 0 && selSvcs[0].proId !== proId) {
+      selSvcs = [];
+      document.querySelectorAll(".svc-btn").forEach(function(b) {
+        b.classList.remove("on"); b.textContent = "Add";
+      });
+    }
+    selSvcs.push({ id: id, name: name, price: price, duration: duration || 60, proId: proId, proName: proName, proSpec: proSpec || "" });
+    if (event && event.target) {
+      event.target.classList.add("on");
+      event.target.textContent = "✓ Added";
+    }
   }
-  selSvc = { id: id, name: name, price: price, duration: duration || 60, proId: proId, proName: proName, proSpec: proSpec || "" };
-  // Update sidebar price box
-  var pb = ge("sbPriceBox"); if (pb) pb.classList.remove("hide");
-  var sn = ge("sbN"); if (sn) sn.textContent = name;
-  var sp = ge("sbP"); if (sp) sp.textContent = price + "₾";
-  var st = ge("sbT"); if (st) st.textContent = (price + 5) + "₾";
+  updateSvcCart();
+}
+
+// ── UPDATE SIDEBAR CART ────────────────────────────────────────
+function updateSvcCart() {
+  var summary = ge("sbCartSummary");
+  var btn     = ge("sbContinueBtn");
+  if (!summary) return;
+
+  if (selSvcs.length === 0) {
+    summary.classList.add("hide");
+    if (btn) { btn.textContent = "Select a service"; btn.style.opacity = ".45"; btn.style.pointerEvents = "none"; }
+    return;
+  }
+
+  summary.classList.remove("hide");
+  var rows = ge("sbCartRows");
+  if (rows) {
+    rows.innerHTML = selSvcs.map(function(s) {
+      return "<div style=\"display:flex;justify-content:space-between;font-size:13px;padding:3px 0\">"
+        + "<span>" + s.name + "</span><span style=\"font-weight:500\">" + s.price + "₾</span></div>";
+    }).join("");
+  }
+  var total = selSvcTotal() + 5;
+  var st = ge("sbT"); if (st) st.textContent = total + "₾";
+  if (btn) {
+    btn.textContent = "Book " + selSvcs.length + " service" + (selSvcs.length > 1 ? "s" : "") + " — " + total + "₾";
+    btn.style.opacity = "1";
+    btn.style.pointerEvents = "";
+  }
 }
 
 // ── GO TO BOOKING PAGE ────────────────────────────────────────
 async function gotoBooking() {
-  if (!user)         { toast("Please sign in to book", "err"); openM("auth"); return; }
-  if (!selSvc.name)  { toast("Please select a service first", "err"); return; }
+  if (!user)           { toast("Please sign in to book", "err"); openM("auth"); return; }
+  if (!selSvcs.length) { toast("Please select at least one service", "err"); return; }
+
+  var pro = selSvcPro();
 
   // reset promo
   promoApplied = null; promoDisc = 0; selNailColors = [];
@@ -4693,11 +4769,11 @@ async function gotoBooking() {
   var dr = ge("bkDiscRow"); if (dr) dr.style.display = "none";
 
   // fill in service info
-  ge("bkSvcName").textContent  = selSvc.name;
-  ge("bkProName").textContent  = selSvc.proName;
-  ge("bkSvcPrice").textContent = selSvc.price + "₾";
-  ge("bkSumSvcLbl").textContent = selSvc.name;
-  var bsa = ge("bkSumSvcAmt"); if (bsa) bsa.textContent = selSvc.price + "₾";
+  ge("bkSvcName").textContent   = selSvcNames();
+  ge("bkProName").textContent   = pro.proName;
+  ge("bkSvcPrice").textContent  = selSvcTotal() + "₾";
+  ge("bkSumSvcLbl").textContent = selSvcNames();
+  var bsa = ge("bkSumSvcAmt"); if (bsa) bsa.textContent = selSvcTotal() + "₾";
   updateBkTotal();
 
   // show/hide promo card
@@ -4714,16 +4790,18 @@ async function gotoBooking() {
 // ── NAIL COLORS IN BOOKING ────────────────────────────────────
 async function setupNailCard() {
   var nc = ge("nailCard"); if (!nc) return;
-  if (settings.nail_colors_enabled === false || selSvc.proSpec !== "Nails") {
+  var pro = selSvcPro();
+  var hasNails = selSvcs.some(function(s) { return s.proSpec === "Nails"; });
+  if (settings.nail_colors_enabled === false || !hasNails) {
     nc.style.display = "none"; return;
   }
   var colors = [];
-  var demo = DEMOS.find(function(p) { return p.id === selSvc.proId; });
+  var demo = DEMOS.find(function(p) { return p.id === pro.proId; });
   if (demo && demo.nail_colors) {
     colors = demo.nail_colors;
   } else {
     try {
-      var r = await sb.from("nail_colors").select("*").eq("pro_id", selSvc.proId).order("created_at");
+      var r = await sb.from("nail_colors").select("*").eq("pro_id", pro.proId).order("created_at");
       colors = r.data || [];
     } catch(e) {}
   }
@@ -4768,12 +4846,12 @@ async function applyPromo() {
     if (p.max_uses && p.used_count >= p.max_uses) {
       res.innerHTML = "<p style=\"color:#ef4444;font-size:13px;margin-top:6px\">Usage limit reached.</p>"; return;
     }
-    if (selSvc.price < (p.min_order || 0)) {
+    if (selSvcTotal() < (p.min_order || 0)) {
       res.innerHTML = "<p style=\"color:#ef4444;font-size:13px;margin-top:6px\">Min order " + p.min_order + "₾ required.</p>"; return;
     }
     promoDisc = p.discount_type === "percent"
-      ? Math.round(selSvc.price * p.discount_value / 100)
-      : Math.min(Number(p.discount_value), selSvc.price);
+      ? Math.round(selSvcTotal() * p.discount_value / 100)
+      : Math.min(Number(p.discount_value), selSvcTotal());
     promoApplied = p;
     updateBkTotal();
     res.innerHTML = "<div class=\"promo-ok\">✓ " + p.code + " applied — <strong>-" + promoDisc + "₾</strong>"
@@ -4793,7 +4871,7 @@ function clearPromo() {
 }
 
 function updateBkTotal() {
-  var total = selSvc.price - promoDisc + 5;
+  var total = selSvcTotal() - promoDisc + 5;
   var bt = ge("bkTotal"); if (bt) bt.textContent = total + "₾";
   var cb = ge("confirmBtn"); if (cb) cb.textContent = t("confirmBtnTxt") + " — " + total + "₾";
 }
@@ -4837,8 +4915,8 @@ async function buildTimeSlots() {
 
   // Fetch existing bookings + pro buffer for collision check
   var blockedSlots = {};
-  var proId = selSvc.proId;
-  var svcDuration = selSvc.duration || 60; // minutes
+  var proId = selSvcPro().proId;
+  var svcDuration = selSvcDuration(); // combined duration of all selected services
   var arrivalBuffer = 60; // minutes before start
   if (proId && ["d1","d2","d3","d4","d5","d6"].indexOf(proId) === -1) {
     try {
@@ -4926,7 +5004,8 @@ async function submitBooking() {
   if (!slot) { toast("Please pick a time slot", "err"); return; }
 
   var timeSlot = bkSelDateStr + " " + slot.textContent;
-  var proId = (selSvc.proId && ["d1","d2","d3","d4","d5","d6"].indexOf(selSvc.proId) === -1) ? selSvc.proId : null;
+  var pro = selSvcPro();
+  var proId = (pro.proId && ["d1","d2","d3","d4","d5","d6"].indexOf(pro.proId) === -1) ? pro.proId : null;
 
   // Double-booking prevention with buffer logic
   if (proId) {
@@ -4935,7 +5014,7 @@ async function submitBooking() {
       var pRes2 = await sb.from("professionals").select("travel_buffer").eq("id", proId).single();
       var travelBuf = (pRes2.data && pRes2.data.travel_buffer) ? pRes2.data.travel_buffer : 60;
       var arrBuf = 60; // arrival buffer
-      var svcDur = selSvc.duration || 60;
+      var svcDur = selSvcDuration();
 
       var bkCheck = await sb.from("bookings").select("time_slot,service_name")
         .eq("pro_id", proId).in("status", activeStatuses)
@@ -4967,7 +5046,8 @@ async function submitBooking() {
     } catch(e) {}
   }
 
-  var total = selSvc.price - promoDisc + 5;
+  var total = selSvcTotal() - promoDisc + 5;
+  var pro = selSvcPro();
 
   // Upload design if present
   var designUrl = null;
@@ -4982,9 +5062,9 @@ async function submitBooking() {
     pro_id:                proId,
     client_name:           profile ? profile.full_name : user.email,
     client_phone:          profile ? (profile.phone || "") : "",
-    pro_name:              selSvc.proName,
-    service_name:          selSvc.name,
-    service_price:         selSvc.price,
+    pro_name:              pro.proName,
+    service_name:          selSvcNames(),
+    service_price:         selSvcTotal(),
     promo_code:            promoApplied ? promoApplied.code : null,
     discount_amount:       promoDisc,
     total:                 total,
@@ -5014,9 +5094,10 @@ async function submitBooking() {
   clearDesign();
 
   // Populate confirmation modal
+  var pro = selSvcPro();
   ge("bkConfDets").innerHTML =
-    "<div style=\"display:flex;justify-content:space-between;padding:3px 0;font-size:13px\"><span>Service</span><span>" + selSvc.name + "</span></div>"
-  + "<div style=\"display:flex;justify-content:space-between;padding:3px 0;font-size:13px\"><span>Professional</span><span>" + selSvc.proName + "</span></div>"
+    "<div style=\"display:flex;justify-content:space-between;padding:3px 0;font-size:13px\"><span>Service</span><span>" + selSvcNames() + "</span></div>"
+  + "<div style=\"display:flex;justify-content:space-between;padding:3px 0;font-size:13px\"><span>Professional</span><span>" + pro.proName + "</span></div>"
   + "<div style=\"display:flex;justify-content:space-between;padding:3px 0;font-size:13px\"><span>Time</span><span>" + slot.textContent + "</span></div>"
   + "<div style=\"display:flex;justify-content:space-between;padding:3px 0;font-size:13px\"><span>Address</span><span>" + addr + "</span></div>"
   + (promoDisc > 0 ? "<div style=\"display:flex;justify-content:space-between;padding:3px 0;font-size:13px;color:#15803d\"><span>Discount</span><span>-" + promoDisc + "₾</span></div>" : "")
@@ -5337,7 +5418,6 @@ function isSlotPast(timeStr) {
   return slotDate <= now;
 }
 
-
 // ═══════════════════════════════════════════════════════════════
 //  MODY — Client Dashboard
 //  Load order: 9 (depends on: config.js, i18n.js, ui.js, auth.js, booking.js)
@@ -5488,7 +5568,6 @@ async function loadClientRevs() {
     }).join("");
   } catch(e) { el.innerHTML = "<p style=\"color:var(--mu);font-size:14px\">" + t("noRevTxt") + "</p>"; }
 }
-
 
 // ═══════════════════════════════════════════════════════════════
 //  MODY — Admin Panel
@@ -6856,7 +6935,6 @@ async function renderMasterCal() {
   }
 }
 
-
 // ═══════════════════════════════════════════════════════════════
 //  MODY — Professional Dashboard
 //  Load order: 10 (depends on: config.js, i18n.js, ui.js, auth.js, booking.js)
@@ -7716,7 +7794,6 @@ async function toggleHourOff(dateStr, hour) {
 }
 
 // ── ADMIN CALENDAR VIEWER ────────────────────────────────────
-
 // ═══════════════════════════════════════════════════════════════
 //  MODY — WhatsApp Cloud API Integration
 //  Load order: 11.5 (depends on: config.js, ui.js)
@@ -7943,7 +8020,6 @@ async function testWhatsApp() {
     toast("Test failed: " + e.message, "err");
   }
 }
-
 // ═══════════════════════════════════════════════════════════════
 //  MODY — Bird (bird.com) WhatsApp Notifications
 //  Load order: 11.6 (depends on: config.js, ui.js)
@@ -8043,7 +8119,6 @@ async function testBird() {
     toast("Bird test failed: " + e.message, "err");
   }
 }
-
 // ═══════════════════════════════════════════════════════════════
 //  MODY — Floating Tracker & Live Location
 //  Load order: 12 (depends on: config.js, ui.js)
@@ -8302,7 +8377,6 @@ function cleanupClientMaps() {
   clientMapSub = {};
 }
 
-
 // ═══════════════════════════════════════════════════════════════
 //  MODY — Supabase Realtime Subscriptions
 //  Load order: 13 (depends on: config.js, dashboards)
@@ -8388,7 +8462,6 @@ function subscribeRealtime() {
       .subscribe();
   }
 }
-
 
 // ═══════════════════════════════════════════════════════════════
 //  MODY — Application Entry Point
