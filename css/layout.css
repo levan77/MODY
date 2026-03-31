@@ -346,7 +346,7 @@ footer        { background: #1A1A1A; color: rgba(255,255,255,.4); padding: 38px 
   body.viewing-category #filterChips { display: none !important; }
 
   /* Push chat lower on mobile when category is active */
-  body.viewing-category .chat-float { bottom: 120px; }
+  body.viewing-category .chat-wrap { bottom: 180px !important; }
 
   /* Touch targets — WCAG AA minimum */
   .btn, .btn-sm { min-height: 40px; min-width: 40px; }
