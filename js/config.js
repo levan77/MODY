@@ -200,7 +200,10 @@ async function loadSettings() {
   var sft = ge("setFooterTxt");  if (sft) sft.value = settings.footer_text || "";
   // Twilio settings
   var ste = ge("setTwilioEnabled"); if (ste) ste.checked = settings.twilio_enabled === true || settings.twilio_enabled === "true";
-  var stu = ge("setTwilioEdgeFn");  if (stu) stu.value = settings.twilio_edge_function_url || "";
+  var sts = ge("setTwilioSid");     if (sts) sts.value = settings.twilio_account_sid || "";
+  var stt = ge("setTwilioToken");   if (stt) stt.value = settings.twilio_auth_token || "";
+  var stf = ge("setTwilioFrom");    if (stf) stf.value = settings.twilio_from_number || "";
+  var stc = ge("setTwilioChannel"); if (stc) stc.value = settings.twilio_channel || "sms";
   // Apply accent color if saved
   if (settings.accent_color) {
     var sac = ge("setAccentColor"); if (sac) sac.value = settings.accent_color;

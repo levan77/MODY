@@ -1,21 +1,63 @@
 // ═══════════════════════════════════════════════════════════════
-//  MODY — Twilio SMS/WhatsApp Notifications
+//  MODY — Twilio SMS/WhatsApp Notifications (Direct API)
 //  Load order: 11.5 (depends on: config.js, ui.js)
-//  Calls Supabase Edge Function: twilio-send
+//  Calls Twilio REST API directly — no edge function needed
 // ═══════════════════════════════════════════════════════════════
 
-// ── SEND VIA TWILIO EDGE FUNCTION ─────────────────────────
+// Georgian message templates
+var TWILIO_MSGS = {
+  new_booking:   function(n, d) { return "გამარჯობა " + n + ", თქვენი ჯავშანი " + d + "-ზე მიღებულია! 💅"; },
+  accepted:      function(n, d) { return "გამარჯობა " + n + ", თქვენი ჯავშანი " + d + " დადასტურებულია!"; },
+  on_the_way:    function(n, d) { return "გამარჯობა " + n + ", თქვენი სპეციალისტი " + d + " გზაშია! 🚗"; },
+  arrived:       function(n, d) { return "გამარჯობა " + n + ", სპეციალისტი " + d + " მოვიდა! 📍"; },
+  in_progress:   function(n, d) { return "გამარჯობა " + n + ", " + d + " მომსახურება დაწყებულია. 💅"; },
+  completed:     function(n, d) { return "გამარჯობა " + n + ", " + d + " მომსახურება დასრულდა! ⭐"; },
+  cancelled:     function()     { return "ბოდიშს გიხდით, თქვენი ჯავშანი გაუქმებულია."; },
+  declined:      function(n, d) { return "გამარჯობა " + n + ", სამწუხაროდ სპეციალისტმა ვერ მიიღო " + d + " ჯავშანი."; },
+  pro_new:       function(n, d) { return "გამარჯობა " + n + ", ახალი ჯავშანი: " + d + ". გთხოვთ გახსნათ MODY. 📋"; },
+  pro_cancelled: function(n, d) { return "გამარჯობა " + n + ", ჯავშანი " + d + " გაუქმებულია. ❌"; },
+  pro_completed: function(n, d) { return "გამარჯობა " + n + ", " + d + " შესრულდა! გმადლობთ. ✅"; }
+};
+
+// ── SEND SMS/WHATSAPP VIA TWILIO REST API ─────────────────
 async function sendTwilioNotification(phone, type, name, details) {
   if (!settings.twilio_enabled || settings.twilio_enabled === "false") return;
   if (!phone) return;
 
+  var sid = settings.twilio_account_sid || "";
+  var token = settings.twilio_auth_token || "";
+  var from = settings.twilio_from_number || "";
+  var channel = settings.twilio_channel || "sms";
+
+  if (!sid || !token || !from) return;
+
+  // Build message text
+  var msgFn = TWILIO_MSGS[type];
+  var text = msgFn ? msgFn(name || "კლიენტო", details || "") : "MODY: " + (details || type);
+
+  // Clean phone number
+  var clean = phone.replace(/[\s\-()]/g, "");
+  if (!clean.startsWith("+")) {
+    clean = clean.replace(/^0+/, "");
+    if (!clean.startsWith("995")) clean = "995" + clean;
+    clean = "+" + clean;
+  }
+
+  // Format for WhatsApp if needed
+  var to = channel === "whatsapp" ? "whatsapp:" + clean : clean;
+  var fromNum = channel === "whatsapp" ? "whatsapp:" + from : from;
+
   try {
-    var r = await sb.functions.invoke("twilio-send", {
-      body: { phone: phone, type: type, name: name, details: details }
+    await fetch("https://api.twilio.com/2010-04-01/Accounts/" + sid + "/Messages.json", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+        "Authorization": "Basic " + btoa(sid + ":" + token)
+      },
+      body: "To=" + encodeURIComponent(to) + "&From=" + encodeURIComponent(fromNum) + "&Body=" + encodeURIComponent(text)
     });
-    if (r.error) console.log("Twilio notification failed:", r.error.message);
   } catch(e) {
-    console.log("Twilio notification failed:", e.message);
+    console.log("Twilio send failed:", e.message);
   }
 }
 
@@ -66,19 +108,37 @@ function twilioNotifyBooking(booking, event) {
 async function testTwilio() {
   var testPhone = prompt("Enter phone number to test (e.g. +995599...):");
   if (!testPhone) return;
+
+  var sid = settings.twilio_account_sid || "";
+  var token = settings.twilio_auth_token || "";
+  var from = settings.twilio_from_number || "";
+  var channel = settings.twilio_channel || "sms";
+
+  if (!sid || !token || !from) { toast("Set Twilio Account SID, Auth Token, and From Number first", "err"); return; }
+
   toast("Sending Twilio test message...");
+
+  var clean = testPhone.replace(/[\s\-()]/g, "");
+  if (!clean.startsWith("+")) {
+    clean = clean.replace(/^0+/, "");
+    if (!clean.startsWith("995")) clean = "995" + clean;
+    clean = "+" + clean;
+  }
+  var to = channel === "whatsapp" ? "whatsapp:" + clean : clean;
+  var fromNum = channel === "whatsapp" ? "whatsapp:" + from : from;
+
   try {
-    var r = await sb.functions.invoke("twilio-send", {
-      body: { phone: testPhone, type: "new_booking", name: "სატესტო", details: "MODY Twilio test ✅" }
+    var r = await fetch("https://api.twilio.com/2010-04-01/Accounts/" + sid + "/Messages.json", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+        "Authorization": "Basic " + btoa(sid + ":" + token)
+      },
+      body: "To=" + encodeURIComponent(to) + "&From=" + encodeURIComponent(fromNum) + "&Body=" + encodeURIComponent("MODY Twilio test ✅")
     });
-    if (r.error) {
-      toast("Twilio error: " + r.error.message, "err");
-    } else {
-      var data = r.data;
-      if (data && data.ok) toast("Twilio test message sent! Check your phone.", "ok");
-      else if (data && data.error) toast("Twilio error: " + data.error + (data.details && data.details.message ? " — " + data.details.message : ""), "err");
-      else toast("Twilio test sent.", "ok");
-    }
+    var data = await r.json();
+    if (r.ok) toast("Test message sent! Check your phone.", "ok");
+    else toast("Twilio error: " + (data.message || data.code || r.status), "err");
   } catch(e) {
     toast("Twilio test failed: " + e.message, "err");
   }

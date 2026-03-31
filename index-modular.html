@@ -822,23 +822,44 @@
         </div>
         <div class="card" style="margin-bottom:12px">
           <div class="c-hdr"><h3>📱 Twilio Notifications</h3></div>
-          <p style="font-size:12px;color:var(--mu);margin-bottom:10px">Send booking notifications via Twilio SMS or WhatsApp. Requires a Supabase Edge Function.</p>
+          <p style="font-size:12px;color:var(--mu);margin-bottom:10px">Send booking notifications via Twilio SMS or WhatsApp. Get credentials from <a href="https://console.twilio.com" target="_blank" style="color:var(--g)">console.twilio.com</a></p>
           <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--br)">
             <div><div style="font-weight:500;font-size:14px">Enable Twilio</div><div style="font-size:12px;color:var(--mu)">Send booking updates to clients & professionals</div></div>
             <label class="sw"><input type="checkbox" id="setTwilioEnabled" onchange="saveSetting('twilio_enabled',this.checked)"><span class="sw-t"></span></label>
           </div>
           <div style="padding:10px 0;border-bottom:1px solid var(--br)">
-            <div style="font-weight:500;font-size:14px;margin-bottom:6px">Edge Function URL</div>
-            <div style="font-size:12px;color:var(--mu);margin-bottom:4px">Your deployed <code>twilio-send</code> Supabase Edge Function URL</div>
+            <div style="font-weight:500;font-size:14px;margin-bottom:6px">Account SID</div>
+            <div style="font-size:12px;color:var(--mu);margin-bottom:4px">Starts with AC — from Twilio Console dashboard</div>
             <div style="display:flex;gap:6px">
-              <input class="fi" id="setTwilioEdgeFn" type="url" style="flex:1" placeholder="https://your-project.supabase.co/functions/v1/twilio-send">
-              <button class="btn btn-g" style="font-size:13px" onclick="saveSetting('twilio_edge_function_url',document.getElementById('setTwilioEdgeFn').value)">Save</button>
+              <input class="fi" id="setTwilioSid" type="text" style="flex:1" placeholder="ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx">
+              <button class="btn btn-g" style="font-size:13px" onclick="saveSetting('twilio_account_sid',document.getElementById('setTwilioSid').value)">Save</button>
             </div>
           </div>
           <div style="padding:10px 0;border-bottom:1px solid var(--br)">
-            <div style="font-weight:500;font-size:13px;color:var(--mu);margin-bottom:6px">Set these secrets in Supabase:</div>
-            <code style="font-size:11px;background:var(--bg2);padding:8px;border-radius:var(--rs);display:block;line-height:1.9;border:1px solid var(--br)">supabase secrets set TWILIO_ACCOUNT_SID=your_sid<br>supabase secrets set TWILIO_AUTH_TOKEN=your_token<br>supabase secrets set TWILIO_FROM_NUMBER=+1xxxxxxxxxx<br>supabase secrets set TWILIO_CHANNEL=sms</code>
-            <p style="font-size:11px;color:var(--mu);margin-top:6px">Set TWILIO_CHANNEL to <code>whatsapp</code> to send via WhatsApp instead of SMS.</p>
+            <div style="font-weight:500;font-size:14px;margin-bottom:6px">Auth Token</div>
+            <div style="font-size:12px;color:var(--mu);margin-bottom:4px">Secret token from Twilio Console dashboard</div>
+            <div style="display:flex;gap:6px">
+              <input class="fi" id="setTwilioToken" type="password" style="flex:1" placeholder="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx">
+              <button class="btn btn-g" style="font-size:13px" onclick="saveSetting('twilio_auth_token',document.getElementById('setTwilioToken').value)">Save</button>
+            </div>
+          </div>
+          <div style="padding:10px 0;border-bottom:1px solid var(--br)">
+            <div style="font-weight:500;font-size:14px;margin-bottom:6px">From Number</div>
+            <div style="font-size:12px;color:var(--mu);margin-bottom:4px">Your Twilio phone number (with country code, e.g. +1...)</div>
+            <div style="display:flex;gap:6px">
+              <input class="fi" id="setTwilioFrom" type="text" style="flex:1" placeholder="+1xxxxxxxxxx">
+              <button class="btn btn-g" style="font-size:13px" onclick="saveSetting('twilio_from_number',document.getElementById('setTwilioFrom').value)">Save</button>
+            </div>
+          </div>
+          <div style="padding:10px 0;border-bottom:1px solid var(--br)">
+            <div style="font-weight:500;font-size:14px;margin-bottom:6px">Channel</div>
+            <div style="font-size:12px;color:var(--mu);margin-bottom:4px">Send via SMS or WhatsApp</div>
+            <div style="display:flex;gap:6px">
+              <select class="fi" id="setTwilioChannel" style="flex:1" onchange="saveSetting('twilio_channel',this.value)">
+                <option value="sms">SMS</option>
+                <option value="whatsapp">WhatsApp</option>
+              </select>
+            </div>
           </div>
           <div style="padding:10px 0;border-top:1px solid var(--br);display:flex;gap:8px">
             <button class="btn btn-g" style="font-size:13px" onclick="testTwilio()">📱 Send Test Message</button>
