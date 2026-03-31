@@ -821,79 +821,27 @@
           </div>
         </div>
         <div class="card" style="margin-bottom:12px">
-          <div class="c-hdr"><h3>📱 WhatsApp Notifications</h3></div>
-          <p style="font-size:12px;color:var(--mu);margin-bottom:10px">Send booking notifications via WhatsApp Cloud API. <a href="https://developers.facebook.com/docs/whatsapp/cloud-api/get-started" target="_blank" style="color:var(--g)">Setup Guide →</a></p>
+          <div class="c-hdr"><h3>📱 Twilio Notifications</h3></div>
+          <p style="font-size:12px;color:var(--mu);margin-bottom:10px">Send booking notifications via Twilio SMS or WhatsApp. Requires a Supabase Edge Function.</p>
           <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--br)">
-            <div><div style="font-weight:500;font-size:14px">Enable WhatsApp</div><div style="font-size:12px;color:var(--mu)">Send booking updates to clients & professionals</div></div>
-            <label class="sw"><input type="checkbox" id="setWaEnabled" onchange="saveSetting('wa_enabled',this.checked)"><span class="sw-t"></span></label>
-          </div>
-          <div style="padding:10px 0;border-bottom:1px solid var(--br)">
-            <div style="font-weight:500;font-size:14px;margin-bottom:6px">Phone Number ID</div>
-            <div style="font-size:12px;color:var(--mu);margin-bottom:4px">From Meta Business → WhatsApp → API Setup</div>
-            <div style="display:flex;gap:6px">
-              <input class="fi" id="setWaPhoneId" type="text" style="flex:1" placeholder="e.g. 123456789012345">
-              <button class="btn btn-g" style="font-size:13px" onclick="saveSetting('wa_phone_id',document.getElementById('setWaPhoneId').value)">Save</button>
-            </div>
-          </div>
-          <div style="padding:10px 0;border-bottom:1px solid var(--br)">
-            <div style="font-weight:500;font-size:14px;margin-bottom:6px">Access Token</div>
-            <div style="font-size:12px;color:var(--mu);margin-bottom:4px">Permanent token from Meta Business settings</div>
-            <div style="display:flex;gap:6px">
-              <input class="fi" id="setWaToken" type="password" style="flex:1" placeholder="EAAxxxxxxx...">
-              <button class="btn btn-g" style="font-size:13px" onclick="saveSetting('wa_api_token',document.getElementById('setWaToken').value)">Save</button>
-            </div>
-          </div>
-          <div style="padding:10px 0;border-bottom:1px solid var(--br)">
-            <div style="font-weight:500;font-size:14px;margin-bottom:6px">Edge Function URL <span style="font-size:11px;color:var(--mu);font-weight:400">(recommended)</span></div>
-            <div style="font-size:12px;color:var(--mu);margin-bottom:4px">Supabase Edge Function URL to proxy API calls securely. Leave empty for direct API calls.</div>
-            <div style="display:flex;gap:6px">
-              <input class="fi" id="setWaEdgeFn" type="url" style="flex:1" placeholder="https://your-project.supabase.co/functions/v1/whatsapp-send">
-              <button class="btn btn-g" style="font-size:13px" onclick="saveSetting('wa_edge_function_url',document.getElementById('setWaEdgeFn').value)">Save</button>
-            </div>
-          </div>
-          <div style="padding:10px 0;display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-            <div style="font-weight:500;font-size:14px">Notification Events</div>
-            <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px;width:100%">
-              <label style="display:flex;align-items:center;gap:4px;font-size:13px;background:var(--bg2);padding:4px 10px;border-radius:50px"><input type="checkbox" id="setWaNew" onchange="saveSetting('wa_on_new',this.checked)" checked> New Booking</label>
-              <label style="display:flex;align-items:center;gap:4px;font-size:13px;background:var(--bg2);padding:4px 10px;border-radius:50px"><input type="checkbox" id="setWaAccept" onchange="saveSetting('wa_on_accepted',this.checked)" checked> Accepted</label>
-              <label style="display:flex;align-items:center;gap:4px;font-size:13px;background:var(--bg2);padding:4px 10px;border-radius:50px"><input type="checkbox" id="setWaOtw" onchange="saveSetting('wa_on_otw',this.checked)" checked> On the Way</label>
-              <label style="display:flex;align-items:center;gap:4px;font-size:13px;background:var(--bg2);padding:4px 10px;border-radius:50px"><input type="checkbox" id="setWaArr" onchange="saveSetting('wa_on_arrived',this.checked)" checked> Arrived</label>
-              <label style="display:flex;align-items:center;gap:4px;font-size:13px;background:var(--bg2);padding:4px 10px;border-radius:50px"><input type="checkbox" id="setWaDone" onchange="saveSetting('wa_on_completed',this.checked)" checked> Completed</label>
-              <label style="display:flex;align-items:center;gap:4px;font-size:13px;background:var(--bg2);padding:4px 10px;border-radius:50px"><input type="checkbox" id="setWaCancel" onchange="saveSetting('wa_on_cancelled',this.checked)" checked> Cancelled</label>
-            </div>
-          </div>
-          <div style="padding:10px 0;border-top:1px solid var(--br);display:flex;gap:8px">
-            <button class="btn btn-g" style="font-size:13px" onclick="testWhatsApp()">📱 Send Test Message</button>
-          </div>
-          <div style="border-top:1px solid var(--br);padding-top:12px;margin-top:4px">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-              <div><div style="font-weight:500;font-size:14px">📝 Message Templates</div><div style="font-size:12px;color:var(--mu)">Edit the WhatsApp messages sent for each booking event</div></div>
-              <button class="btn btn-o" style="font-size:12px" onclick="renderWaTemplates()">Edit Templates</button>
-            </div>
-            <div id="waTemplateList"></div>
-          </div>
-        </div>
-        <div class="card" style="margin-bottom:12px">
-          <div class="c-hdr"><h3>🐦 Bird WhatsApp Notifications</h3></div>
-          <p style="font-size:12px;color:var(--mu);margin-bottom:10px">Send booking notifications via <a href="https://bird.com" target="_blank" style="color:var(--g)">Bird (bird.com)</a> WhatsApp channel. Requires a Supabase Edge Function.</p>
-          <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--br)">
-            <div><div style="font-weight:500;font-size:14px">Enable Bird Notifications</div><div style="font-size:12px;color:var(--mu)">Send booking WhatsApp messages in Georgian via Bird</div></div>
-            <label class="sw"><input type="checkbox" id="setBirdEnabled" onchange="saveSetting('bird_enabled',this.checked)"><span class="sw-t"></span></label>
+            <div><div style="font-weight:500;font-size:14px">Enable Twilio</div><div style="font-size:12px;color:var(--mu)">Send booking updates to clients & professionals</div></div>
+            <label class="sw"><input type="checkbox" id="setTwilioEnabled" onchange="saveSetting('twilio_enabled',this.checked)"><span class="sw-t"></span></label>
           </div>
           <div style="padding:10px 0;border-bottom:1px solid var(--br)">
             <div style="font-weight:500;font-size:14px;margin-bottom:6px">Edge Function URL</div>
-            <div style="font-size:12px;color:var(--mu);margin-bottom:4px">Your deployed <code>bird-notifications</code> Supabase Edge Function URL</div>
+            <div style="font-size:12px;color:var(--mu);margin-bottom:4px">Your deployed <code>twilio-send</code> Supabase Edge Function URL</div>
             <div style="display:flex;gap:6px">
-              <input class="fi" id="setBirdEdgeFn" type="url" style="flex:1" placeholder="https://your-project.supabase.co/functions/v1/bird-notifications">
-              <button class="btn btn-g" style="font-size:13px" onclick="saveSetting('bird_edge_function_url',document.getElementById('setBirdEdgeFn').value)">Save</button>
+              <input class="fi" id="setTwilioEdgeFn" type="url" style="flex:1" placeholder="https://your-project.supabase.co/functions/v1/twilio-send">
+              <button class="btn btn-g" style="font-size:13px" onclick="saveSetting('twilio_edge_function_url',document.getElementById('setTwilioEdgeFn').value)">Save</button>
             </div>
           </div>
           <div style="padding:10px 0;border-bottom:1px solid var(--br)">
             <div style="font-weight:500;font-size:13px;color:var(--mu);margin-bottom:6px">Set these secrets in Supabase:</div>
-            <code style="font-size:11px;background:var(--bg2);padding:8px;border-radius:var(--rs);display:block;line-height:1.9;border:1px solid var(--br)">supabase secrets set BIRD_API_KEY=your_key<br>supabase secrets set BIRD_WORKSPACE_ID=your_workspace<br>supabase secrets set BIRD_CHANNEL_ID=your_channel</code>
+            <code style="font-size:11px;background:var(--bg2);padding:8px;border-radius:var(--rs);display:block;line-height:1.9;border:1px solid var(--br)">supabase secrets set TWILIO_ACCOUNT_SID=your_sid<br>supabase secrets set TWILIO_AUTH_TOKEN=your_token<br>supabase secrets set TWILIO_FROM_NUMBER=+1xxxxxxxxxx<br>supabase secrets set TWILIO_CHANNEL=sms</code>
+            <p style="font-size:11px;color:var(--mu);margin-top:6px">Set TWILIO_CHANNEL to <code>whatsapp</code> to send via WhatsApp instead of SMS.</p>
           </div>
           <div style="padding:10px 0;border-top:1px solid var(--br);display:flex;gap:8px">
-            <button class="btn btn-g" style="font-size:13px" onclick="testBird()">📱 Send Test Message</button>
+            <button class="btn btn-g" style="font-size:13px" onclick="testTwilio()">📱 Send Test Message</button>
           </div>
         </div>
         <div class="card" style="margin-bottom:12px">
@@ -1352,8 +1300,7 @@
 <script src="js/booking.js"></script>
 <script src="js/dashboards/client.js"></script>
 <!-- admin.js & professional.js are lazy-loaded by routeByRole() based on user role -->
-<script src="js/whatsapp.js"></script>
-<script src="js/bird.js"></script>
+<script src="js/twilio.js"></script>
 <script src="js/tracking.js"></script>
 <script src="js/realtime.js"></script>
 <script src="js/app.js"></script>

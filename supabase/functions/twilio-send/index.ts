@@ -1,13 +1,14 @@
-// Supabase Edge Function: bird-notifications
-// Sends WhatsApp messages via Bird (bird.com) Conversations API
+// Supabase Edge Function: twilio-send
+// Sends SMS/WhatsApp messages via Twilio REST API
 //
 // Deploy:
-//   supabase functions deploy bird-notifications
+//   supabase functions deploy twilio-send
 //
 // Set secrets:
-//   supabase secrets set BIRD_API_KEY=your_api_key
-//   supabase secrets set BIRD_WORKSPACE_ID=your_workspace_id
-//   supabase secrets set BIRD_CHANNEL_ID=your_whatsapp_channel_id
+//   supabase secrets set TWILIO_ACCOUNT_SID=your_account_sid
+//   supabase secrets set TWILIO_AUTH_TOKEN=your_auth_token
+//   supabase secrets set TWILIO_FROM_NUMBER=+1xxxxxxxxxx
+//   supabase secrets set TWILIO_CHANNEL=sms   (or "whatsapp")
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
@@ -76,12 +77,13 @@ serve(async (req) => {
       });
     }
 
-    const apiKey     = Deno.env.get("BIRD_API_KEY");
-    const workspaceId = Deno.env.get("BIRD_WORKSPACE_ID");
-    const channelId  = Deno.env.get("BIRD_CHANNEL_ID");
+    const accountSid = Deno.env.get("TWILIO_ACCOUNT_SID");
+    const authToken  = Deno.env.get("TWILIO_AUTH_TOKEN");
+    const fromNumber = Deno.env.get("TWILIO_FROM_NUMBER");
+    const channel    = Deno.env.get("TWILIO_CHANNEL") || "sms";
 
-    if (!apiKey || !workspaceId || !channelId) {
-      return new Response(JSON.stringify({ error: "Bird not configured. Set BIRD_API_KEY, BIRD_WORKSPACE_ID, BIRD_CHANNEL_ID." }), {
+    if (!accountSid || !authToken || !fromNumber) {
+      return new Response(JSON.stringify({ error: "Twilio not configured. Set TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_FROM_NUMBER." }), {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -93,49 +95,46 @@ serve(async (req) => {
       ? msgFn(name || "კლიენტო", details || "")
       : `MODY: ${details || type}`;
 
-    // Clean phone number — ensure it starts with country code, no +
-    const cleanPhone = phone.replace(/[\s\-()]/g, "").replace(/^\+/, "");
-    const phoneWithCC = cleanPhone.startsWith("995")
-      ? cleanPhone
-      : "995" + cleanPhone.replace(/^0+/, "");
+    // Clean phone number — ensure it starts with +country code
+    let cleanPhone = phone.replace(/[\s\-()]/g, "");
+    if (!cleanPhone.startsWith("+")) {
+      cleanPhone = cleanPhone.replace(/^0+/, "");
+      if (!cleanPhone.startsWith("995")) cleanPhone = "995" + cleanPhone;
+      cleanPhone = "+" + cleanPhone;
+    }
 
-    // Bird Conversations API — create conversation + send message
-    const birdRes = await fetch(
-      `https://api.bird.com/workspaces/${workspaceId}/conversations`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `AccessKey ${apiKey}`,
-        },
-        body: JSON.stringify({
-          channels: [{ id: channelId }],
-          contact: {
-            identifiers: [{ key: "phonenumber", value: phoneWithCC }],
-          },
-          messages: [
-            {
-              body: {
-                type: "text",
-                text: { text },
-              },
-            },
-          ],
-        }),
-      }
-    );
+    // Format To/From for WhatsApp channel if configured
+    const to   = channel === "whatsapp" ? `whatsapp:${cleanPhone}` : cleanPhone;
+    const from = channel === "whatsapp" ? `whatsapp:${fromNumber}` : fromNumber;
 
-    const birdData = await birdRes.json();
+    // Twilio REST API — send message
+    const twilioUrl = `https://api.twilio.com/2010-04-01/Accounts/${accountSid}/Messages.json`;
+    const formBody = new URLSearchParams({
+      To: to,
+      From: from,
+      Body: text,
+    });
 
-    if (!birdRes.ok) {
-      console.error("Bird API error:", JSON.stringify(birdData));
-      return new Response(JSON.stringify({ error: "Bird API error", details: birdData }), {
-        status: birdRes.status,
+    const twilioRes = await fetch(twilioUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+        "Authorization": "Basic " + btoa(`${accountSid}:${authToken}`),
+      },
+      body: formBody.toString(),
+    });
+
+    const twilioData = await twilioRes.json();
+
+    if (!twilioRes.ok) {
+      console.error("Twilio API error:", JSON.stringify(twilioData));
+      return new Response(JSON.stringify({ error: "Twilio API error", details: twilioData }), {
+        status: twilioRes.status,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    return new Response(JSON.stringify({ ok: true, data: birdData }), {
+    return new Response(JSON.stringify({ ok: true, sid: twilioData.sid }), {
       status: 200,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });

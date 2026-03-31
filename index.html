@@ -69,6 +69,7 @@ html.dark {
   --sh: 0 2px 20px rgba(0, 0, 0, .45);
   --sl: 0 8px 40px rgba(0, 0, 0, .65);
 }
+
 /* ══════════════════════════════════════════════
    MODY — Reset, Typography & Global Utilities
    Depends on: variables.css
@@ -132,6 +133,7 @@ a { text-decoration: none; }
   60%  { transform: scale(1.15); }
   100% { transform: scale(1); opacity: 1; }
 }
+
 /* ══════════════════════════════════════════════
    MODY — Reusable UI Components
    Depends on: variables.css, base.css
@@ -584,6 +586,7 @@ html.dark .bk-dot-now { background: #E8E4DF; color: #1a1a1a; }
   /* Push page content up so sticky CTA doesn't overlap last element */
   #pg-profile .prof-layout { padding-bottom: 80px; }
 }
+
 /* ══════════════════════════════════════════════
    MODY — Layout, Page Structures & Responsive
    Depends on: variables.css, base.css
@@ -936,8 +939,10 @@ footer        { background: #1A1A1A; color: rgba(255,255,255,.4); padding: 38px 
   .ni  { min-height: 42px; }
   .mx  { min-width: 40px; min-height: 40px; display: flex; align-items: center; justify-content: center; }
 }
+
 </style>
 </head>
+<body>
 <body>
 
 <!-- PART 2: HTML BODY -->
@@ -1742,79 +1747,27 @@ footer        { background: #1A1A1A; color: rgba(255,255,255,.4); padding: 38px 
           </div>
         </div>
         <div class="card" style="margin-bottom:12px">
-          <div class="c-hdr"><h3>📱 WhatsApp Notifications</h3></div>
-          <p style="font-size:12px;color:var(--mu);margin-bottom:10px">Send booking notifications via WhatsApp Cloud API. <a href="https://developers.facebook.com/docs/whatsapp/cloud-api/get-started" target="_blank" style="color:var(--g)">Setup Guide →</a></p>
+          <div class="c-hdr"><h3>📱 Twilio Notifications</h3></div>
+          <p style="font-size:12px;color:var(--mu);margin-bottom:10px">Send booking notifications via Twilio SMS or WhatsApp. Requires a Supabase Edge Function.</p>
           <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--br)">
-            <div><div style="font-weight:500;font-size:14px">Enable WhatsApp</div><div style="font-size:12px;color:var(--mu)">Send booking updates to clients & professionals</div></div>
-            <label class="sw"><input type="checkbox" id="setWaEnabled" onchange="saveSetting('wa_enabled',this.checked)"><span class="sw-t"></span></label>
-          </div>
-          <div style="padding:10px 0;border-bottom:1px solid var(--br)">
-            <div style="font-weight:500;font-size:14px;margin-bottom:6px">Phone Number ID</div>
-            <div style="font-size:12px;color:var(--mu);margin-bottom:4px">From Meta Business → WhatsApp → API Setup</div>
-            <div style="display:flex;gap:6px">
-              <input class="fi" id="setWaPhoneId" type="text" style="flex:1" placeholder="e.g. 123456789012345">
-              <button class="btn btn-g" style="font-size:13px" onclick="saveSetting('wa_phone_id',document.getElementById('setWaPhoneId').value)">Save</button>
-            </div>
-          </div>
-          <div style="padding:10px 0;border-bottom:1px solid var(--br)">
-            <div style="font-weight:500;font-size:14px;margin-bottom:6px">Access Token</div>
-            <div style="font-size:12px;color:var(--mu);margin-bottom:4px">Permanent token from Meta Business settings</div>
-            <div style="display:flex;gap:6px">
-              <input class="fi" id="setWaToken" type="password" style="flex:1" placeholder="EAAxxxxxxx...">
-              <button class="btn btn-g" style="font-size:13px" onclick="saveSetting('wa_api_token',document.getElementById('setWaToken').value)">Save</button>
-            </div>
-          </div>
-          <div style="padding:10px 0;border-bottom:1px solid var(--br)">
-            <div style="font-weight:500;font-size:14px;margin-bottom:6px">Edge Function URL <span style="font-size:11px;color:var(--mu);font-weight:400">(recommended)</span></div>
-            <div style="font-size:12px;color:var(--mu);margin-bottom:4px">Supabase Edge Function URL to proxy API calls securely. Leave empty for direct API calls.</div>
-            <div style="display:flex;gap:6px">
-              <input class="fi" id="setWaEdgeFn" type="url" style="flex:1" placeholder="https://your-project.supabase.co/functions/v1/whatsapp-send">
-              <button class="btn btn-g" style="font-size:13px" onclick="saveSetting('wa_edge_function_url',document.getElementById('setWaEdgeFn').value)">Save</button>
-            </div>
-          </div>
-          <div style="padding:10px 0;display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-            <div style="font-weight:500;font-size:14px">Notification Events</div>
-            <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px;width:100%">
-              <label style="display:flex;align-items:center;gap:4px;font-size:13px;background:var(--bg2);padding:4px 10px;border-radius:50px"><input type="checkbox" id="setWaNew" onchange="saveSetting('wa_on_new',this.checked)" checked> New Booking</label>
-              <label style="display:flex;align-items:center;gap:4px;font-size:13px;background:var(--bg2);padding:4px 10px;border-radius:50px"><input type="checkbox" id="setWaAccept" onchange="saveSetting('wa_on_accepted',this.checked)" checked> Accepted</label>
-              <label style="display:flex;align-items:center;gap:4px;font-size:13px;background:var(--bg2);padding:4px 10px;border-radius:50px"><input type="checkbox" id="setWaOtw" onchange="saveSetting('wa_on_otw',this.checked)" checked> On the Way</label>
-              <label style="display:flex;align-items:center;gap:4px;font-size:13px;background:var(--bg2);padding:4px 10px;border-radius:50px"><input type="checkbox" id="setWaArr" onchange="saveSetting('wa_on_arrived',this.checked)" checked> Arrived</label>
-              <label style="display:flex;align-items:center;gap:4px;font-size:13px;background:var(--bg2);padding:4px 10px;border-radius:50px"><input type="checkbox" id="setWaDone" onchange="saveSetting('wa_on_completed',this.checked)" checked> Completed</label>
-              <label style="display:flex;align-items:center;gap:4px;font-size:13px;background:var(--bg2);padding:4px 10px;border-radius:50px"><input type="checkbox" id="setWaCancel" onchange="saveSetting('wa_on_cancelled',this.checked)" checked> Cancelled</label>
-            </div>
-          </div>
-          <div style="padding:10px 0;border-top:1px solid var(--br);display:flex;gap:8px">
-            <button class="btn btn-g" style="font-size:13px" onclick="testWhatsApp()">📱 Send Test Message</button>
-          </div>
-          <div style="border-top:1px solid var(--br);padding-top:12px;margin-top:4px">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-              <div><div style="font-weight:500;font-size:14px">📝 Message Templates</div><div style="font-size:12px;color:var(--mu)">Edit the WhatsApp messages sent for each booking event</div></div>
-              <button class="btn btn-o" style="font-size:12px" onclick="renderWaTemplates()">Edit Templates</button>
-            </div>
-            <div id="waTemplateList"></div>
-          </div>
-        </div>
-        <div class="card" style="margin-bottom:12px">
-          <div class="c-hdr"><h3>🐦 Bird WhatsApp Notifications</h3></div>
-          <p style="font-size:12px;color:var(--mu);margin-bottom:10px">Send booking notifications via <a href="https://bird.com" target="_blank" style="color:var(--g)">Bird (bird.com)</a> WhatsApp channel. Requires a Supabase Edge Function.</p>
-          <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--br)">
-            <div><div style="font-weight:500;font-size:14px">Enable Bird Notifications</div><div style="font-size:12px;color:var(--mu)">Send booking WhatsApp messages in Georgian via Bird</div></div>
-            <label class="sw"><input type="checkbox" id="setBirdEnabled" onchange="saveSetting('bird_enabled',this.checked)"><span class="sw-t"></span></label>
+            <div><div style="font-weight:500;font-size:14px">Enable Twilio</div><div style="font-size:12px;color:var(--mu)">Send booking updates to clients & professionals</div></div>
+            <label class="sw"><input type="checkbox" id="setTwilioEnabled" onchange="saveSetting('twilio_enabled',this.checked)"><span class="sw-t"></span></label>
           </div>
           <div style="padding:10px 0;border-bottom:1px solid var(--br)">
             <div style="font-weight:500;font-size:14px;margin-bottom:6px">Edge Function URL</div>
-            <div style="font-size:12px;color:var(--mu);margin-bottom:4px">Your deployed <code>bird-notifications</code> Supabase Edge Function URL</div>
+            <div style="font-size:12px;color:var(--mu);margin-bottom:4px">Your deployed <code>twilio-send</code> Supabase Edge Function URL</div>
             <div style="display:flex;gap:6px">
-              <input class="fi" id="setBirdEdgeFn" type="url" style="flex:1" placeholder="https://your-project.supabase.co/functions/v1/bird-notifications">
-              <button class="btn btn-g" style="font-size:13px" onclick="saveSetting('bird_edge_function_url',document.getElementById('setBirdEdgeFn').value)">Save</button>
+              <input class="fi" id="setTwilioEdgeFn" type="url" style="flex:1" placeholder="https://your-project.supabase.co/functions/v1/twilio-send">
+              <button class="btn btn-g" style="font-size:13px" onclick="saveSetting('twilio_edge_function_url',document.getElementById('setTwilioEdgeFn').value)">Save</button>
             </div>
           </div>
           <div style="padding:10px 0;border-bottom:1px solid var(--br)">
             <div style="font-weight:500;font-size:13px;color:var(--mu);margin-bottom:6px">Set these secrets in Supabase:</div>
-            <code style="font-size:11px;background:var(--bg2);padding:8px;border-radius:var(--rs);display:block;line-height:1.9;border:1px solid var(--br)">supabase secrets set BIRD_API_KEY=your_key<br>supabase secrets set BIRD_WORKSPACE_ID=your_workspace<br>supabase secrets set BIRD_CHANNEL_ID=your_channel</code>
+            <code style="font-size:11px;background:var(--bg2);padding:8px;border-radius:var(--rs);display:block;line-height:1.9;border:1px solid var(--br)">supabase secrets set TWILIO_ACCOUNT_SID=your_sid<br>supabase secrets set TWILIO_AUTH_TOKEN=your_token<br>supabase secrets set TWILIO_FROM_NUMBER=+1xxxxxxxxxx<br>supabase secrets set TWILIO_CHANNEL=sms</code>
+            <p style="font-size:11px;color:var(--mu);margin-top:6px">Set TWILIO_CHANNEL to <code>whatsapp</code> to send via WhatsApp instead of SMS.</p>
           </div>
           <div style="padding:10px 0;border-top:1px solid var(--br);display:flex;gap:8px">
-            <button class="btn btn-g" style="font-size:13px" onclick="testBird()">📱 Send Test Message</button>
+            <button class="btn btn-g" style="font-size:13px" onclick="testTwilio()">📱 Send Test Message</button>
           </div>
         </div>
         <div class="card" style="margin-bottom:12px">
@@ -2263,6 +2216,7 @@ footer        { background: #1A1A1A; color: rgba(255,255,255,.4); padding: 38px 
 
 
 <script>
+// ── config.js ──
 // ═══════════════════════════════════════════════════════════════
 //  MODY — Configuration, Constants & Platform Settings
 //  Load order: 1 (no dependencies)
@@ -2463,20 +2417,9 @@ async function loadSettings() {
   var sae = ge("setAlertEmail"); if (sae) sae.value = settings.alert_email || "";
   var sht = ge("setHeroTag");    if (sht) sht.value = settings.hero_tagline || "";
   var sft = ge("setFooterTxt");  if (sft) sft.value = settings.footer_text || "";
-  // WhatsApp settings
-  var swe = ge("setWaEnabled"); if (swe) swe.checked = settings.wa_enabled === true || settings.wa_enabled === "true";
-  var swp = ge("setWaPhoneId"); if (swp) swp.value = settings.wa_phone_id || "";
-  var swt = ge("setWaToken");   if (swt) swt.value = settings.wa_api_token || "";
-  var swu = ge("setWaEdgeFn");  if (swu) swu.value = settings.wa_edge_function_url || "";
-  var swn = ge("setWaNew");     if (swn) swn.checked = settings.wa_on_new !== false && settings.wa_on_new !== "false";
-  var swa = ge("setWaAccept");  if (swa) swa.checked = settings.wa_on_accepted !== false && settings.wa_on_accepted !== "false";
-  var swo = ge("setWaOtw");     if (swo) swo.checked = settings.wa_on_otw !== false && settings.wa_on_otw !== "false";
-  var swr = ge("setWaArr");     if (swr) swr.checked = settings.wa_on_arrived !== false && settings.wa_on_arrived !== "false";
-  var swd = ge("setWaDone");    if (swd) swd.checked = settings.wa_on_completed !== false && settings.wa_on_completed !== "false";
-  var swc = ge("setWaCancel");  if (swc) swc.checked = settings.wa_on_cancelled !== false && settings.wa_on_cancelled !== "false";
-  // Bird settings
-  var sbe = ge("setBirdEnabled"); if (sbe) sbe.checked = settings.bird_enabled === true || settings.bird_enabled === "true";
-  var sbu = ge("setBirdEdgeFn");  if (sbu) sbu.value = settings.bird_edge_function_url || "";
+  // Twilio settings
+  var ste = ge("setTwilioEnabled"); if (ste) ste.checked = settings.twilio_enabled === true || settings.twilio_enabled === "true";
+  var stu = ge("setTwilioEdgeFn");  if (stu) stu.value = settings.twilio_edge_function_url || "";
   // Apply accent color if saved
   if (settings.accent_color) {
     var sac = ge("setAccentColor"); if (sac) sac.value = settings.accent_color;
@@ -2626,6 +2569,8 @@ var EXTRA_SQL = [
   "alter table public.professionals add column if not exists years_experience integer default 0;"
 ].join("\n");
 
+
+// ── i18n.js ──
 // ═══════════════════════════════════════════════════════════════
 //  MODY — Internationalization (i18n)
 //  Load order: 2 (depends on: config.js)
@@ -3065,6 +3010,8 @@ async function loadSavedTranslations() {
     }
   } catch(e) {}
 }
+
+// ── ui.js ──
 // ═══════════════════════════════════════════════════════════════
 //  MODY — UI Utilities (dark mode, pages, modals, toast, etc.)
 //  Load order: 3 (depends on: config.js, i18n.js)
@@ -3406,6 +3353,8 @@ function canSeePhone(bk) {
 }
 
 // ── ADMIN CHANGE ANY STATUS ──────────────────────────────────
+
+// ── auth.js ──
 // ═══════════════════════════════════════════════════════════════
 //  MODY — Authentication & User Management
 //  Load order: 4 (depends on: config.js, i18n.js, ui.js)
@@ -3744,6 +3693,8 @@ function showUidBadges() {
   var pBadge = ge("pUidBadge"); if (pBadge) pBadge.textContent = genUid("P", profile.pro_id || user.id);
 }
 
+
+// ── chat.js ──
 // ═══════════════════════════════════════════════════════════════
 //  MODY — Chat: Client ↔ Professional + Support Tickets
 //  Load order: 5 (depends on: config.js, ui.js, auth.js)
@@ -4162,6 +4113,8 @@ async function adminOpenChat(threadId, clientName, proName) {
     msgsEl.innerHTML = "<p style=\"color:#ef4444\">Error loading chat.</p>";
   }
 }
+
+// ── categories.js ──
 // ═══════════════════════════════════════════════════════════════
 //  MODY — Categories, Professionals List & Filtering
 //  Load order: 6 (depends on: config.js, i18n.js, ui.js)
@@ -4474,6 +4427,8 @@ function proListCard(p) {
 }
 
 // ── PROFESSIONAL PROFILE ──────────────────────────────────────
+
+// ── professionals.js ──
 // ═══════════════════════════════════════════════════════════════
 //  MODY — Professional Profile View
 //  Load order: 7 (depends on: config.js, i18n.js, ui.js, categories.js)
@@ -4677,6 +4632,8 @@ function pickSbTs(el) {
 }
 
 
+
+// ── booking.js ──
 // ═══════════════════════════════════════════════════════════════
 //  MODY — Booking Flow, Detail Modal & Reviews
 //  Load order: 8 (depends on: config.js, i18n.js, ui.js, auth.js)
@@ -5106,11 +5063,8 @@ async function submitBooking() {
   openM("bkconf");
   toast(t("bookingOk"), "ok");
 
-  // WhatsApp notification for new booking
-  if (settings.wa_on_new !== false && settings.wa_on_new !== "false") {
-    waNotifyBooking(bk, "new_booking");
-    birdNotifyBooking(bk, "new_booking");
-  }
+  // Twilio notification for new booking
+  twilioNotifyBooking(bk, "new_booking");
 }
 
 // ── BOOKING DETAIL MODAL ──────────────────────────────────────
@@ -5260,15 +5214,11 @@ async function chBkStatus(id, status, actor) {
     setTimeout(function() { renderTracker(); }, 1000);
     setTimeout(function() { renderTracker(); }, 3000);
 
-    // WhatsApp notification for status change
-    var waEventMap = { accepted:"wa_on_accepted", on_the_way:"wa_on_otw", arrived:"wa_on_arrived", in_progress:"wa_on_in_progress", completed:"wa_on_completed", cancelled:"wa_on_cancelled", declined:"wa_on_cancelled" };
-    var waKey = waEventMap[status];
-    if (waKey && settings[waKey] !== false && settings[waKey] !== "false") {
-      try {
-        var bkWa = await sb.from("bookings").select("client_name,client_phone,pro_name,pro_phone,service_name,time_slot,address").eq("id", id).single();
-        if (bkWa.data) { waNotifyBooking(bkWa.data, status); birdNotifyBooking(bkWa.data, status); }
-      } catch(e) {}
-    }
+    // Twilio notification for status change
+    try {
+      var bkTw = await sb.from("bookings").select("client_name,client_phone,pro_name,pro_phone,service_name,time_slot,address").eq("id", id).single();
+      if (bkTw.data) { twilioNotifyBooking(bkTw.data, status); }
+    } catch(e) {}
 
     // Auto-open review popup when pro completes
     if (actor === "pro" && status === "completed") {
@@ -5291,13 +5241,11 @@ async function acceptBk(id) {
     if (typeof loadProDash === "function") loadProDash();
     renderTracker();
     setTimeout(function() { renderTracker(); }, 1000);
-    // WhatsApp notification
-    if (settings.wa_on_accepted !== false && settings.wa_on_accepted !== "false") {
-      try {
-        var bkWa = await sb.from("bookings").select("client_name,client_phone,pro_name,pro_phone,service_name,time_slot,address").eq("id", id).single();
-        if (bkWa.data) { waNotifyBooking(bkWa.data, "accepted"); birdNotifyBooking(bkWa.data, "accepted"); }
-      } catch(e) {}
-    }
+    // Twilio notification
+    try {
+      var bkTw = await sb.from("bookings").select("client_name,client_phone,pro_name,pro_phone,service_name,time_slot,address").eq("id", id).single();
+      if (bkTw.data) { twilioNotifyBooking(bkTw.data, "accepted"); }
+    } catch(e) {}
   } catch(e) { toast("Error: " + e.message, "err"); }
 }
 
@@ -5418,6 +5366,8 @@ function isSlotPast(timeStr) {
   return slotDate <= now;
 }
 
+
+// ── client.js ──
 // ═══════════════════════════════════════════════════════════════
 //  MODY — Client Dashboard
 //  Load order: 9 (depends on: config.js, i18n.js, ui.js, auth.js, booking.js)
@@ -5569,6 +5519,520 @@ async function loadClientRevs() {
   } catch(e) { el.innerHTML = "<p style=\"color:var(--mu);font-size:14px\">" + t("noRevTxt") + "</p>"; }
 }
 
+
+// ── twilio.js ──
+// ═══════════════════════════════════════════════════════════════
+//  MODY — Twilio SMS/WhatsApp Notifications
+//  Load order: 11.5 (depends on: config.js, ui.js)
+//  Calls Supabase Edge Function: twilio-send
+// ═══════════════════════════════════════════════════════════════
+
+// ── SEND VIA TWILIO EDGE FUNCTION ─────────────────────────
+async function sendTwilioNotification(phone, type, name, details) {
+  if (!settings.twilio_enabled || settings.twilio_enabled === "false") return;
+  if (!phone) return;
+
+  var edgeFnUrl = settings.twilio_edge_function_url || "";
+  if (!edgeFnUrl) return;
+
+  try {
+    var session = await sb.auth.getSession();
+    var token = session.data && session.data.session ? session.data.session.access_token : "";
+
+    await fetch(edgeFnUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer " + token
+      },
+      body: JSON.stringify({ phone: phone, type: type, name: name, details: details })
+    });
+  } catch(e) {
+    console.log("Twilio notification failed:", e.message);
+  }
+}
+
+// ── BOOKING EVENT NOTIFICATIONS ────────────────────────────
+function twilioNotifyBooking(booking, event) {
+  if (!settings.twilio_enabled || settings.twilio_enabled === "false") return;
+
+  var clientPhone  = booking.client_phone || "";
+  var proPhone     = booking.pro_phone || "";
+  var clientName   = booking.client_name || "კლიენტი";
+  var proName      = booking.pro_name || "სპეციალისტი";
+  var service      = booking.service_name || "";
+  var timeSlot     = booking.time_slot || "";
+  var details      = service + (timeSlot ? " · " + timeSlot : "");
+
+  switch (event) {
+    case "new_booking":
+      sendTwilioNotification(proPhone, "pro_new", proName, clientName + " · " + details);
+      sendTwilioNotification(clientPhone, "new_booking", clientName, details);
+      break;
+    case "accepted":
+      sendTwilioNotification(clientPhone, "accepted", clientName, proName + " · " + details);
+      break;
+    case "on_the_way":
+      sendTwilioNotification(clientPhone, "on_the_way", clientName, proName);
+      break;
+    case "arrived":
+      sendTwilioNotification(clientPhone, "arrived", clientName, proName);
+      break;
+    case "in_progress":
+      sendTwilioNotification(clientPhone, "in_progress", clientName, service);
+      break;
+    case "completed":
+      sendTwilioNotification(clientPhone, "completed", clientName, service);
+      sendTwilioNotification(proPhone, "pro_completed", proName, clientName + " · " + service);
+      break;
+    case "cancelled":
+      sendTwilioNotification(clientPhone, "cancelled", clientName, details);
+      sendTwilioNotification(proPhone, "pro_cancelled", proName, clientName + " · " + details);
+      break;
+    case "declined":
+      sendTwilioNotification(clientPhone, "declined", clientName, proName + " · " + details);
+      break;
+  }
+}
+
+// ── TEST TWILIO CONNECTION ─────────────────────────────────
+async function testTwilio() {
+  var testPhone = prompt("Enter phone number to test (e.g. +995599...):");
+  if (!testPhone) return;
+  toast("Sending Twilio test message...");
+  try {
+    var session = await sb.auth.getSession();
+    var token = session.data && session.data.session ? session.data.session.access_token : "";
+    var edgeFnUrl = settings.twilio_edge_function_url || "";
+    if (!edgeFnUrl) { toast("Edge function URL not set", "err"); return; }
+
+    var r = await fetch(edgeFnUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "Authorization": "Bearer " + token },
+      body: JSON.stringify({ phone: testPhone, type: "new_booking", name: "სატესტო", details: "MODY Twilio test ✅" })
+    });
+    var data = await r.json();
+    if (r.ok) toast("Twilio test message sent! Check your phone.", "ok");
+    else toast("Twilio error: " + (data.error || r.status), "err");
+  } catch(e) {
+    toast("Twilio test failed: " + e.message, "err");
+  }
+}
+
+// ── tracking.js ──
+// ═══════════════════════════════════════════════════════════════
+//  MODY — Floating Tracker & Live Location
+//  Load order: 12 (depends on: config.js, ui.js)
+// ═══════════════════════════════════════════════════════════════
+
+var trackerMinimized = false;
+
+function toggleTrackerMin() {
+  trackerMinimized = !trackerMinimized;
+  var el = ge("fTracker");
+  if (el) {
+    var body = el.querySelector(".ft-body");
+    var toggle = el.querySelector(".ft-toggle");
+    if (trackerMinimized) {
+      if (body) body.style.display = "none";
+      if (toggle) toggle.style.display = "none";
+      el.innerHTML = "<div onclick=\"toggleTrackerMin()\" style=\"cursor:pointer;padding:6px 14px;font-size:13px;display:flex;align-items:center;gap:6px;color:var(--mu)\">📋 <span style=\"font-weight:600\">" + (el.querySelectorAll(".ft-pill").length || "0") + "</span> active ▲</div>" + el.innerHTML;
+    } else {
+      renderTracker();
+    }
+  }
+}
+
+function startTracker() {
+  renderTracker();
+  if (ftInterval) clearInterval(ftInterval);
+  ftInterval = setInterval(renderTracker, 3000);
+}
+
+function toggleTracker() {
+  ftCollapsed = !ftCollapsed;
+  var body = document.querySelector(".ft-body");
+  if (body) body.classList.toggle("collapsed", ftCollapsed);
+  var arrow = ge("ftArrow");
+  if (arrow) arrow.textContent = ftCollapsed ? "▲" : "▼";
+}
+
+async function renderTracker() {
+  var el = ge("fTracker"); if (!el || !user || !profile) { if (el) el.innerHTML = ""; return; }
+
+  var bks = [];
+  try {
+    var activeStatuses = ["pending","accepted","on_the_way","arrived","in_progress"];
+    if (profile.role === "client") {
+      var r = await sb.from("bookings").select("*").eq("client_id", user.id).in("status", activeStatuses).order("created_at", { ascending: false }).limit(5);
+      bks = r.data || [];
+    } else if (profile.role === "pro" && profile.pro_id) {
+      var r2 = await sb.from("bookings").select("*").eq("pro_id", profile.pro_id).in("status", activeStatuses).order("created_at", { ascending: false }).limit(5);
+      bks = r2.data || [];
+    }
+  } catch(e) { bks = []; }
+
+  if (!bks.length) { el.innerHTML = ""; return; }
+
+  var dotColors = { pending:"#a16207", accepted:"#15803d", on_the_way:"#7e22ce", arrived:"#22c55e", in_progress:"#3b82f6" };
+
+  var pills = bks.map(function(b) {
+    var safe = JSON.stringify(b).replace(/\\/g,"\\\\").replace(/"/g,"&quot;");
+    var role = profile.role === "pro" ? "pro" : "client";
+    var who = profile.role === "client" ? (b.pro_name || "Pro") : (b.client_name || "Client");
+    var statusText = ST_LABEL[b.status] ? ST_LABEL[b.status]() : b.status.replace(/_/g," ");
+    var time = b.time_slot || "ASAP";
+
+    var actions = "";
+    if (profile.role === "pro") {
+      if (b.status === "pending")
+        actions = "<div class=\"ft-actions\">"
+          + "<button class=\"ft-act-green\" onclick=\"event.stopPropagation();acceptBk('" + b.id + "')\">✓ Accept</button>"
+          + "<button class=\"ft-act-red\" onclick=\"event.stopPropagation();chBkStatus('" + b.id + "','cancelled','pro')\">✕ Decline</button>"
+          + "</div>";
+      if (b.status === "accepted")
+        actions = "<div class=\"ft-actions\"><button class=\"ft-act-purple\" onclick=\"event.stopPropagation();chBkStatus('" + b.id + "','on_the_way','pro')\">🚗 On the Way</button></div>";
+      if (b.status === "on_the_way")
+        actions = "<div class=\"ft-actions\"><button class=\"ft-act-blue\" onclick=\"event.stopPropagation();chBkStatus('" + b.id + "','arrived','pro')\">📍 I've Arrived</button></div>";
+      if (b.status === "in_progress")
+        actions = "<div class=\"ft-actions\"><button class=\"ft-act-green\" onclick=\"event.stopPropagation();chBkStatus('" + b.id + "','completed','pro')\">✓ Complete</button></div>";
+    }
+    if (profile.role === "client") {
+      if (b.status === "arrived")
+        actions = "<div class=\"ft-actions\"><button class=\"ft-act-green\" onclick=\"event.stopPropagation();confirmArrival('" + b.id + "')\">✓ Confirm Arrival</button></div>";
+    }
+
+    return "<div class=\"ft-pill\" onclick=\"openBkDetail('" + safe + "','" + role + "')\">"
+      + "<div class=\"ft-top\">"
+      + "<div class=\"ft-dot\" style=\"background:" + (dotColors[b.status] || "var(--g)") + "\"></div>"
+      + "<div style=\"flex:1;min-width:0\">"
+      + "<div class=\"ft-name\">" + who + " — " + (b.service_name || "") + "</div>"
+      + "<div class=\"ft-status\">" + statusText + " · " + time + "</div>"
+      + "</div>"
+      + "<div style=\"font-size:11px;color:var(--mu)\">▸</div>"
+      + "</div>" + actions + "</div>";
+  }).join("");
+
+  if (trackerMinimized) {
+    el.innerHTML = "<div onclick=\"toggleTrackerMin()\" style=\"cursor:pointer;padding:6px 14px;font-size:13px;display:flex;align-items:center;gap:6px;color:var(--mu)\">📋 <span style=\"font-weight:600\">" + bks.length + "</span> active ▲</div>";
+    return;
+  }
+
+  el.innerHTML = "<div class=\"ft-toggle\" onclick=\"toggleTracker()\">"
+    + "<span>📋 Active Bookings</span>"
+    + "<div style=\"display:flex;align-items:center;gap:8px\">"
+    + "<span class=\"ft-count\">" + bks.length + "</span>"
+    + "<span id=\"ftArrow\" style=\"font-size:10px\">" + (ftCollapsed ? "▲" : "▼") + "</span>"
+    + "<span onclick=\"event.stopPropagation();toggleTrackerMin()\" style=\"cursor:pointer;font-size:12px;margin-left:4px\" title=\"Minimize\">─</span>"
+    + "</div></div>"
+    + "<div class=\"ft-body" + (ftCollapsed ? " collapsed" : "") + "\">" + pills + "</div>";
+}
+
+// ── UNIQUE ID DISPLAY ────────────────────────────────────────
+
+// ═══════════════════════════════════════════════════════════════
+//  PART 10: LIVE MAP TRACKING
+// ═══════════════════════════════════════════════════════════════
+
+// ── TBILISI CENTER (fallback) ────────────────────────────────
+var TBILISI = [41.7151, 44.8271];
+
+// ── PRO LOCATION SHARING ─────────────────────────────────────
+var proLocWatchId   = null;
+var proLocBookingId = null;
+var proLocInterval  = null;
+var proLocLatest    = null;
+
+function startLocSharing(bookingId) {
+  if (!navigator.geolocation) {
+    toast("Geolocation not supported by your browser", "err"); return;
+  }
+  proLocBookingId = bookingId;
+  toast("Starting location sharing…");
+
+  // Watch position
+  proLocWatchId = navigator.geolocation.watchPosition(
+    function(pos) {
+      proLocLatest = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+    },
+    function(err) {
+      toast("Location error: " + err.message, "err");
+      stopLocSharing();
+    },
+    { enableHighAccuracy: true, maximumAge: 5000, timeout: 15000 }
+  );
+
+  // Push to Supabase every 5 seconds
+  proLocInterval = setInterval(function() {
+    if (proLocLatest && proLocBookingId && profile && profile.pro_id) {
+      sb.from("pro_locations").upsert({
+        booking_id: proLocBookingId,
+        pro_id: profile.pro_id,
+        lat: proLocLatest.lat,
+        lng: proLocLatest.lng,
+        updated_at: new Date().toISOString()
+      }, { onConflict: "booking_id" }).then(function() {}).catch(function() {});
+    }
+  }, 5000);
+
+  if (typeof loadProDash === "function") loadProDash(); // refresh UI to show "sharing" state
+}
+
+function stopLocSharing() {
+  if (proLocWatchId !== null) {
+    navigator.geolocation.clearWatch(proLocWatchId);
+    proLocWatchId = null;
+  }
+  if (proLocInterval) {
+    clearInterval(proLocInterval);
+    proLocInterval = null;
+  }
+  // Delete location record
+  if (proLocBookingId) {
+    sb.from("pro_locations").delete().eq("booking_id", proLocBookingId).then(function() {}).catch(function() {});
+  }
+  proLocBookingId = null;
+  proLocLatest = null;
+  if (typeof loadProDash === "function") loadProDash();
+}
+
+// ── CLIENT MAP TRACKING ──────────────────────────────────────
+var clientMaps   = {};
+var clientMapSub = {};
+
+function initClientTrackMap(containerId, bookingId, proId) {
+  var el = ge(containerId);
+  if (!el || !el.offsetParent) return; // not visible
+
+  // Destroy previous map on same container
+  if (clientMaps[containerId]) {
+    clientMaps[containerId].remove();
+    delete clientMaps[containerId];
+  }
+
+  var map = L.map(containerId, { zoomControl: false }).setView(TBILISI, 13);
+  L.control.zoom({ position: "topright" }).addTo(map);
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    attribution: "© OSM"
+  }).addTo(map);
+
+  clientMaps[containerId] = map;
+
+  // Custom pro marker
+  var proIcon = L.divIcon({
+    html: "<div style=\"background:#7e22ce;color:#fff;width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;box-shadow:0 2px 8px rgba(126,34,206,.5);border:2px solid #fff\">🚗</div>",
+    iconSize: [32, 32],
+    iconAnchor: [16, 16],
+    className: ""
+  });
+
+  var proMarker = null;
+
+  // Try to load initial position
+  sb.from("pro_locations").select("*").eq("booking_id", bookingId).maybeSingle()
+    .then(function(r) {
+      if (r.data && r.data.lat && r.data.lng) {
+        var pos = [r.data.lat, r.data.lng];
+        proMarker = L.marker(pos, { icon: proIcon }).addTo(map).bindPopup("Your professional");
+        map.setView(pos, 15);
+      } else {
+        // No location yet — show Tbilisi with a note
+        L.marker(TBILISI).addTo(map).bindPopup("Waiting for location…").openPopup();
+      }
+    })
+    .catch(function() {});
+
+  // Subscribe to realtime updates
+  if (clientMapSub[containerId]) {
+    sb.removeChannel(clientMapSub[containerId]);
+  }
+  clientMapSub[containerId] = sb.channel("track:" + bookingId)
+    .on("postgres_changes", {
+      event: "*", schema: "public", table: "pro_locations",
+      filter: "booking_id=eq." + bookingId
+    }, function(payload) {
+      var loc = payload.new;
+      if (!loc || !loc.lat || !loc.lng) return;
+      var pos = [loc.lat, loc.lng];
+      if (proMarker) {
+        proMarker.setLatLng(pos);
+      } else {
+        proMarker = L.marker(pos, { icon: proIcon }).addTo(map).bindPopup("Your professional");
+      }
+      map.panTo(pos);
+    })
+    .subscribe();
+
+  // Fix Leaflet render issue inside hidden/dynamic containers
+  setTimeout(function() { map.invalidateSize(); }, 200);
+}
+
+function cleanupClientMaps() {
+  for (var key in clientMaps) {
+    if (clientMaps[key]) clientMaps[key].remove();
+  }
+  clientMaps = {};
+  for (var key2 in clientMapSub) {
+    if (clientMapSub[key2]) sb.removeChannel(clientMapSub[key2]);
+  }
+  clientMapSub = {};
+}
+
+
+// ── realtime.js ──
+// ═══════════════════════════════════════════════════════════════
+//  MODY — Supabase Realtime Subscriptions
+//  Load order: 13 (depends on: config.js, dashboards)
+// ═══════════════════════════════════════════════════════════════
+
+function subscribeRealtime() {
+  if (!user || !profile) return;
+
+  // Bookings channel — notify based on role
+  sb.channel("bookings-realtime")
+    .on("postgres_changes", { event: "*", schema: "public", table: "bookings" },
+      function(payload) {
+        var bk = payload.new || {};
+        // Always refresh tracker for any booking change
+        renderTracker();
+
+        if (profile.role === "pro" && profile.pro_id && bk.pro_id === profile.pro_id) {
+          if (bk.status === "completed" && bk.client_id) {
+            toast("Service completed! Rate the client.", "ok");
+            setTimeout(function() { openRevModal(bk.id, bk.client_id, "pro"); }, 1000);
+          } else {
+            toast("Booking update: " + (bk.status || "").replace(/_/g," "));
+          }
+          if (typeof loadProDash === "function") loadProDash();
+        }
+        if (profile.role === "client" && bk.client_id === user.id) {
+          if (bk.status === "arrived") {
+            toast("📍 Your professional has arrived! Please confirm.", "ok");
+          } else if (bk.status === "on_the_way") {
+            toast("🚗 Your professional is on the way!");
+          } else if (bk.status === "completed" && bk.pro_id) {
+            toast("Service completed! Please leave a review.", "ok");
+            setTimeout(function() { openRevModal(bk.id, bk.pro_id, "client"); }, 1000);
+          } else {
+            toast("Booking update: " + (bk.status || "").replace(/_/g," "));
+          }
+          loadClientDash();
+        }
+        if (profile.role === "admin" && typeof loadAdminData === "function") {
+          loadAdminData();
+        }
+      })
+    .subscribe();
+
+  // Messages channel — chat notifications
+  sb.channel("messages-realtime")
+    .on("postgres_changes", { event: "INSERT", schema: "public", table: "messages" },
+      function(payload) {
+        var msg = payload.new || {};
+        if (!msg.sender_id || msg.sender_id === user.id) return;
+
+        // Update unread badge on chat float button
+        updateChatBadge();
+
+        // If chat window is open on this thread, just reload
+        var win = ge("chatWin");
+        if (win && win.classList.contains("on") && chatThread === msg.thread_id) return;
+
+        // Show notification toast
+        var senderName = msg.sender_name || "Someone";
+        var preview = (msg.content || "").substring(0, 50) + (msg.content && msg.content.length > 50 ? "…" : "");
+        toast("💬 " + senderName + ": " + preview, "ok");
+
+        // Notify via browser notification if permitted
+        if (typeof Notification !== "undefined" && Notification.permission === "granted") {
+          try {
+            new Notification("MODY — " + senderName, { body: preview, icon: "/favicon.ico" });
+          } catch(e) {}
+        }
+      })
+    .subscribe();
+
+  // Request browser notification permission
+  if (typeof Notification !== "undefined" && Notification.permission === "default") {
+    Notification.requestPermission();
+  }
+
+  // Pros channel — admin approval notifications
+  if (profile.role === "admin") {
+    sb.channel("pros-realtime")
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "professionals" },
+        function() { if (typeof loadApprovals === "function") loadApprovals(); })
+      .subscribe();
+  }
+}
+
+
+// ── app.js ──
+// ═══════════════════════════════════════════════════════════════
+//  MODY — Application Entry Point
+//  Load order: 14 (last — depends on all other modules)
+// ═══════════════════════════════════════════════════════════════
+
+// ── MAIN INIT ─────────────────────────────────────────────────
+async function init() {
+  // Load saved translations from DB first
+  await loadSavedTranslations();
+
+  // Apply language (populates all text)
+  applyLang();
+
+  // Load platform settings (promo, nail colors, commission)
+  await loadSettings();
+
+  // Load DB-driven categories (falls back to hardcoded)
+  await loadCategories();
+  await loadSubCategories();
+
+  // Load professionals from DB and merge with demos
+  loadPros();
+
+  // Check existing session
+  try {
+    var sess = await sb.auth.getSession();
+    if (sess.data && sess.data.session && sess.data.session.user) {
+      await loadProfile(sess.data.session.user);
+      updateNav();
+      showUidBadges();
+      startTracker();
+      subscribeRealtime();
+      buildChatThreads();
+      updateChatBadge();
+    } else {
+      updateNav();
+    }
+  } catch(e) {
+    updateNav();
+  }
+
+  // Listen for future auth changes
+  sb.auth.onAuthStateChange(async function(event, session) {
+    if (event === "SIGNED_IN" && session && session.user && !user) {
+      await loadProfile(session.user);
+      updateNav();
+      routeByRole();
+      subscribeRealtime();
+      buildChatThreads();
+      updateChatBadge();
+    } else if (event === "SIGNED_OUT") {
+      user = null; profile = null;
+      if (ftInterval) { clearInterval(ftInterval); ftInterval = null; }
+      var ft = ge("fTracker"); if (ft) ft.innerHTML = "";
+      updateNav();
+      show("home");
+      renderPros();
+    }
+  });
+}
+
+// ── START ─────────────────────────────────────────────────────
+init();
+
+// ── admin.js (normally lazy-loaded) ──
 // ═══════════════════════════════════════════════════════════════
 //  MODY — Admin Panel
 //  Load order: 11 (depends on: config.js, i18n.js, ui.js, auth.js)
@@ -6935,6 +7399,8 @@ async function renderMasterCal() {
   }
 }
 
+
+// ── professional.js (normally lazy-loaded) ──
 // ═══════════════════════════════════════════════════════════════
 //  MODY — Professional Dashboard
 //  Load order: 10 (depends on: config.js, i18n.js, ui.js, auth.js, booking.js)
@@ -7794,738 +8260,7 @@ async function toggleHourOff(dateStr, hour) {
 }
 
 // ── ADMIN CALENDAR VIEWER ────────────────────────────────────
-// ═══════════════════════════════════════════════════════════════
-//  MODY — WhatsApp Cloud API Integration
-//  Load order: 11.5 (depends on: config.js, ui.js)
-//  Uses Supabase Edge Function "whatsapp-send" as proxy
-//  OR direct API calls if edge function URL is not set
-// ═══════════════════════════════════════════════════════════════
 
-// ── SEND WHATSAPP MESSAGE ──────────────────────────────────
-async function sendWhatsApp(phone, templateName, params) {
-  if (!settings.wa_enabled || settings.wa_enabled === "false" || settings.wa_enabled === false) return;
-  if (!phone) return;
-
-  // Clean phone number: remove spaces, dashes, ensure + prefix
-  phone = phone.replace(/[\s\-()]/g, "");
-  if (!phone.startsWith("+")) phone = "+995" + phone.replace(/^0+/, ""); // Default Georgia country code
-
-  var token = settings.wa_api_token || "";
-  var phoneId = settings.wa_phone_id || "";
-  var edgeFnUrl = settings.wa_edge_function_url || "";
-
-  if (!token || !phoneId) return;
-
-  var body = {
-    messaging_product: "whatsapp",
-    to: phone.replace("+", ""),
-    type: "template",
-    template: {
-      name: templateName,
-      language: { code: lang === "ka" ? "ka" : lang === "ru" ? "ru" : "en" },
-      components: params && params.length ? [{
-        type: "body",
-        parameters: params.map(function(p) { return { type: "text", text: String(p) }; })
-      }] : []
-    }
-  };
-
-  try {
-    if (edgeFnUrl) {
-      // Use Supabase Edge Function as secure proxy
-      await fetch(edgeFnUrl, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "Authorization": "Bearer " + (user ? (await sb.auth.getSession()).data.session.access_token : "") },
-        body: JSON.stringify({ phone: phone, template: templateName, params: params })
-      });
-    } else {
-      // Direct API call (token exposed in frontend — not recommended for production)
-      await fetch("https://graph.facebook.com/v21.0/" + phoneId + "/messages", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "Authorization": "Bearer " + token },
-        body: JSON.stringify(body)
-      });
-    }
-  } catch(e) {
-    console.log("WhatsApp send failed:", e.message);
-  }
-}
-
-// ── SEND FREE-FORM TEXT MESSAGE (within 24hr window) ───────
-async function sendWhatsAppText(phone, text) {
-  if (!settings.wa_enabled || settings.wa_enabled === "false" || settings.wa_enabled === false) return;
-  if (!phone || !text) return;
-
-  phone = phone.replace(/[\s\-()]/g, "");
-  if (!phone.startsWith("+")) phone = "+995" + phone.replace(/^0+/, "");
-
-  var token = settings.wa_api_token || "";
-  var phoneId = settings.wa_phone_id || "";
-  var edgeFnUrl = settings.wa_edge_function_url || "";
-
-  if (!token || !phoneId) return;
-
-  var body = {
-    messaging_product: "whatsapp",
-    to: phone.replace("+", ""),
-    type: "text",
-    text: { body: text }
-  };
-
-  try {
-    if (edgeFnUrl) {
-      await fetch(edgeFnUrl, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "Authorization": "Bearer " + (user ? (await sb.auth.getSession()).data.session.access_token : "") },
-        body: JSON.stringify({ phone: phone, text: text })
-      });
-    } else {
-      await fetch("https://graph.facebook.com/v21.0/" + phoneId + "/messages", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "Authorization": "Bearer " + token },
-        body: JSON.stringify(body)
-      });
-    }
-  } catch(e) {
-    console.log("WhatsApp text send failed:", e.message);
-  }
-}
-
-// ── DEFAULT MESSAGE TEMPLATES ──────────────────────────────
-// Placeholders: {client}, {pro}, {service}, {time}, {address}
-var WA_DEFAULTS = {
-  new_booking_pro:  "📋 MODY — New Booking!\n\nClient: {client}\nService: {service}\nTime: {time}\nAddress: {address}\n\nOpen the MODY app to accept or decline.",
-  new_booking_client: "✅ MODY — Booking Confirmed!\n\nService: {service}\nProfessional: {pro}\nTime: {time}\n\nWe'll notify you when your professional accepts.",
-  accepted_client: "🎉 MODY — Booking Accepted!\n\n{pro} has accepted your booking.\nService: {service}\nTime: {time}\n\nYour professional will arrive on time!",
-  on_the_way_client: "🚗 MODY — On The Way!\n\n{pro} is heading to your location now.\nAddress: {address}\n\nPlease be ready!",
-  arrived_client: "📍 MODY — Professional Arrived!\n\n{pro} has arrived at your location.\nPlease confirm the arrival in the app.",
-  completed_client: "⭐ MODY — Service Completed!\n\nYour {service} session with {pro} is complete.\n\nPlease leave a review in the app. Thank you!",
-  completed_pro: "✅ MODY — Service Completed!\n\n{service} for {client} is marked as complete.\nGreat job! 💅",
-  cancelled_client: "❌ MODY — Booking Cancelled\n\nYour booking for {service} has been cancelled.\nYou can book again anytime on MODY.",
-  cancelled_pro: "❌ MODY — Booking Cancelled\n\nBooking for {service} with {client} has been cancelled.\nTime: {time}",
-  declined_client: "😔 MODY — Booking Declined\n\n{pro} was unable to accept your booking for {service}.\nTime: {time}\n\nPlease try another professional or time slot."
-};
-
-function waTemplate(key, vars) {
-  // Use custom template from settings if available, otherwise use default
-  var tpl = settings["wa_tpl_" + key] || WA_DEFAULTS[key] || "";
-  return tpl
-    .replace(/\{client\}/g, vars.client || "Client")
-    .replace(/\{pro\}/g, vars.pro || "Professional")
-    .replace(/\{service\}/g, vars.service || "Service")
-    .replace(/\{time\}/g, vars.time || "")
-    .replace(/\{address\}/g, vars.address || "");
-}
-
-// ── BOOKING EVENT NOTIFICATIONS ────────────────────────────
-function waNotifyBooking(booking, event) {
-  if (!settings.wa_enabled || settings.wa_enabled === "false") return;
-
-  var clientPhone = booking.client_phone || "";
-  var proPhone = booking.pro_phone || "";
-  var vars = {
-    client: booking.client_name || "Client",
-    pro: booking.pro_name || "Professional",
-    service: booking.service_name || "Service",
-    time: booking.time_slot || "",
-    address: booking.address || ""
-  };
-
-  switch(event) {
-    case "new_booking":
-      sendWhatsAppText(proPhone, waTemplate("new_booking_pro", vars));
-      sendWhatsAppText(clientPhone, waTemplate("new_booking_client", vars));
-      break;
-    case "accepted":
-      sendWhatsAppText(clientPhone, waTemplate("accepted_client", vars));
-      break;
-    case "on_the_way":
-      sendWhatsAppText(clientPhone, waTemplate("on_the_way_client", vars));
-      break;
-    case "arrived":
-      sendWhatsAppText(clientPhone, waTemplate("arrived_client", vars));
-      break;
-    case "in_progress":
-      break;
-    case "completed":
-      sendWhatsAppText(clientPhone, waTemplate("completed_client", vars));
-      sendWhatsAppText(proPhone, waTemplate("completed_pro", vars));
-      break;
-    case "cancelled":
-      sendWhatsAppText(clientPhone, waTemplate("cancelled_client", vars));
-      sendWhatsAppText(proPhone, waTemplate("cancelled_pro", vars));
-      break;
-    case "declined":
-      sendWhatsAppText(clientPhone, waTemplate("declined_client", vars));
-      break;
-  }
-}
-
-// ── RENDER TEMPLATE EDITOR ─────────────────────────────────
-function renderWaTemplates() {
-  var el = ge("waTemplateList");
-  if (!el) return;
-  var labels = {
-    new_booking_pro: "📋 New Booking → Professional",
-    new_booking_client: "✅ New Booking → Client",
-    accepted_client: "🎉 Accepted → Client",
-    on_the_way_client: "🚗 On the Way → Client",
-    arrived_client: "📍 Arrived → Client",
-    completed_client: "⭐ Completed → Client",
-    completed_pro: "✅ Completed → Professional",
-    cancelled_client: "❌ Cancelled → Client",
-    cancelled_pro: "❌ Cancelled → Professional",
-    declined_client: "😔 Declined → Client"
-  };
-  var keys = Object.keys(WA_DEFAULTS);
-  el.innerHTML = keys.map(function(key) {
-    var current = settings["wa_tpl_" + key] || WA_DEFAULTS[key];
-    return "<div style=\"margin-bottom:12px;border-bottom:1px solid var(--br);padding-bottom:12px\">"
-      + "<div style=\"font-weight:500;font-size:13px;margin-bottom:4px\">" + (labels[key] || key) + "</div>"
-      + "<textarea id=\"waTpl_" + key + "\" style=\"width:100%;min-height:80px;font-size:12px;font-family:inherit;padding:8px;border:1px solid var(--br);border-radius:var(--rs);background:var(--bg2);color:var(--tx);resize:vertical\">" + current.replace(/</g, "&lt;") + "</textarea>"
-      + "<div style=\"display:flex;justify-content:space-between;align-items:center;margin-top:4px\">"
-      + "<span style=\"font-size:10px;color:var(--mu)\">Placeholders: {client} {pro} {service} {time} {address}</span>"
-      + "<div style=\"display:flex;gap:4px\">"
-      + "<button class=\"btn-sm btn-gh\" onclick=\"resetWaTpl('" + key + "')\">Reset</button>"
-      + "<button class=\"btn-sm btn-ok\" onclick=\"saveWaTpl('" + key + "')\">Save</button>"
-      + "</div></div></div>";
-  }).join("");
-}
-
-function saveWaTpl(key) {
-  var el = ge("waTpl_" + key);
-  if (!el) return;
-  saveSetting("wa_tpl_" + key, el.value);
-}
-
-function resetWaTpl(key) {
-  var el = ge("waTpl_" + key);
-  if (!el) return;
-  el.value = WA_DEFAULTS[key];
-  saveSetting("wa_tpl_" + key, WA_DEFAULTS[key]);
-  toast("Reset to default", "ok");
-}
-
-// ── TEST WHATSAPP CONNECTION ───────────────────────────────
-async function testWhatsApp() {
-  var phone = settings.wa_test_phone || settings.alert_email || "";
-  var testPhone = prompt("Enter phone number to test (with country code, e.g. +995...):");
-  if (!testPhone) return;
-
-  toast("Sending test message...");
-  try {
-    await sendWhatsAppText(testPhone, "✅ MODY WhatsApp integration is working! 🎉");
-    toast("Test message sent! Check WhatsApp.", "ok");
-  } catch(e) {
-    toast("Test failed: " + e.message, "err");
-  }
-}
-// ═══════════════════════════════════════════════════════════════
-//  MODY — Bird (bird.com) WhatsApp Notifications
-//  Load order: 11.6 (depends on: config.js, ui.js)
-//  Calls Supabase Edge Function: bird-notifications
-// ═══════════════════════════════════════════════════════════════
-
-// ── SEND VIA BIRD EDGE FUNCTION ────────────────────────────
-async function sendBirdNotification(phone, type, name, details) {
-  if (!settings.bird_enabled || settings.bird_enabled === "false") return;
-  if (!phone) return;
-
-  var edgeFnUrl = settings.bird_edge_function_url || "";
-  if (!edgeFnUrl) return;
-
-  try {
-    var session = await sb.auth.getSession();
-    var token = session.data && session.data.session ? session.data.session.access_token : "";
-
-    await fetch(edgeFnUrl, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": "Bearer " + token
-      },
-      body: JSON.stringify({ phone: phone, type: type, name: name, details: details })
-    });
-  } catch(e) {
-    console.log("Bird notification failed:", e.message);
-  }
-}
-
-// ── BOOKING EVENT NOTIFICATIONS ────────────────────────────
-function birdNotifyBooking(booking, event) {
-  if (!settings.bird_enabled || settings.bird_enabled === "false") return;
-
-  var clientPhone  = booking.client_phone || "";
-  var proPhone     = booking.pro_phone || "";
-  var clientName   = booking.client_name || "კლიენტი";
-  var proName      = booking.pro_name || "სპეციალისტი";
-  var service      = booking.service_name || "";
-  var timeSlot     = booking.time_slot || "";
-  var details      = service + (timeSlot ? " · " + timeSlot : "");
-
-  switch (event) {
-    case "new_booking":
-      // Notify pro about new booking
-      sendBirdNotification(proPhone, "pro_new", proName, clientName + " · " + details);
-      // Confirm to client
-      sendBirdNotification(clientPhone, "new_booking", clientName, details);
-      break;
-    case "accepted":
-      sendBirdNotification(clientPhone, "accepted", clientName, proName + " · " + details);
-      break;
-    case "on_the_way":
-      sendBirdNotification(clientPhone, "on_the_way", clientName, proName);
-      break;
-    case "arrived":
-      sendBirdNotification(clientPhone, "arrived", clientName, proName);
-      break;
-    case "in_progress":
-      sendBirdNotification(clientPhone, "in_progress", clientName, service);
-      break;
-    case "completed":
-      sendBirdNotification(clientPhone, "completed", clientName, service);
-      sendBirdNotification(proPhone, "pro_completed", proName, clientName + " · " + service);
-      break;
-    case "cancelled":
-      sendBirdNotification(clientPhone, "cancelled", clientName, details);
-      sendBirdNotification(proPhone, "pro_cancelled", proName, clientName + " · " + details);
-      break;
-    case "declined":
-      sendBirdNotification(clientPhone, "declined", clientName, proName + " · " + details);
-      break;
-  }
-}
-
-// ── TEST BIRD CONNECTION ───────────────────────────────────
-async function testBird() {
-  var testPhone = prompt("Enter phone number to test (e.g. +995599...):");
-  if (!testPhone) return;
-  toast("Sending Bird test message...");
-  try {
-    var session = await sb.auth.getSession();
-    var token = session.data && session.data.session ? session.data.session.access_token : "";
-    var edgeFnUrl = settings.bird_edge_function_url || "";
-    if (!edgeFnUrl) { toast("Edge function URL not set", "err"); return; }
-
-    var r = await fetch(edgeFnUrl, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "Authorization": "Bearer " + token },
-      body: JSON.stringify({ phone: testPhone, type: "new_booking", name: "სატესტო", details: "MODY Bird test ✅" })
-    });
-    var data = await r.json();
-    if (r.ok) toast("Bird test message sent! Check WhatsApp.", "ok");
-    else toast("Bird error: " + (data.error || r.status), "err");
-  } catch(e) {
-    toast("Bird test failed: " + e.message, "err");
-  }
-}
-// ═══════════════════════════════════════════════════════════════
-//  MODY — Floating Tracker & Live Location
-//  Load order: 12 (depends on: config.js, ui.js)
-// ═══════════════════════════════════════════════════════════════
-
-var trackerMinimized = false;
-
-function toggleTrackerMin() {
-  trackerMinimized = !trackerMinimized;
-  var el = ge("fTracker");
-  if (el) {
-    var body = el.querySelector(".ft-body");
-    var toggle = el.querySelector(".ft-toggle");
-    if (trackerMinimized) {
-      if (body) body.style.display = "none";
-      if (toggle) toggle.style.display = "none";
-      el.innerHTML = "<div onclick=\"toggleTrackerMin()\" style=\"cursor:pointer;padding:6px 14px;font-size:13px;display:flex;align-items:center;gap:6px;color:var(--mu)\">📋 <span style=\"font-weight:600\">" + (el.querySelectorAll(".ft-pill").length || "0") + "</span> active ▲</div>" + el.innerHTML;
-    } else {
-      renderTracker();
-    }
-  }
-}
-
-function startTracker() {
-  renderTracker();
-  if (ftInterval) clearInterval(ftInterval);
-  ftInterval = setInterval(renderTracker, 3000);
-}
-
-function toggleTracker() {
-  ftCollapsed = !ftCollapsed;
-  var body = document.querySelector(".ft-body");
-  if (body) body.classList.toggle("collapsed", ftCollapsed);
-  var arrow = ge("ftArrow");
-  if (arrow) arrow.textContent = ftCollapsed ? "▲" : "▼";
-}
-
-async function renderTracker() {
-  var el = ge("fTracker"); if (!el || !user || !profile) { if (el) el.innerHTML = ""; return; }
-
-  var bks = [];
-  try {
-    var activeStatuses = ["pending","accepted","on_the_way","arrived","in_progress"];
-    if (profile.role === "client") {
-      var r = await sb.from("bookings").select("*").eq("client_id", user.id).in("status", activeStatuses).order("created_at", { ascending: false }).limit(5);
-      bks = r.data || [];
-    } else if (profile.role === "pro" && profile.pro_id) {
-      var r2 = await sb.from("bookings").select("*").eq("pro_id", profile.pro_id).in("status", activeStatuses).order("created_at", { ascending: false }).limit(5);
-      bks = r2.data || [];
-    }
-  } catch(e) { bks = []; }
-
-  if (!bks.length) { el.innerHTML = ""; return; }
-
-  var dotColors = { pending:"#a16207", accepted:"#15803d", on_the_way:"#7e22ce", arrived:"#22c55e", in_progress:"#3b82f6" };
-
-  var pills = bks.map(function(b) {
-    var safe = JSON.stringify(b).replace(/\\/g,"\\\\").replace(/"/g,"&quot;");
-    var role = profile.role === "pro" ? "pro" : "client";
-    var who = profile.role === "client" ? (b.pro_name || "Pro") : (b.client_name || "Client");
-    var statusText = ST_LABEL[b.status] ? ST_LABEL[b.status]() : b.status.replace(/_/g," ");
-    var time = b.time_slot || "ASAP";
-
-    var actions = "";
-    if (profile.role === "pro") {
-      if (b.status === "pending")
-        actions = "<div class=\"ft-actions\">"
-          + "<button class=\"ft-act-green\" onclick=\"event.stopPropagation();acceptBk('" + b.id + "')\">✓ Accept</button>"
-          + "<button class=\"ft-act-red\" onclick=\"event.stopPropagation();chBkStatus('" + b.id + "','cancelled','pro')\">✕ Decline</button>"
-          + "</div>";
-      if (b.status === "accepted")
-        actions = "<div class=\"ft-actions\"><button class=\"ft-act-purple\" onclick=\"event.stopPropagation();chBkStatus('" + b.id + "','on_the_way','pro')\">🚗 On the Way</button></div>";
-      if (b.status === "on_the_way")
-        actions = "<div class=\"ft-actions\"><button class=\"ft-act-blue\" onclick=\"event.stopPropagation();chBkStatus('" + b.id + "','arrived','pro')\">📍 I've Arrived</button></div>";
-      if (b.status === "in_progress")
-        actions = "<div class=\"ft-actions\"><button class=\"ft-act-green\" onclick=\"event.stopPropagation();chBkStatus('" + b.id + "','completed','pro')\">✓ Complete</button></div>";
-    }
-    if (profile.role === "client") {
-      if (b.status === "arrived")
-        actions = "<div class=\"ft-actions\"><button class=\"ft-act-green\" onclick=\"event.stopPropagation();confirmArrival('" + b.id + "')\">✓ Confirm Arrival</button></div>";
-    }
-
-    return "<div class=\"ft-pill\" onclick=\"openBkDetail('" + safe + "','" + role + "')\">"
-      + "<div class=\"ft-top\">"
-      + "<div class=\"ft-dot\" style=\"background:" + (dotColors[b.status] || "var(--g)") + "\"></div>"
-      + "<div style=\"flex:1;min-width:0\">"
-      + "<div class=\"ft-name\">" + who + " — " + (b.service_name || "") + "</div>"
-      + "<div class=\"ft-status\">" + statusText + " · " + time + "</div>"
-      + "</div>"
-      + "<div style=\"font-size:11px;color:var(--mu)\">▸</div>"
-      + "</div>" + actions + "</div>";
-  }).join("");
-
-  if (trackerMinimized) {
-    el.innerHTML = "<div onclick=\"toggleTrackerMin()\" style=\"cursor:pointer;padding:6px 14px;font-size:13px;display:flex;align-items:center;gap:6px;color:var(--mu)\">📋 <span style=\"font-weight:600\">" + bks.length + "</span> active ▲</div>";
-    return;
-  }
-
-  el.innerHTML = "<div class=\"ft-toggle\" onclick=\"toggleTracker()\">"
-    + "<span>📋 Active Bookings</span>"
-    + "<div style=\"display:flex;align-items:center;gap:8px\">"
-    + "<span class=\"ft-count\">" + bks.length + "</span>"
-    + "<span id=\"ftArrow\" style=\"font-size:10px\">" + (ftCollapsed ? "▲" : "▼") + "</span>"
-    + "<span onclick=\"event.stopPropagation();toggleTrackerMin()\" style=\"cursor:pointer;font-size:12px;margin-left:4px\" title=\"Minimize\">─</span>"
-    + "</div></div>"
-    + "<div class=\"ft-body" + (ftCollapsed ? " collapsed" : "") + "\">" + pills + "</div>";
-}
-
-// ── UNIQUE ID DISPLAY ────────────────────────────────────────
-
-// ═══════════════════════════════════════════════════════════════
-//  PART 10: LIVE MAP TRACKING
-// ═══════════════════════════════════════════════════════════════
-
-// ── TBILISI CENTER (fallback) ────────────────────────────────
-var TBILISI = [41.7151, 44.8271];
-
-// ── PRO LOCATION SHARING ─────────────────────────────────────
-var proLocWatchId   = null;
-var proLocBookingId = null;
-var proLocInterval  = null;
-var proLocLatest    = null;
-
-function startLocSharing(bookingId) {
-  if (!navigator.geolocation) {
-    toast("Geolocation not supported by your browser", "err"); return;
-  }
-  proLocBookingId = bookingId;
-  toast("Starting location sharing…");
-
-  // Watch position
-  proLocWatchId = navigator.geolocation.watchPosition(
-    function(pos) {
-      proLocLatest = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-    },
-    function(err) {
-      toast("Location error: " + err.message, "err");
-      stopLocSharing();
-    },
-    { enableHighAccuracy: true, maximumAge: 5000, timeout: 15000 }
-  );
-
-  // Push to Supabase every 5 seconds
-  proLocInterval = setInterval(function() {
-    if (proLocLatest && proLocBookingId && profile && profile.pro_id) {
-      sb.from("pro_locations").upsert({
-        booking_id: proLocBookingId,
-        pro_id: profile.pro_id,
-        lat: proLocLatest.lat,
-        lng: proLocLatest.lng,
-        updated_at: new Date().toISOString()
-      }, { onConflict: "booking_id" }).then(function() {}).catch(function() {});
-    }
-  }, 5000);
-
-  if (typeof loadProDash === "function") loadProDash(); // refresh UI to show "sharing" state
-}
-
-function stopLocSharing() {
-  if (proLocWatchId !== null) {
-    navigator.geolocation.clearWatch(proLocWatchId);
-    proLocWatchId = null;
-  }
-  if (proLocInterval) {
-    clearInterval(proLocInterval);
-    proLocInterval = null;
-  }
-  // Delete location record
-  if (proLocBookingId) {
-    sb.from("pro_locations").delete().eq("booking_id", proLocBookingId).then(function() {}).catch(function() {});
-  }
-  proLocBookingId = null;
-  proLocLatest = null;
-  if (typeof loadProDash === "function") loadProDash();
-}
-
-// ── CLIENT MAP TRACKING ──────────────────────────────────────
-var clientMaps   = {};
-var clientMapSub = {};
-
-function initClientTrackMap(containerId, bookingId, proId) {
-  var el = ge(containerId);
-  if (!el || !el.offsetParent) return; // not visible
-
-  // Destroy previous map on same container
-  if (clientMaps[containerId]) {
-    clientMaps[containerId].remove();
-    delete clientMaps[containerId];
-  }
-
-  var map = L.map(containerId, { zoomControl: false }).setView(TBILISI, 13);
-  L.control.zoom({ position: "topright" }).addTo(map);
-  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-    attribution: "© OSM"
-  }).addTo(map);
-
-  clientMaps[containerId] = map;
-
-  // Custom pro marker
-  var proIcon = L.divIcon({
-    html: "<div style=\"background:#7e22ce;color:#fff;width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;box-shadow:0 2px 8px rgba(126,34,206,.5);border:2px solid #fff\">🚗</div>",
-    iconSize: [32, 32],
-    iconAnchor: [16, 16],
-    className: ""
-  });
-
-  var proMarker = null;
-
-  // Try to load initial position
-  sb.from("pro_locations").select("*").eq("booking_id", bookingId).maybeSingle()
-    .then(function(r) {
-      if (r.data && r.data.lat && r.data.lng) {
-        var pos = [r.data.lat, r.data.lng];
-        proMarker = L.marker(pos, { icon: proIcon }).addTo(map).bindPopup("Your professional");
-        map.setView(pos, 15);
-      } else {
-        // No location yet — show Tbilisi with a note
-        L.marker(TBILISI).addTo(map).bindPopup("Waiting for location…").openPopup();
-      }
-    })
-    .catch(function() {});
-
-  // Subscribe to realtime updates
-  if (clientMapSub[containerId]) {
-    sb.removeChannel(clientMapSub[containerId]);
-  }
-  clientMapSub[containerId] = sb.channel("track:" + bookingId)
-    .on("postgres_changes", {
-      event: "*", schema: "public", table: "pro_locations",
-      filter: "booking_id=eq." + bookingId
-    }, function(payload) {
-      var loc = payload.new;
-      if (!loc || !loc.lat || !loc.lng) return;
-      var pos = [loc.lat, loc.lng];
-      if (proMarker) {
-        proMarker.setLatLng(pos);
-      } else {
-        proMarker = L.marker(pos, { icon: proIcon }).addTo(map).bindPopup("Your professional");
-      }
-      map.panTo(pos);
-    })
-    .subscribe();
-
-  // Fix Leaflet render issue inside hidden/dynamic containers
-  setTimeout(function() { map.invalidateSize(); }, 200);
-}
-
-function cleanupClientMaps() {
-  for (var key in clientMaps) {
-    if (clientMaps[key]) clientMaps[key].remove();
-  }
-  clientMaps = {};
-  for (var key2 in clientMapSub) {
-    if (clientMapSub[key2]) sb.removeChannel(clientMapSub[key2]);
-  }
-  clientMapSub = {};
-}
-
-// ═══════════════════════════════════════════════════════════════
-//  MODY — Supabase Realtime Subscriptions
-//  Load order: 13 (depends on: config.js, dashboards)
-// ═══════════════════════════════════════════════════════════════
-
-function subscribeRealtime() {
-  if (!user || !profile) return;
-
-  // Bookings channel — notify based on role
-  sb.channel("bookings-realtime")
-    .on("postgres_changes", { event: "*", schema: "public", table: "bookings" },
-      function(payload) {
-        var bk = payload.new || {};
-        // Always refresh tracker for any booking change
-        renderTracker();
-
-        if (profile.role === "pro" && profile.pro_id && bk.pro_id === profile.pro_id) {
-          if (bk.status === "completed" && bk.client_id) {
-            toast("Service completed! Rate the client.", "ok");
-            setTimeout(function() { openRevModal(bk.id, bk.client_id, "pro"); }, 1000);
-          } else {
-            toast("Booking update: " + (bk.status || "").replace(/_/g," "));
-          }
-          if (typeof loadProDash === "function") loadProDash();
-        }
-        if (profile.role === "client" && bk.client_id === user.id) {
-          if (bk.status === "arrived") {
-            toast("📍 Your professional has arrived! Please confirm.", "ok");
-          } else if (bk.status === "on_the_way") {
-            toast("🚗 Your professional is on the way!");
-          } else if (bk.status === "completed" && bk.pro_id) {
-            toast("Service completed! Please leave a review.", "ok");
-            setTimeout(function() { openRevModal(bk.id, bk.pro_id, "client"); }, 1000);
-          } else {
-            toast("Booking update: " + (bk.status || "").replace(/_/g," "));
-          }
-          loadClientDash();
-        }
-        if (profile.role === "admin" && typeof loadAdminData === "function") {
-          loadAdminData();
-        }
-      })
-    .subscribe();
-
-  // Messages channel — chat notifications
-  sb.channel("messages-realtime")
-    .on("postgres_changes", { event: "INSERT", schema: "public", table: "messages" },
-      function(payload) {
-        var msg = payload.new || {};
-        if (!msg.sender_id || msg.sender_id === user.id) return;
-
-        // Update unread badge on chat float button
-        updateChatBadge();
-
-        // If chat window is open on this thread, just reload
-        var win = ge("chatWin");
-        if (win && win.classList.contains("on") && chatThread === msg.thread_id) return;
-
-        // Show notification toast
-        var senderName = msg.sender_name || "Someone";
-        var preview = (msg.content || "").substring(0, 50) + (msg.content && msg.content.length > 50 ? "…" : "");
-        toast("💬 " + senderName + ": " + preview, "ok");
-
-        // Notify via browser notification if permitted
-        if (typeof Notification !== "undefined" && Notification.permission === "granted") {
-          try {
-            new Notification("MODY — " + senderName, { body: preview, icon: "/favicon.ico" });
-          } catch(e) {}
-        }
-      })
-    .subscribe();
-
-  // Request browser notification permission
-  if (typeof Notification !== "undefined" && Notification.permission === "default") {
-    Notification.requestPermission();
-  }
-
-  // Pros channel — admin approval notifications
-  if (profile.role === "admin") {
-    sb.channel("pros-realtime")
-      .on("postgres_changes", { event: "INSERT", schema: "public", table: "professionals" },
-        function() { if (typeof loadApprovals === "function") loadApprovals(); })
-      .subscribe();
-  }
-}
-
-// ═══════════════════════════════════════════════════════════════
-//  MODY — Application Entry Point
-//  Load order: 14 (last — depends on all other modules)
-// ═══════════════════════════════════════════════════════════════
-
-// ── MAIN INIT ─────────────────────────────────────────────────
-async function init() {
-  // Load saved translations from DB first
-  await loadSavedTranslations();
-
-  // Apply language (populates all text)
-  applyLang();
-
-  // Load platform settings (promo, nail colors, commission)
-  await loadSettings();
-
-  // Load DB-driven categories (falls back to hardcoded)
-  await loadCategories();
-  await loadSubCategories();
-
-  // Load professionals from DB and merge with demos
-  loadPros();
-
-  // Check existing session
-  try {
-    var sess = await sb.auth.getSession();
-    if (sess.data && sess.data.session && sess.data.session.user) {
-      await loadProfile(sess.data.session.user);
-      updateNav();
-      showUidBadges();
-      startTracker();
-      subscribeRealtime();
-      buildChatThreads();
-      updateChatBadge();
-    } else {
-      updateNav();
-    }
-  } catch(e) {
-    updateNav();
-  }
-
-  // Listen for future auth changes
-  sb.auth.onAuthStateChange(async function(event, session) {
-    if (event === "SIGNED_IN" && session && session.user && !user) {
-      await loadProfile(session.user);
-      updateNav();
-      routeByRole();
-      subscribeRealtime();
-      buildChatThreads();
-      updateChatBadge();
-    } else if (event === "SIGNED_OUT") {
-      user = null; profile = null;
-      if (ftInterval) { clearInterval(ftInterval); ftInterval = null; }
-      var ft = ge("fTracker"); if (ft) ft.innerHTML = "";
-      updateNav();
-      show("home");
-      renderPros();
-    }
-  });
-}
-
-// ── START ─────────────────────────────────────────────────────
-init();
 </script>
 </body>
 </html>
