@@ -9,22 +9,11 @@ async function sendTwilioNotification(phone, type, name, details) {
   if (!settings.twilio_enabled || settings.twilio_enabled === "false") return;
   if (!phone) return;
 
-  var edgeFnUrl = settings.twilio_edge_function_url || "";
-  if (!edgeFnUrl) return;
-
   try {
-    var session = await sb.auth.getSession();
-    var token = session.data && session.data.session ? session.data.session.access_token : "";
-
-    await fetch(edgeFnUrl, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": "Bearer " + token,
-        "apikey": SB_KEY
-      },
-      body: JSON.stringify({ phone: phone, type: type, name: name, details: details })
+    var r = await sb.functions.invoke("twilio-send", {
+      body: { phone: phone, type: type, name: name, details: details }
     });
+    if (r.error) console.log("Twilio notification failed:", r.error.message);
   } catch(e) {
     console.log("Twilio notification failed:", e.message);
   }
@@ -79,19 +68,17 @@ async function testTwilio() {
   if (!testPhone) return;
   toast("Sending Twilio test message...");
   try {
-    var session = await sb.auth.getSession();
-    var token = session.data && session.data.session ? session.data.session.access_token : "";
-    var edgeFnUrl = settings.twilio_edge_function_url || "";
-    if (!edgeFnUrl) { toast("Edge function URL not set", "err"); return; }
-
-    var r = await fetch(edgeFnUrl, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "Authorization": "Bearer " + token, "apikey": SB_KEY },
-      body: JSON.stringify({ phone: testPhone, type: "new_booking", name: "სატესტო", details: "MODY Twilio test ✅" })
+    var r = await sb.functions.invoke("twilio-send", {
+      body: { phone: testPhone, type: "new_booking", name: "სატესტო", details: "MODY Twilio test ✅" }
     });
-    var data = await r.json();
-    if (r.ok) toast("Twilio test message sent! Check your phone.", "ok");
-    else toast("Twilio error: " + (data.error || r.status) + (data.details && data.details.message ? " — " + data.details.message : ""), "err");
+    if (r.error) {
+      toast("Twilio error: " + r.error.message, "err");
+    } else {
+      var data = r.data;
+      if (data && data.ok) toast("Twilio test message sent! Check your phone.", "ok");
+      else if (data && data.error) toast("Twilio error: " + data.error + (data.details && data.details.message ? " — " + data.details.message : ""), "err");
+      else toast("Twilio test sent.", "ok");
+    }
   } catch(e) {
     toast("Twilio test failed: " + e.message, "err");
   }
