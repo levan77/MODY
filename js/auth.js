@@ -52,6 +52,15 @@ async function loadProfile(u) {
 var _loadedScripts = {};
 function loadScript(src) {
   if (_loadedScripts[src]) return _loadedScripts[src];
+  // If script functions are already available (inlined build), skip loading
+  if (src.indexOf("admin.js") > -1 && typeof loadAdminData === "function") {
+    _loadedScripts[src] = Promise.resolve();
+    return _loadedScripts[src];
+  }
+  if (src.indexOf("professional.js") > -1 && typeof loadProDash === "function") {
+    _loadedScripts[src] = Promise.resolve();
+    return _loadedScripts[src];
+  }
   _loadedScripts[src] = new Promise(function(resolve, reject) {
     var s = document.createElement("script");
     s.src = src;
