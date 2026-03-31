@@ -1,0 +1,1361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>MODY — Beauty at Home, Tbilisi</title>
+
+<!-- External Dependencies -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<!-- App Styles (modular) -->
+<link rel="stylesheet" href="css/variables.css">
+<link rel="stylesheet" href="css/base.css">
+<link rel="stylesheet" href="css/components.css">
+<link rel="stylesheet" href="css/layout.css">
+</head>
+<body>
+
+<!-- PART 2: HTML BODY -->
+<div id="toast"></div>
+<button class="dm-btn" style="position:fixed;bottom:76px;right:20px;z-index:350" onclick="toggleDark()">🌙</button>
+
+<!-- ══ NAV ══ -->
+<nav>
+  <div class="nav-w">
+    <div style="display:flex;align-items:center;gap:8px">
+      <button class="dm-btn" id="navBackBtn" onclick="goBack()" style="display:none;font-size:18px" title="Go back">←</button>
+      <div class="logo" onclick="goHome()">MODY<span>.</span></div>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px">
+      <div class="lsw" id="lsw">
+        <button class="ltrig" onclick="toggleLdrop(event)">
+          <span id="lFlag">🇬🇧</span>
+          <span id="lCode" style="font-size:12px;margin-left:2px">EN</span>
+          <span style="font-size:9px;opacity:.5;margin-left:2px">▼</span>
+        </button>
+        <div class="ldrop">
+          <div class="lopt on" id="lo-en" onclick="setLang('en')">🇬🇧 &nbsp;English</div>
+          <div class="lopt" id="lo-ka" onclick="setLang('ka')">🇬🇪 &nbsp;ქართული</div>
+          <div class="lopt" id="lo-ru" onclick="setLang('ru')">🇷🇺 &nbsp;Русский</div>
+        </div>
+      </div>
+      <div id="navBtns" style="display:flex;gap:7px;align-items:center;flex-wrap:wrap;justify-content:flex-end"></div>
+    </div>
+  </div>
+</nav>
+
+<!-- ══ HOME ══ -->
+<div class="pg on" id="pg-home">
+  <div class="hero">
+    <video class="hero-vid" autoplay muted loop playsinline>
+      <source src="https://fjlmzaecjxxbukrbohyy.supabase.co/storage/v1/object/public/assets/hero.mp4" type="video/mp4">
+    </video>
+    <div class="hero-w">
+      <div id="heroBadge" style="display:inline-flex;align-items:center;gap:7px;background:rgba(234,184,183,.15);border:1px solid rgba(234,184,183,.3);color:var(--g);padding:5px 13px;border-radius:50px;font-size:13px;margin-bottom:16px"></div>
+      <h1 id="heroTitle"></h1>
+      <p id="heroSub" style="color:rgba(255,255,255,.6);font-size:15px;margin-bottom:24px;line-height:1.75;max-width:490px"></p>
+      <div style="background:var(--cd);border-radius:var(--r);padding:5px;display:flex;gap:6px;max-width:440px;box-shadow:var(--sl)">
+        <span style="font-size:17px;padding-left:6px">📍</span>
+        <input id="searchInp" type="text" style="flex:1;border:none;outline:none;padding:7px 11px;font-size:14px;color:var(--tx);background:transparent">
+        <button class="btn btn-g" id="heroBtn" onclick="show('list')"></button>
+      </div>
+      <div style="display:flex;gap:16px;margin-top:14px;flex-wrap:wrap">
+        <span id="trust1" style="font-size:13px;color:rgba(255,255,255,.4)"></span>
+        <span id="trust2" style="font-size:13px;color:rgba(255,255,255,.4)"></span>
+        <span id="trust3" style="font-size:13px;color:rgba(255,255,255,.4)"></span>
+      </div>
+    </div>
+  </div>
+
+  <div class="sec">
+    <div class="sec-w">
+      <div class="sec-hdr">
+        <div><h2 class="sec-title" id="catTitle"></h2><p id="catSub" style="color:var(--mu);font-size:14px;margin-top:2px"></p></div>
+        <button class="btn btn-o" id="viewAllBtn" onclick="show('list')"></button>
+      </div>
+      <div class="cat-grid" id="catGrid"><div class="spin" style="margin:20px auto;grid-column:1/-1"></div></div>
+    </div>
+  </div>
+
+  <div class="sec">
+    <div class="sec-w">
+      <div class="sec-hdr">
+        <h2 class="sec-title" id="featTitle"></h2>
+        <button class="btn btn-o" id="seeAllBtn" onclick="show('list')"></button>
+      </div>
+      <div id="featuredPros" class="pros-grid"><div class="spin" style="margin:30px auto;grid-column:1/-1"></div></div>
+    </div>
+  </div>
+
+  <div class="how">
+    <div class="hiw-wrap">
+      <div style="text-align:center">
+        <h2 id="howTitle" style="font-size:clamp(20px,4vw,34px);font-weight:300;color:#fff"></h2>
+      </div>
+      <div class="hiw-tabs" id="hiwTabs">
+        <button class="hiw-tab on" onclick="hiwGo(0)"><div class="hiw-num">01</div><span id="s1t"></span></button>
+        <button class="hiw-tab" onclick="hiwGo(1)"><div class="hiw-num">02</div><span id="s2t"></span></button>
+        <button class="hiw-tab" onclick="hiwGo(2)"><div class="hiw-num">03</div><span id="s3t"></span></button>
+      </div>
+      <div class="hiw-panel">
+        <div class="hiw-card on" id="hiwC0">
+          <div class="hiw-card-text">
+            <h3 id="s1t2"></h3>
+            <p id="s1d"></p>
+            <div class="hiw-features">
+              <span class="hiw-feat">🔍 Filter by category</span>
+              <span class="hiw-feat">⭐ See ratings</span>
+              <span class="hiw-feat">💰 Compare prices</span>
+              <span class="hiw-feat">📍 Your area</span>
+            </div>
+          </div>
+          <div class="hiw-visual"><div class="hiw-icon">🔍</div></div>
+        </div>
+        <div class="hiw-card" id="hiwC1">
+          <div class="hiw-card-text">
+            <h3 id="s2t2"></h3>
+            <p id="s2d"></p>
+            <div class="hiw-features">
+              <span class="hiw-feat">⚡ ASAP booking</span>
+              <span class="hiw-feat">📅 Schedule ahead</span>
+              <span class="hiw-feat">🎨 Pick nail colors</span>
+              <span class="hiw-feat">🎟 Use promo codes</span>
+            </div>
+          </div>
+          <div class="hiw-visual"><div class="hiw-icon">📅</div></div>
+        </div>
+        <div class="hiw-card" id="hiwC2">
+          <div class="hiw-card-text">
+            <h3 id="s3t2"></h3>
+            <p id="s3d"></p>
+            <div class="hiw-features">
+              <span class="hiw-feat">🚗 Live tracking</span>
+              <span class="hiw-feat">📍 At your door</span>
+              <span class="hiw-feat">💬 In-app chat</span>
+              <span class="hiw-feat">⭐ Leave review</span>
+            </div>
+          </div>
+          <div class="hiw-visual"><div class="hiw-icon">💅</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div style="background:#1A1A1A;padding:40px 20px">
+    <div style="max-width:1100px;margin:0 auto;background:rgba(234,184,183,.06);border:1px solid rgba(234,184,183,.2);border-radius:var(--r);padding:28px 32px;display:grid;grid-template-columns:1fr auto;gap:18px;align-items:center" class="proCta">
+      <div>
+        <div id="proTag" style="color:var(--g);font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:7px"></div>
+        <h2 id="proTitle" style="font-size:clamp(16px,3vw,26px);font-weight:300;color:#fff;margin-bottom:6px"></h2>
+        <p id="proSub" style="color:rgba(255,255,255,.5);font-size:14px;line-height:1.7"></p>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:7px;flex-shrink:0">
+        <button class="btn btn-g" id="joinProBtn" style="justify-content:center" onclick="openM('auth');setAuthTab('client')"></button>
+        <button class="btn btn-dk" id="signIn2Btn" style="justify-content:center" onclick="openM('auth')"></button>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <div class="footer-w">
+      <div class="footer-grid">
+        <div><span class="footer-logo">MODY<span style="color:var(--g)">.</span></span><p id="footerTag" style="font-size:12px;line-height:1.7"></p></div>
+        <div class="footer-col"><h4 id="fhSvc"></h4><div id="footerSvcs"></div></div>
+        <div class="footer-col"><h4 id="fhCo"></h4><a onclick="viewStaticPage('about')">About</a><a onclick="loadBlogPublic()">Blog</a></div>
+        <div class="footer-col"><h4 id="fhSup"></h4><a onclick="openM('newticket')">Help Center</a><a onclick="viewStaticPage('terms')">Terms</a><a onclick="viewStaticPage('privacy')">Privacy</a></div>
+      </div>
+      <div style="border-top:1px solid rgba(255,255,255,.07);padding-top:12px;display:flex;justify-content:space-between;font-size:12px">
+        <span>© 2025 MODY Georgia LLC.</span><span>Tbilisi 🇬🇪</span>
+      </div>
+    </div>
+  </footer>
+</div>
+
+<!-- ══ LIST ══ -->
+<div class="pg" id="pg-list">
+  <div style="background:var(--bg2);padding:24px 20px;border-bottom:1px solid var(--br)">
+    <div style="max-width:1200px;margin:0 auto">
+      <div style="font-size:13px;color:var(--mu);margin-bottom:3px">
+        <span onclick="goHome()" style="cursor:pointer;color:var(--g)" id="bcHome"></span> / <span id="bcPros"></span>
+      </div>
+      <h1 id="listTitle" style="font-size:24px;font-weight:300"></h1>
+    </div>
+  </div>
+  <div style="background:var(--nv);border-bottom:1px solid var(--br);padding:8px 20px;position:sticky;top:64px;z-index:100">
+    <div style="max-width:1200px;margin:0 auto">
+      <div style="display:flex;gap:10px;flex-wrap:wrap;padding:6px 0" id="filterChips"></div>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:6px">
+        <input type="date" class="fi" id="availDate" style="width:150px;padding:6px 10px;font-size:13px" onchange="filterByAvailability()">
+        <select class="fi" id="availTime" style="width:100px;padding:6px 10px;font-size:13px" onchange="filterByAvailability()">
+          <option value="">Any time</option>
+          <option>09:00</option><option>09:30</option><option>10:00</option><option>10:30</option>
+          <option>11:00</option><option>11:30</option><option>12:00</option><option>13:00</option>
+          <option>14:00</option><option>15:00</option><option>16:00</option><option>17:00</option>
+          <option>18:00</option><option>19:00</option>
+        </select>
+        <span id="availStatus" style="font-size:12px;color:var(--mu)"></span>
+        <button class="btn-sm btn-gh" style="font-size:11px" onclick="clearAvailFilter()">Clear</button>
+      </div>
+    </div>
+  </div>
+  <div style="max-width:1200px;margin:0 auto;padding:18px"><div id="prosList"></div></div>
+</div>
+
+<!-- ══ PROFILE ══ -->
+<div class="pg" id="pg-profile">
+  <div class="profile-cover"></div>
+  <div id="profileContent" class="profile-main"></div>
+</div>
+
+<!-- ══ BLOG ══ -->
+<div class="pg" id="pg-blog">
+  <div style="max-width:900px;margin:0 auto;padding:22px 18px">
+    <button class="btn btn-o" style="font-size:13px;margin-bottom:12px" onclick="goHome()">← Home</button>
+    <h1 style="font-size:28px;font-weight:300;margin-bottom:18px">Blog</h1>
+    <div id="blogList"><div class="spin" style="margin:30px auto"></div></div>
+  </div>
+</div>
+
+<!-- ══ BLOG POST VIEWER ══ -->
+<div class="pg" id="pg-blogpost">
+  <div style="max-width:750px;margin:0 auto;padding:22px 18px">
+    <button class="btn btn-o" style="font-size:13px;margin-bottom:12px" onclick="show('blog');loadBlogPublic()">← Blog</button>
+    <div id="blogPostContent"></div>
+  </div>
+</div>
+
+<!-- ══ STATIC PAGE VIEWER ══ -->
+<div class="pg" id="pg-staticpage">
+  <div style="max-width:750px;margin:0 auto;padding:22px 18px">
+    <button class="btn btn-o" style="font-size:13px;margin-bottom:12px" onclick="goHome()">← Home</button>
+    <div id="staticPageContent"></div>
+  </div>
+</div>
+
+<!-- ══ BOOKING ══ -->
+<div class="pg" id="pg-booking">
+  <div style="max-width:700px;margin:0 auto;padding:22px 18px">
+    <button class="btn btn-o" id="bkBackBtn" style="font-size:13px;margin-bottom:12px" onclick="show('profile')"></button>
+    <h1 id="bkTitle" style="font-size:22px;font-weight:300;margin-bottom:18px"></h1>
+
+    <!-- Selected service -->
+    <div class="card" style="margin-bottom:9px">
+      <h3 id="bkSelSvcH" style="font-size:15px;font-weight:400;margin-bottom:9px"></h3>
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:9px;background:var(--bg2);border-radius:var(--rs)">
+        <div><div style="font-weight:500" id="bkSvcName"></div><div style="font-size:13px;color:var(--mu)" id="bkProName"></div></div>
+        <div style="font-family:'Cormorant Garamond',serif;font-size:21px;font-weight:600" id="bkSvcPrice"></div>
+      </div>
+    </div>
+
+    <!-- Nail colors -->
+    <div class="card" id="nailCard" style="margin-bottom:9px;display:none">
+      <h3 id="nailCardTitle" style="font-size:15px;font-weight:400;margin-bottom:5px"></h3>
+      <p id="nailCardSub" style="font-size:13px;color:var(--mu);margin-bottom:10px"></p>
+      <div class="swatch-row" id="bkNailColors"></div>
+      <p id="nailSelTxt" style="font-size:12px;color:var(--mu);margin-top:8px"></p>
+    </div>
+
+    <!-- Design Upload -->
+    <div class="card" id="designCard" style="margin-bottom:9px">
+      <h3 style="font-size:15px;font-weight:400;margin-bottom:5px">🎨 Upload Your Design</h3>
+      <p style="font-size:13px;color:var(--mu);margin-bottom:10px">Have a specific design in mind? Upload a photo and your professional will see it.</p>
+      <div class="upload-zone" id="designUploadZone">
+        <div id="designPreview" style="display:none;margin-bottom:8px"></div>
+        <div id="designPrompt">
+          <span style="font-size:28px;display:block;margin-bottom:4px">📷</span>
+          <span style="font-size:13px;color:var(--mu)">Click or drag to upload design photo</span>
+        </div>
+        <input type="file" id="designFile" accept="image/*" onchange="previewDesign(this)">
+      </div>
+      <div id="designActions" style="display:none;margin-top:8px;display:flex;gap:6px">
+        <button class="btn-sm btn-no" onclick="clearDesign()">✕ Remove</button>
+      </div>
+    </div>
+
+    <!-- Date & Time -->
+    <div class="card" style="margin-bottom:9px">
+      <h3 id="bkPickDtH" style="font-size:15px;font-weight:400;margin-bottom:11px"></h3>
+      <div id="bkCalHdr" style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:2px"></div>
+      <div id="bkCalGrid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:12px"></div>
+      <label class="fl" id="bkTimeLbl"></label>
+      <div class="ts-grid" id="bkSlots"></div>
+    </div>
+
+    <!-- Address -->
+    <div class="card" style="margin-bottom:9px">
+      <h3 id="bkAddrH" style="font-size:15px;font-weight:400;margin-bottom:11px"></h3>
+      <div class="fg"><label class="fl" id="bkStreetLbl"></label><input class="fi" id="bkAddr"></div>
+      <div class="fi2">
+        <div class="fg"><label class="fl" id="bkDistLbl"></label>
+          <select class="fi" id="bkDist">
+            <option>Vake</option><option>Saburtalo</option><option>Isani</option>
+            <option>Didi Dighomi</option><option>Vera</option><option>Mtatsminda</option><option>Gldani</option>
+          </select>
+        </div>
+        <div class="fg"><label class="fl" id="bkNotesLbl"></label><input class="fi" id="bkNotes"></div>
+      </div>
+    </div>
+
+    <!-- Promo code -->
+    <div class="card" id="promoCard" style="margin-bottom:9px">
+      <h3 id="promoCardTitle" style="font-size:15px;font-weight:400;margin-bottom:4px"></h3>
+      <div class="promo-row">
+        <input class="promo-inp" id="promoInp">
+        <button class="btn btn-o" id="promoApplyBtn" onclick="applyPromo()" style="flex-shrink:0"></button>
+      </div>
+      <div id="promoResult"></div>
+    </div>
+
+    <!-- Price summary -->
+    <div class="card" style="margin-bottom:11px">
+      <div style="display:flex;justify-content:space-between;padding:4px 0;font-size:14px"><span id="bkSumSvcLbl"></span><span id="bkSumSvcAmt"></span></div>
+      <div id="bkDiscRow" style="display:none;justify-content:space-between;padding:4px 0;font-size:14px;color:#15803d"><span id="bkDiscLbl">Discount</span><span id="bkDiscAmt"></span></div>
+      <div style="display:flex;justify-content:space-between;padding:4px 0;font-size:14px"><span id="bkFeeLbl"></span><span>5₾</span></div>
+      <div style="display:flex;justify-content:space-between;padding:7px 0 3px;font-size:15px;font-weight:500;border-top:1px solid var(--br);margin-top:5px">
+        <span id="bkTotalLbl"></span>
+        <span id="bkTotal" style="font-family:'Cormorant Garamond',serif;font-size:21px"></span>
+      </div>
+    </div>
+
+    <button class="btn btn-g" id="confirmBtn" style="width:100%;justify-content:center;padding:12px;font-size:15px" onclick="submitBooking()"></button>
+    <p id="bkCancelNote" style="font-size:12px;color:var(--mu);text-align:center;margin-top:6px"></p>
+  </div>
+</div>
+
+<!-- ══ CLIENT DASHBOARD ══ -->
+<div class="pg" id="pg-dash-client">
+  <div style="background:var(--bg2);padding:16px 20px;border-bottom:1px solid var(--br)">
+    <div style="max-width:1200px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+      <div><h1 id="cdTitle" style="font-size:19px;font-weight:300"></h1><p id="cdWelcome" style="color:var(--mu);font-size:13px"></p></div>
+      <button class="btn btn-g" id="cdBookBtn" onclick="show('list')"></button>
+    </div>
+  </div>
+  <div class="dash-w">
+    <div class="d-side">
+      <div style="text-align:center;padding-bottom:10px;border-bottom:1px solid var(--br);margin-bottom:9px">
+        <div class="d-ava" id="cdAva">👩</div>
+        <div id="cdName" style="font-family:'Cormorant Garamond',serif;font-size:15px;font-weight:600;margin-top:5px"></div>
+        <div id="cdRoleLbl" style="font-size:12px;color:var(--mu)"></div>
+      </div>
+      <button class="ni on" id="cN-bk" onclick="cTab('bk')">📋 <span id="cmBkLbl"></span></button>
+      <button class="ni" id="cN-rev" onclick="cTab('rev')">⭐ <span id="cmRevLbl"></span></button>
+      <button class="ni" id="cN-prof" onclick="cTab('prof')">👤 <span id="cmProfLbl"></span></button>
+      <button class="ni" id="cN-sup" onclick="cTab('sup')">💬 <span id="cmSupLbl"></span></button>
+      <div style="border-top:1px solid var(--br);margin:8px 0 5px"></div>
+      <button class="ni" onclick="signOut()">🚪 <span id="cmOutLbl"></span></button>
+    </div>
+    <div>
+      <div id="cTab-bk">
+        <div id="cArrivalBanner"></div>
+        <div class="stats">
+          <div class="st"><div class="st-v" id="cS1">0</div><div class="st-l" id="cSL1"></div></div>
+          <div class="st"><div class="st-v" id="cS2">0</div><div class="st-l" id="cSL2"></div></div>
+          <div class="st"><div class="st-v" id="cS3">0</div><div class="st-l" id="cSL3"></div></div>
+        </div>
+        <div class="card">
+          <div class="c-hdr"><h3 id="cdBkHdr"></h3><button class="btn btn-g" id="cdNewBtn" style="font-size:12px" onclick="show('list')"></button></div>
+          <div class="tw"><table class="tbl">
+            <thead><tr><th id="thSvc"></th><th id="thPro"></th><th id="thTime"></th><th id="thStatus"></th><th></th></tr></thead>
+            <tbody id="cBkBody"></tbody>
+          </table></div>
+        </div>
+      </div>
+      <div id="cTab-rev" class="hide">
+        <div class="card"><div class="c-hdr"><h3 id="cdRevH"></h3></div><div id="cRevList"></div></div>
+      </div>
+      <div id="cTab-prof" class="hide">
+        <div class="card" style="margin-bottom:12px">
+          <div class="c-hdr"><h3 id="cdProfTitle"></h3></div>
+          <div style="text-align:center;margin-bottom:14px">
+            <div class="ava-ring" id="cAvaRing" onclick="document.getElementById('cAvaFile').click()"><span id="cAvaEmoji">👩</span></div>
+            <div style="font-size:12px;color:var(--mu);margin-top:4px">Click to change photo</div>
+            <div id="cUidBadge" style="font-size:11px;color:var(--g);font-weight:600;letter-spacing:1px;margin-top:4px"></div>
+            <input type="file" id="cAvaFile" accept="image/*" style="display:none" onchange="uploadClientAvatar(this)">
+          </div>
+          <div class="fg"><label class="fl" id="cdNameLbl"></label><input class="fi" id="cPName"></div>
+          <div class="fg"><label class="fl">Email</label><input class="fi" id="cPEmail" readonly style="opacity:.6"></div>
+          <div class="fg"><label class="fl" id="cdPhoneLbl"></label><input class="fi" id="cPPhone" placeholder="+995..." required></div>
+          <button class="btn btn-g" id="cdSaveBtn" onclick="saveClientProfile()"></button>
+        </div>
+        <div class="card">
+          <div class="c-hdr"><h3 id="cdAccH">Account Settings</h3></div>
+          <div style="padding:12px 0;border-bottom:1px solid var(--br)">
+            <div style="font-weight:600;font-size:15px;margin-bottom:8px">🔒 Change Password</div>
+            <div class="fg"><input class="fi" id="cNewPass" type="password" placeholder="New password (6+ chars)" style="font-size:15px;padding:11px"></div>
+            <button class="btn btn-g" style="font-size:14px;padding:10px 20px;width:100%;justify-content:center" onclick="changePassword('cNewPass')">Update Password</button>
+          </div>
+          <div style="padding:12px 0;border-bottom:1px solid var(--br)">
+            <div style="font-weight:600;font-size:15px;margin-bottom:4px">📧 Change Email</div>
+            <div style="font-size:12px;color:var(--mu);margin-bottom:6px" id="cCurrentEmail"></div>
+            <div class="fg"><input class="fi" id="cNewEmail" type="email" placeholder="New email address" style="font-size:15px;padding:11px"></div>
+            <button class="btn btn-g" style="font-size:14px;padding:10px 20px;width:100%;justify-content:center" onclick="changeEmail('cNewEmail')">Update Email</button>
+          </div>
+          <div style="padding:12px 0">
+            <div style="font-weight:600;font-size:15px;margin-bottom:4px">📞 Change Phone</div>
+            <div style="font-size:12px;color:var(--mu);margin-bottom:6px" id="cCurrentPhone"></div>
+            <div class="fg"><input class="fi" id="cNewPhone" placeholder="+995..." style="font-size:15px;padding:11px"></div>
+            <button class="btn btn-g" style="font-size:14px;padding:10px 20px;width:100%;justify-content:center" onclick="changePhone('cNewPhone')">Update Phone</button>
+          </div>
+        </div>
+      </div>
+      <div id="cTab-sup" class="hide">
+        <div class="card">
+          <div class="c-hdr"><h3 id="cdSupH"></h3><button class="btn btn-g" style="font-size:12px" onclick="openM('newticket')">+ Ticket</button></div>
+          <div id="cTicketList"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="mob-nav" id="cMobNav"><div class="mob-nav-inner">
+    <button class="mob-tab on" onclick="cTab('bk')"><span class="mt-ico">📋</span>Bookings</button>
+    <button class="mob-tab" onclick="cTab('rev')"><span class="mt-ico">⭐</span>Reviews</button>
+    <button class="mob-tab" onclick="cTab('prof')"><span class="mt-ico">👤</span>Profile</button>
+    <button class="mob-tab" onclick="cTab('sup')"><span class="mt-ico">💬</span>Support</button>
+    <button class="mob-tab" onclick="signOut()"><span class="mt-ico">🚪</span>Sign Out</button>
+  </div></div>
+</div>
+
+<!-- ══ PRO DASHBOARD ══ -->
+<div class="pg" id="pg-dash-pro">
+  <div style="background:#1A1A1A;padding:16px 20px;border-bottom:1px solid rgba(255,255,255,.08)">
+    <div style="max-width:1200px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+      <div>
+        <h1 style="font-size:17px;font-weight:400;color:#fff">Pro <em style="font-style:italic;color:var(--g)">Dashboard</em></h1>
+        <p id="pWelcome" style="color:rgba(255,255,255,.5);font-size:13px;margin-top:1px"></p>
+      </div>
+      <div style="display:flex;gap:7px;align-items:center">
+        <span id="pStatusBadge" style="padding:4px 10px;border-radius:50px;font-size:12px;font-weight:500;background:rgba(234,184,183,.15);border:1px solid rgba(234,184,183,.3);color:#C9918F">⏳ Pending</span>
+        <button class="btn btn-dk" onclick="signOut()">Sign Out</button>
+      </div>
+    </div>
+  </div>
+  <div class="dash-w">
+    <div class="d-side">
+      <div style="text-align:center;padding-bottom:10px;border-bottom:1px solid var(--br);margin-bottom:9px">
+        <div class="d-ava" id="pAvaDisp">💅</div>
+        <div id="pName" style="font-family:'Cormorant Garamond',serif;font-size:15px;font-weight:600;margin-top:5px"></div>
+        <div id="pSpec" style="font-size:12px;color:var(--mu)">Professional</div>
+      </div>
+      <button class="ni on" id="pN-bk" onclick="pTab('bk')">📋 Bookings</button>
+      <button class="ni" id="pN-cal" onclick="pTab('cal')">📅 Calendar</button>
+      <button class="ni" id="pN-earn" onclick="pTab('earn')">💰 Earnings</button>
+      <button class="ni" id="pN-port" onclick="pTab('port')">🖼 Portfolio</button>
+      <button class="ni" id="pN-svcs" onclick="pTab('svcs')">💆 Services</button>
+      <button class="ni" id="pN-colors" onclick="pTab('colors')">🌈 Nail Colors</button>
+      <button class="ni" id="pN-rev" onclick="pTab('rev')">⭐ Reviews</button>
+      <button class="ni" id="pN-edit" onclick="pTab('edit')">✏️ Edit Profile</button>
+      <button class="ni" id="pN-sup" onclick="pTab('sup')">💬 Support</button>
+      <div style="border-top:1px solid var(--br);margin:8px 0 5px"></div>
+      <button class="ni" onclick="signOut()">🚪 Sign Out</button>
+    </div>
+    <div>
+      <div id="pTab-bk">
+        <div id="pLocBar"></div>
+        <div class="stats">
+          <div class="st"><div class="st-v" id="pS1">0₾</div><div class="st-l">Earnings</div></div>
+          <div class="st"><div class="st-v" id="pS2">0</div><div class="st-l">Bookings</div></div>
+          <div class="st"><div class="st-v" id="pS4">0</div><div class="st-l">Pending</div></div>
+        </div>
+        <div class="card" style="margin-bottom:12px">
+          <div class="c-hdr"><h3>Incoming Requests</h3><span id="pPendBadge" style="background:rgba(234,184,183,.12);color:#C9918F;padding:2px 8px;border-radius:50px;font-size:12px">0 pending</span></div>
+          <div id="pIncoming"><p style="color:var(--mu);font-size:14px">No pending requests.</p></div>
+        </div>
+        <div class="card">
+          <div class="c-hdr"><h3>All Bookings</h3></div>
+          <div class="tw"><table class="tbl">
+            <thead><tr><th>Client</th><th>Service</th><th>Time</th><th>Earned</th><th>Status</th><th></th></tr></thead>
+            <tbody id="pBkBody"></tbody>
+          </table></div>
+        </div>
+      </div>
+      <div id="pTab-cal" class="hide">
+        <div class="card" style="margin-bottom:12px">
+          <div class="cal-nav">
+            <button onclick="proCalNav(-1)">◀</button>
+            <h3 id="proCalMonth"></h3>
+            <button onclick="proCalNav(1)">▶</button>
+          </div>
+          <div class="cal-grid">
+            <div class="cal-hdr">Mon</div><div class="cal-hdr">Tue</div><div class="cal-hdr">Wed</div><div class="cal-hdr">Thu</div><div class="cal-hdr">Fri</div><div class="cal-hdr">Sat</div><div class="cal-hdr">Sun</div>
+          </div>
+          <div class="cal-grid" id="proCalGrid"></div>
+          <div style="display:flex;gap:12px;margin-top:10px;font-size:11px;color:var(--mu)">
+            <span><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--g);margin-right:3px"></span>Booking</span>
+            <span><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#7e22ce;margin-right:3px"></span>Private task</span>
+            <span><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#ef4444;margin-right:3px"></span>Unavailable</span>
+          </div>
+        </div>
+        <div class="card">
+          <div class="c-hdr">
+            <h3 id="proCalDateTitle">Select a date</h3>
+            <div style="display:flex;gap:6px">
+              <button class="btn btn-g" style="font-size:12px" onclick="openProTaskModal()">+ Task</button>
+              <button class="btn btn-o" style="font-size:12px" onclick="toggleProDayOff()">Whole Day Off</button>
+            </div>
+          </div>
+          <div id="proCalEvents"><p style="color:var(--mu);font-size:13px">Click a date above to see details.</p></div>
+        </div>
+      </div>
+      <div id="pTab-earn" class="hide">
+        <div class="stats">
+          <div class="st"><div class="st-v" id="pE1">0₾</div><div class="st-l">This Month</div></div>
+          <div class="st"><div class="st-v" id="pE2">0₾</div><div class="st-l">Total Earned</div></div>
+          <div class="st"><div class="st-v" id="pE4">0</div><div class="st-l">Completed</div></div>
+        </div>
+        <div class="card"><p style="color:var(--mu);font-size:14px">Payouts processed every Monday via bank transfer.</p></div>
+      </div>
+      <div id="pTab-port" class="hide">
+        <div class="card">
+          <div class="c-hdr"><h3>Portfolio</h3>
+            <label class="btn btn-g" style="font-size:13px;cursor:pointer">+ Upload
+              <input type="file" accept="image/*" multiple style="display:none" onchange="uploadPortfolio(this)">
+            </label>
+          </div>
+          <p style="font-size:13px;color:var(--mu);margin-bottom:12px">Clients see these on your public profile. Hover to delete.</p>
+          <div class="port-grid" id="proPortGrid"></div>
+        </div>
+      </div>
+      <div id="pTab-svcs" class="hide">
+        <div class="card">
+          <div class="c-hdr"><h3>My Services</h3><button class="btn btn-g" style="font-size:13px" onclick="openSvcModal(null)">+ Add</button></div>
+          <div id="pSvcList"><p style="color:var(--mu);font-size:14px">No services yet.</p></div>
+        </div>
+      </div>
+      <div id="pTab-colors" class="hide">
+        <div class="card">
+          <div class="c-hdr"><h3>🌈 Nail Color Catalog</h3><button class="btn btn-g" style="font-size:13px" onclick="openColorModal(null)">+ Add Color</button></div>
+          <p style="font-size:13px;color:var(--mu);margin-bottom:12px">Clients browse and select colors during booking.</p>
+          <div id="pColorList"></div>
+        </div>
+      </div>
+      <div id="pTab-rev" class="hide">
+        <div class="card"><div class="c-hdr"><h3>Reviews Received</h3></div><div id="pRevList"></div></div>
+      </div>
+      <div id="pTab-edit" class="hide">
+        <div class="card" style="margin-bottom:12px">
+          <div class="c-hdr"><h3>Edit Profile</h3></div>
+          <div id="pEditStatus" style="background:rgba(234,184,183,.08);border:1px solid rgba(234,184,183,.25);border-radius:var(--rs);padding:9px 12px;margin-bottom:13px;font-size:13px;color:var(--mu)">Changes require admin approval.</div>
+          <div style="text-align:center;margin-bottom:14px">
+            <div class="ava-ring" id="pAvaEdit" onclick="document.getElementById('pAvaFile').click()"><span id="pAvaEditEmoji">💅</span></div>
+            <div style="font-size:12px;color:var(--mu);margin-top:4px">Click to change photo</div>
+            <div id="pUidBadge" style="font-size:11px;color:var(--g);font-weight:600;letter-spacing:1px;margin-top:4px"></div>
+            <input type="file" id="pAvaFile" accept="image/*" style="display:none" onchange="uploadProAvatar(this)">
+          </div>
+          <div class="fg"><label class="fl">Display Name</label><input class="fi" id="pEditName"></div>
+          <div class="fg"><label class="fl">Specialty</label><select class="fi" id="pEditSpec"></select></div>
+          <div class="fg"><label class="fl">Bio</label><textarea class="fi" id="pEditBio" rows="3" placeholder="Tell clients about yourself..."></textarea></div>
+          <div class="fg"><label class="fl">District</label>
+            <select class="fi" id="pEditArea"><option>Vake</option><option>Saburtalo</option><option>Isani</option><option>Didi Dighomi</option><option>Vera</option><option>Mtatsminda</option></select>
+          </div>
+          <div class="fg"><label class="fl">Starting Price (₾)</label><input class="fi" id="pEditPrice" type="number" min="0"></div>
+          <div class="fg"><label class="fl">Years of Experience</label><input class="fi" id="pEditYears" type="number" min="0" max="50" placeholder="e.g. 5"></div>
+          <div class="fg">
+            <label class="fl">🚗 Travel Buffer (minutes between bookings)</label>
+            <input class="fi" id="pEditBuffer" type="range" min="30" max="90" step="5" value="60" oninput="ge('pBufferVal').textContent=this.value+' min'">
+            <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--mu);margin-top:4px"><span>30 min</span><span id="pBufferVal" style="font-weight:600;color:var(--g)">60 min</span><span>90 min</span></div>
+            <p style="font-size:12px;color:var(--mu);margin-top:4px">Time blocked before &amp; after each booking for travel across the city.</p>
+          </div>
+          <button class="btn btn-g" onclick="saveProProfile()">Submit for Approval</button>
+        </div>
+        <div class="card">
+          <div class="c-hdr"><h3>Account Settings</h3></div>
+          <div style="padding:12px 0;border-bottom:1px solid var(--br)">
+            <div style="font-weight:600;font-size:15px;margin-bottom:8px">🔒 Change Password</div>
+            <div class="fg"><input class="fi" id="pNewPass" type="password" placeholder="New password (6+ chars)" style="font-size:15px;padding:11px"></div>
+            <button class="btn btn-g" style="font-size:14px;padding:10px 20px;width:100%;justify-content:center" onclick="changePassword('pNewPass')">Update Password</button>
+          </div>
+          <div style="padding:12px 0;border-bottom:1px solid var(--br)">
+            <div style="font-weight:600;font-size:15px;margin-bottom:4px">📧 Change Email</div>
+            <div style="font-size:12px;color:var(--mu);margin-bottom:6px" id="pCurrentEmail"></div>
+            <div class="fg"><input class="fi" id="pNewEmail" type="email" placeholder="New email address" style="font-size:15px;padding:11px"></div>
+            <button class="btn btn-g" style="font-size:14px;padding:10px 20px;width:100%;justify-content:center" onclick="changeEmail('pNewEmail')">Update Email</button>
+          </div>
+          <div style="padding:12px 0">
+            <div style="font-weight:600;font-size:15px;margin-bottom:4px">📞 Change Phone</div>
+            <div style="font-size:12px;color:var(--mu);margin-bottom:6px" id="pCurrentPhone"></div>
+            <div class="fg"><input class="fi" id="pNewPhone" placeholder="+995..." style="font-size:15px;padding:11px"></div>
+            <button class="btn btn-g" style="font-size:14px;padding:10px 20px;width:100%;justify-content:center" onclick="changePhone('pNewPhone')">Update Phone</button>
+          </div>
+        </div>
+      </div>
+      <div id="pTab-sup" class="hide">
+        <div class="card">
+          <div class="c-hdr"><h3>Support Tickets</h3><button class="btn btn-g" style="font-size:13px" onclick="openM('newticket')">+ New Ticket</button></div>
+          <div id="pTicketList"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="mob-nav" id="pMobNav"><div class="mob-nav-inner">
+    <button class="mob-tab on" onclick="pTab('bk')"><span class="mt-ico">📋</span>Bookings</button>
+    <button class="mob-tab" onclick="pTab('cal')"><span class="mt-ico">📅</span>Calendar</button>
+    <button class="mob-tab" onclick="pTab('svcs')"><span class="mt-ico">💆</span>Services</button>
+    <button class="mob-tab" onclick="pTab('port')"><span class="mt-ico">🖼</span>Portfolio</button>
+    <button class="mob-tab" onclick="pTab('edit')"><span class="mt-ico">✏️</span>Profile</button>
+  </div></div>
+</div>
+
+<!-- ══ ADMIN ══ -->
+<div class="pg" id="pg-admin">
+  <div style="background:#1A1A1A;padding:12px 20px;border-bottom:1px solid rgba(255,255,255,.08)">
+    <div style="max-width:1400px;margin:0 auto;display:flex;align-items:center;justify-content:space-between">
+      <div style="font-family:'Cormorant Garamond',serif;font-size:19px;font-weight:600;color:#fff;letter-spacing:2px">MODY <span style="color:var(--g)">Admin</span></div>
+      <div style="display:flex;gap:7px;align-items:center">
+        <span id="aEmail" style="font-size:12px;color:rgba(255,255,255,.4)"></span>
+        <button class="btn btn-dk" onclick="signOut()">Sign Out</button>
+      </div>
+    </div>
+  </div>
+  <div id="adminGrid" style="max-width:1400px;margin:0 auto;padding:16px 20px;display:grid;grid-template-columns:175px 1fr;gap:14px">
+    <div class="d-side">
+      <button class="ni on" id="aN-ov" onclick="aTab('ov')">📊 Overview</button>
+      <button class="ni" id="aN-app" onclick="aTab('app')">✅ Approvals <span id="appBadge" style="background:rgba(234,184,183,.2);color:#C9918F;padding:1px 6px;border-radius:50px;font-size:11px;margin-left:2px">0</span></button>
+      <button class="ni" id="aN-bks" onclick="aTab('bks')">📋 Bookings</button>
+      <button class="ni" id="aN-pros" onclick="aTab('pros')">💅 Pros</button>
+      <button class="ni" id="aN-usr" onclick="aTab('usr')">👤 Users</button>
+      <button class="ni" id="aN-cats" onclick="aTab('cats')">🏷 Categories</button>
+      <button class="ni" id="aN-promo" onclick="aTab('promo')">🎟 Promos</button>
+      <button class="ni" id="aN-rev" onclick="aTab('rev')">⭐ Reviews</button>
+      <button class="ni" id="aN-sup" onclick="aTab('sup')">💬 Support</button>
+      <button class="ni" id="aN-set" onclick="aTab('set')">⚙️ Settings</button>
+      <button class="ni" id="aN-tr" onclick="aTab('tr')">🌐 Translations</button>
+      <button class="ni" id="aN-mcal" onclick="aTab('mcal')">📅 Master Calendar</button>
+      <button class="ni" id="aN-analytics" onclick="aTab('analytics')">📈 Analytics</button>
+      <button class="ni" id="aN-blog" onclick="aTab('blog')">📝 Blog / Pages</button>
+    </div>
+    <div>
+      <div id="aTab-ov">
+        <div class="stats" style="grid-template-columns:repeat(4,1fr)">
+          <div class="st"><div class="st-v" id="aS1">—</div><div class="st-l">Users</div></div>
+          <div class="st"><div class="st-v" id="aS2">—</div><div class="st-l">Professionals</div></div>
+          <div class="st"><div class="st-v" id="aS3">—</div><div class="st-l">Bookings</div></div>
+          <div class="st"><div class="st-v" id="aS4">—₾</div><div class="st-l">Revenue</div></div>
+        </div>
+        <div class="card">
+          <div class="c-hdr"><h3>Recent Bookings</h3></div>
+          <div class="tw"><table class="tbl"><thead><tr><th>Client</th><th>Pro</th><th>Service</th><th>Total</th><th>Status</th></tr></thead><tbody id="aBkBody"></tbody></table></div>
+        </div>
+      </div>
+      <div id="aTab-app" class="hide">
+        <div class="card">
+          <div class="c-hdr"><h3>Pending Approvals</h3><span id="aPendCount" style="background:rgba(234,184,183,.12);color:#C9918F;padding:2px 8px;border-radius:50px;font-size:12px">0</span></div>
+          <div id="aAppList"></div>
+        </div>
+      </div>
+      <div id="aTab-bks" class="hide">
+        <div class="card">
+          <div class="c-hdr"><h3>All Bookings</h3><input class="fi" id="bkSearch" placeholder="Search..." style="width:180px;padding:6px 10px;font-size:13px" oninput="renderAdminBks()"></div>
+          <div class="tw"><table class="tbl"><thead><tr><th>Client</th><th>Pro</th><th>Service</th><th>Time</th><th>Total</th><th>Status</th><th>Action</th></tr></thead><tbody id="aAllBkBody"></tbody></table></div>
+        </div>
+      </div>
+      <div id="aTab-pros" class="hide">
+        <div class="card">
+          <div class="c-hdr"><h3>All Professionals</h3></div>
+          <div class="tw"><table class="tbl"><thead><tr><th>Name</th><th>Specialty</th><th>Area</th><th>Rating</th><th>Commission</th><th>Status</th><th>Action</th></tr></thead><tbody id="aProsBody"></tbody></table></div>
+        </div>
+      </div>
+      <div id="aTab-usr" class="hide">
+        <div class="card">
+          <div class="c-hdr"><h3>All Users</h3></div>
+          <div class="tw"><table class="tbl"><thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Gender</th><th>Phone</th><th>Joined</th><th>Action</th></tr></thead><tbody id="aUsrBody"></tbody></table></div>
+        </div>
+      </div>
+      <div id="aTab-cats" class="hide">
+        <div class="card" style="margin-bottom:12px">
+          <div class="c-hdr"><h3>Service Categories</h3><button class="btn btn-g" style="font-size:13px" onclick="openCatModal(null)">+ Add Category</button></div>
+          <p style="font-size:13px;color:var(--mu);margin-bottom:12px">Manage categories and their subcategories. Subcategories appear as a hover menu on category cards.</p>
+          <div id="aCatList"></div>
+        </div>
+        <div class="card">
+          <div class="c-hdr"><h3>Subcategories</h3><button class="btn btn-g" style="font-size:13px" onclick="openSubCatModal(null)">+ Add Subcategory</button></div>
+          <p style="font-size:13px;color:var(--mu);margin-bottom:10px">Subcategories appear on hover over category cards. Each one links to its parent category for filtering.</p>
+          <div id="aSubCatList"></div>
+        </div>
+      </div>
+      <div id="aTab-promo" class="hide">
+        <div class="card">
+          <div class="c-hdr">
+            <h3>Promo Codes</h3>
+            <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+              <label style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--mu);cursor:pointer">
+                Global On <label class="sw"><input type="checkbox" id="promoGlobal" onchange="saveSetting('promo_enabled',this.checked)"><span class="sw-t"></span></label>
+              </label>
+              <button class="btn btn-g" style="font-size:13px" onclick="openPromoModal(null)">+ Create</button>
+            </div>
+          </div>
+          <div class="tw"><table class="tbl"><thead><tr><th>Code</th><th>Type</th><th>Value</th><th>Used</th><th>Expires</th><th>Active</th><th>Action</th></tr></thead><tbody id="aPromoBody"></tbody></table></div>
+        </div>
+      </div>
+      <div id="aTab-rev" class="hide">
+        <div class="card">
+          <div class="c-hdr"><h3>Review Moderation</h3></div>
+          <p style="font-size:13px;color:var(--mu);margin-bottom:12px">Toggle visibility. Hidden reviews don't appear on professional profiles.</p>
+          <div id="aRevList"></div>
+        </div>
+      </div>
+      <div id="aTab-sup" class="hide">
+        <div class="card" style="margin-bottom:12px">
+          <div class="c-hdr"><h3>💬 Client ↔ Pro Conversations</h3><button class="btn btn-g" style="font-size:12px" onclick="loadAdminChats()">Refresh</button></div>
+          <p style="font-size:12px;color:var(--mu);margin-bottom:10px">View all booking chat conversations between clients and professionals.</p>
+          <div id="aChatsContainer"><p style="color:var(--mu);font-size:13px">Click Refresh to load conversations.</p></div>
+          <div id="aChatViewer" style="display:none;margin-top:12px;border-top:2px solid var(--br);padding-top:12px">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+              <h4 id="aChatTitle" style="font-size:14px;font-weight:600"></h4>
+              <button class="btn-sm btn-gh" onclick="ge('aChatViewer').style.display='none'">Close</button>
+            </div>
+            <div id="aChatMsgs" style="max-height:400px;overflow-y:auto;display:flex;flex-direction:column;gap:6px;padding:10px;background:var(--bg2);border-radius:var(--rs)"></div>
+          </div>
+        </div>
+        <div class="card"><div class="c-hdr"><h3>Support Tickets</h3></div><div id="aSupList"></div></div>
+      </div>
+      <div id="aTab-set" class="hide">
+        <div class="card" style="margin-bottom:12px">
+          <div class="c-hdr"><h3>Platform Settings</h3></div>
+          <!-- Feature toggles -->
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--br)">
+            <div><div style="font-weight:500;font-size:14px">Promo Codes Feature</div><div style="font-size:12px;color:var(--mu)">Allow clients to use promo codes</div></div>
+            <label class="sw"><input type="checkbox" id="setPromo" onchange="saveSetting('promo_enabled',this.checked)"><span class="sw-t"></span></label>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--br)">
+            <div><div style="font-weight:500;font-size:14px">Nail Color Catalog</div><div style="font-size:12px;color:var(--mu)">Allow nail masters to add color catalogs</div></div>
+            <label class="sw"><input type="checkbox" id="setNail" onchange="saveSetting('nail_colors_enabled',this.checked)"><span class="sw-t"></span></label>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--br)">
+            <div><div style="font-weight:500;font-size:14px">Chat Feature</div><div style="font-size:12px;color:var(--mu)">Enable real-time chat for clients and pros</div></div>
+            <label class="sw"><input type="checkbox" id="setChatEnabled" onchange="saveSetting('chat_enabled',this.checked)"><span class="sw-t"></span></label>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--br)">
+            <div><div style="font-weight:500;font-size:14px">Pro Self-Registration</div><div style="font-size:12px;color:var(--mu)">Allow professionals to sign up (still needs approval)</div></div>
+            <label class="sw"><input type="checkbox" id="setProReg" onchange="saveSetting('pro_registration_enabled',this.checked)"><span class="sw-t"></span></label>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--br)">
+            <div><div style="font-weight:500;font-size:14px">Client Reviews</div><div style="font-size:12px;color:var(--mu)">Allow clients to leave reviews on completed bookings</div></div>
+            <label class="sw"><input type="checkbox" id="setReviews" onchange="saveSetting('reviews_enabled',this.checked)"><span class="sw-t"></span></label>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--br)">
+            <div><div style="font-weight:500;font-size:14px">Booking Auto-Accept</div><div style="font-size:12px;color:var(--mu)">Automatically accept bookings (skip pro confirmation)</div></div>
+            <label class="sw"><input type="checkbox" id="setAutoAccept" onchange="saveSetting('auto_accept',this.checked)"><span class="sw-t"></span></label>
+          </div>
+          <!-- Numeric settings -->
+          <div style="padding:10px 0;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--br);flex-wrap:wrap">
+            <div style="flex:1;min-width:120px"><div style="font-weight:500;font-size:14px">Commission (%)</div><div style="font-size:12px;color:var(--mu)">Platform fee on each booking</div></div>
+            <input class="fi" id="setComm" type="number" style="width:80px" min="0" max="50">
+            <button class="btn btn-g" style="font-size:13px" onclick="saveSetting('commission',document.getElementById('setComm').value)">Save</button>
+          </div>
+          <div style="padding:10px 0;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--br);flex-wrap:wrap">
+            <div style="flex:1;min-width:120px"><div style="font-weight:500;font-size:14px">Platform Fee (₾)</div><div style="font-size:12px;color:var(--mu)">Fixed fee added to each booking</div></div>
+            <input class="fi" id="setPlatformFee" type="number" style="width:80px" min="0" max="100" value="5">
+            <button class="btn btn-g" style="font-size:13px" onclick="saveSetting('platform_fee',document.getElementById('setPlatformFee').value)">Save</button>
+          </div>
+          <div style="padding:10px 0;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--br);flex-wrap:wrap">
+            <div style="flex:1;min-width:120px"><div style="font-weight:500;font-size:14px">Min Booking Price (₾)</div><div style="font-size:12px;color:var(--mu)">Minimum order value for bookings</div></div>
+            <input class="fi" id="setMinOrder" type="number" style="width:80px" min="0" value="0">
+            <button class="btn btn-g" style="font-size:13px" onclick="saveSetting('min_order',document.getElementById('setMinOrder').value)">Save</button>
+          </div>
+          <div style="padding:10px 0;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+            <div style="flex:1;min-width:120px"><div style="font-weight:500;font-size:14px">Free Cancellation (hrs)</div><div style="font-size:12px;color:var(--mu)">Hours before appointment for free cancel</div></div>
+            <input class="fi" id="setCancelHrs" type="number" style="width:80px" min="0" max="48" value="2">
+            <button class="btn btn-g" style="font-size:13px" onclick="saveSetting('cancel_hours',document.getElementById('setCancelHrs').value)">Save</button>
+          </div>
+        </div>
+        <div class="card" style="margin-bottom:12px">
+          <div class="c-hdr"><h3>Branding & Appearance</h3></div>
+          <div style="padding:10px 0;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--br);flex-wrap:wrap">
+            <div style="flex:1;min-width:120px"><div style="font-weight:500;font-size:14px">Platform Name</div><div style="font-size:12px;color:var(--mu)">Shown in nav, hero, and footer</div></div>
+            <input class="fi" id="setBrandName" style="width:160px" placeholder="MODY">
+            <button class="btn btn-g" style="font-size:13px" onclick="saveSetting('brand_name',document.getElementById('setBrandName').value);toast('Reload page to see changes')">Save</button>
+          </div>
+          <div style="padding:10px 0;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--br);flex-wrap:wrap">
+            <div style="flex:1;min-width:120px"><div style="font-weight:500;font-size:14px">Accent Color</div><div style="font-size:12px;color:var(--mu)">Primary gold accent</div></div>
+            <input type="color" id="setAccentColor" value="#EAB8B7" style="width:50px;height:36px;border-radius:var(--rs);border:1.5px solid var(--br);cursor:pointer;padding:2px">
+            <button class="btn btn-g" style="font-size:13px" onclick="applyAccentColor(document.getElementById('setAccentColor').value)">Apply</button>
+          </div>
+          <div style="padding:10px 0;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--br);flex-wrap:wrap">
+            <div style="flex:1;min-width:120px"><div style="font-weight:500;font-size:14px">Hero Tagline</div><div style="font-size:12px;color:var(--mu)">Main homepage headline</div></div>
+            <input class="fi" id="setHeroTag" style="width:200px" placeholder="Beauty at home, on your terms.">
+            <button class="btn btn-g" style="font-size:13px" onclick="saveSetting('hero_tagline',document.getElementById('setHeroTag').value)">Save</button>
+          </div>
+          <div style="padding:10px 0;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+            <div style="flex:1;min-width:120px"><div style="font-weight:500;font-size:14px">Footer Text</div><div style="font-size:12px;color:var(--mu)">Copyright / company footer</div></div>
+            <input class="fi" id="setFooterTxt" style="width:200px" placeholder="© 2025 MODY Georgia LLC.">
+            <button class="btn btn-g" style="font-size:13px" onclick="saveSetting('footer_text',document.getElementById('setFooterTxt').value)">Save</button>
+          </div>
+        </div>
+        <div class="card" style="margin-bottom:12px">
+          <div class="c-hdr"><h3>Booking Hours</h3></div>
+          <div class="fi2">
+            <div class="fg"><label class="fl">Opening Time</label>
+              <select class="fi" id="setOpenTime" onchange="saveSetting('open_time',this.value)">
+                <option value="08:00">08:00</option><option value="09:00">09:00</option><option value="10:00" selected>10:00</option><option value="11:00">11:00</option>
+              </select>
+            </div>
+            <div class="fg"><label class="fl">Closing Time</label>
+              <select class="fi" id="setCloseTime" onchange="saveSetting('close_time',this.value)">
+                <option value="18:00">18:00</option><option value="19:00">19:00</option><option value="20:00" selected>20:00</option><option value="21:00">21:00</option><option value="22:00">22:00</option>
+              </select>
+            </div>
+          </div>
+          <div style="padding:10px 0;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+            <div style="flex:1;min-width:120px"><div style="font-weight:500;font-size:14px">Advance Booking (days)</div><div style="font-size:12px;color:var(--mu)">How far ahead clients can book</div></div>
+            <input class="fi" id="setAdvDays" type="number" style="width:80px" min="1" max="90" value="30">
+            <button class="btn btn-g" style="font-size:13px" onclick="saveSetting('advance_days',document.getElementById('setAdvDays').value)">Save</button>
+          </div>
+        </div>
+        <div class="card" style="margin-bottom:12px">
+          <div class="c-hdr"><h3>Notification Settings</h3></div>
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--br)">
+            <div><div style="font-weight:500;font-size:14px">Email Notifications</div><div style="font-size:12px;color:var(--mu)">Send email on new bookings and status changes</div></div>
+            <label class="sw"><input type="checkbox" id="setEmailNotif" onchange="saveSetting('email_notifications',this.checked)"><span class="sw-t"></span></label>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--br)">
+            <div><div style="font-weight:500;font-size:14px">SMS Notifications</div><div style="font-size:12px;color:var(--mu)">Send SMS for booking confirmations</div></div>
+            <label class="sw"><input type="checkbox" id="setSmsNotif" onchange="saveSetting('sms_notifications',this.checked)"><span class="sw-t"></span></label>
+          </div>
+          <div style="padding:10px 0;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+            <div style="flex:1;min-width:120px"><div style="font-weight:500;font-size:14px">Admin Alert Email</div><div style="font-size:12px;color:var(--mu)">Receive alerts for new signups & issues</div></div>
+            <input class="fi" id="setAlertEmail" type="email" style="width:200px" placeholder="admin@mody.ge">
+            <button class="btn btn-g" style="font-size:13px" onclick="saveSetting('alert_email',document.getElementById('setAlertEmail').value)">Save</button>
+          </div>
+        </div>
+        <div class="card" style="margin-bottom:12px">
+          <div class="c-hdr"><h3>📱 WhatsApp Notifications</h3></div>
+          <p style="font-size:12px;color:var(--mu);margin-bottom:10px">Send booking notifications via WhatsApp Cloud API. <a href="https://developers.facebook.com/docs/whatsapp/cloud-api/get-started" target="_blank" style="color:var(--g)">Setup Guide →</a></p>
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--br)">
+            <div><div style="font-weight:500;font-size:14px">Enable WhatsApp</div><div style="font-size:12px;color:var(--mu)">Send booking updates to clients & professionals</div></div>
+            <label class="sw"><input type="checkbox" id="setWaEnabled" onchange="saveSetting('wa_enabled',this.checked)"><span class="sw-t"></span></label>
+          </div>
+          <div style="padding:10px 0;border-bottom:1px solid var(--br)">
+            <div style="font-weight:500;font-size:14px;margin-bottom:6px">Phone Number ID</div>
+            <div style="font-size:12px;color:var(--mu);margin-bottom:4px">From Meta Business → WhatsApp → API Setup</div>
+            <div style="display:flex;gap:6px">
+              <input class="fi" id="setWaPhoneId" type="text" style="flex:1" placeholder="e.g. 123456789012345">
+              <button class="btn btn-g" style="font-size:13px" onclick="saveSetting('wa_phone_id',document.getElementById('setWaPhoneId').value)">Save</button>
+            </div>
+          </div>
+          <div style="padding:10px 0;border-bottom:1px solid var(--br)">
+            <div style="font-weight:500;font-size:14px;margin-bottom:6px">Access Token</div>
+            <div style="font-size:12px;color:var(--mu);margin-bottom:4px">Permanent token from Meta Business settings</div>
+            <div style="display:flex;gap:6px">
+              <input class="fi" id="setWaToken" type="password" style="flex:1" placeholder="EAAxxxxxxx...">
+              <button class="btn btn-g" style="font-size:13px" onclick="saveSetting('wa_api_token',document.getElementById('setWaToken').value)">Save</button>
+            </div>
+          </div>
+          <div style="padding:10px 0;border-bottom:1px solid var(--br)">
+            <div style="font-weight:500;font-size:14px;margin-bottom:6px">Edge Function URL <span style="font-size:11px;color:var(--mu);font-weight:400">(recommended)</span></div>
+            <div style="font-size:12px;color:var(--mu);margin-bottom:4px">Supabase Edge Function URL to proxy API calls securely. Leave empty for direct API calls.</div>
+            <div style="display:flex;gap:6px">
+              <input class="fi" id="setWaEdgeFn" type="url" style="flex:1" placeholder="https://your-project.supabase.co/functions/v1/whatsapp-send">
+              <button class="btn btn-g" style="font-size:13px" onclick="saveSetting('wa_edge_function_url',document.getElementById('setWaEdgeFn').value)">Save</button>
+            </div>
+          </div>
+          <div style="padding:10px 0;display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+            <div style="font-weight:500;font-size:14px">Notification Events</div>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px;width:100%">
+              <label style="display:flex;align-items:center;gap:4px;font-size:13px;background:var(--bg2);padding:4px 10px;border-radius:50px"><input type="checkbox" id="setWaNew" onchange="saveSetting('wa_on_new',this.checked)" checked> New Booking</label>
+              <label style="display:flex;align-items:center;gap:4px;font-size:13px;background:var(--bg2);padding:4px 10px;border-radius:50px"><input type="checkbox" id="setWaAccept" onchange="saveSetting('wa_on_accepted',this.checked)" checked> Accepted</label>
+              <label style="display:flex;align-items:center;gap:4px;font-size:13px;background:var(--bg2);padding:4px 10px;border-radius:50px"><input type="checkbox" id="setWaOtw" onchange="saveSetting('wa_on_otw',this.checked)" checked> On the Way</label>
+              <label style="display:flex;align-items:center;gap:4px;font-size:13px;background:var(--bg2);padding:4px 10px;border-radius:50px"><input type="checkbox" id="setWaArr" onchange="saveSetting('wa_on_arrived',this.checked)" checked> Arrived</label>
+              <label style="display:flex;align-items:center;gap:4px;font-size:13px;background:var(--bg2);padding:4px 10px;border-radius:50px"><input type="checkbox" id="setWaDone" onchange="saveSetting('wa_on_completed',this.checked)" checked> Completed</label>
+              <label style="display:flex;align-items:center;gap:4px;font-size:13px;background:var(--bg2);padding:4px 10px;border-radius:50px"><input type="checkbox" id="setWaCancel" onchange="saveSetting('wa_on_cancelled',this.checked)" checked> Cancelled</label>
+            </div>
+          </div>
+          <div style="padding:10px 0;border-top:1px solid var(--br);display:flex;gap:8px">
+            <button class="btn btn-g" style="font-size:13px" onclick="testWhatsApp()">📱 Send Test Message</button>
+          </div>
+          <div style="border-top:1px solid var(--br);padding-top:12px;margin-top:4px">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+              <div><div style="font-weight:500;font-size:14px">📝 Message Templates</div><div style="font-size:12px;color:var(--mu)">Edit the WhatsApp messages sent for each booking event</div></div>
+              <button class="btn btn-o" style="font-size:12px" onclick="renderWaTemplates()">Edit Templates</button>
+            </div>
+            <div id="waTemplateList"></div>
+          </div>
+        </div>
+        <div class="card" style="margin-bottom:12px">
+          <div class="c-hdr"><h3>🐦 Bird WhatsApp Notifications</h3></div>
+          <p style="font-size:12px;color:var(--mu);margin-bottom:10px">Send booking notifications via <a href="https://bird.com" target="_blank" style="color:var(--g)">Bird (bird.com)</a> WhatsApp channel. Requires a Supabase Edge Function.</p>
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--br)">
+            <div><div style="font-weight:500;font-size:14px">Enable Bird Notifications</div><div style="font-size:12px;color:var(--mu)">Send booking WhatsApp messages in Georgian via Bird</div></div>
+            <label class="sw"><input type="checkbox" id="setBirdEnabled" onchange="saveSetting('bird_enabled',this.checked)"><span class="sw-t"></span></label>
+          </div>
+          <div style="padding:10px 0;border-bottom:1px solid var(--br)">
+            <div style="font-weight:500;font-size:14px;margin-bottom:6px">Edge Function URL</div>
+            <div style="font-size:12px;color:var(--mu);margin-bottom:4px">Your deployed <code>bird-notifications</code> Supabase Edge Function URL</div>
+            <div style="display:flex;gap:6px">
+              <input class="fi" id="setBirdEdgeFn" type="url" style="flex:1" placeholder="https://your-project.supabase.co/functions/v1/bird-notifications">
+              <button class="btn btn-g" style="font-size:13px" onclick="saveSetting('bird_edge_function_url',document.getElementById('setBirdEdgeFn').value)">Save</button>
+            </div>
+          </div>
+          <div style="padding:10px 0;border-bottom:1px solid var(--br)">
+            <div style="font-weight:500;font-size:13px;color:var(--mu);margin-bottom:6px">Set these secrets in Supabase:</div>
+            <code style="font-size:11px;background:var(--bg2);padding:8px;border-radius:var(--rs);display:block;line-height:1.9;border:1px solid var(--br)">supabase secrets set BIRD_API_KEY=your_key<br>supabase secrets set BIRD_WORKSPACE_ID=your_workspace<br>supabase secrets set BIRD_CHANNEL_ID=your_channel</code>
+          </div>
+          <div style="padding:10px 0;border-top:1px solid var(--br);display:flex;gap:8px">
+            <button class="btn btn-g" style="font-size:13px" onclick="testBird()">📱 Send Test Message</button>
+          </div>
+        </div>
+        <div class="card" style="margin-bottom:12px">
+          <div class="c-hdr"><h3>Districts / Service Areas</h3></div>
+          <p style="font-size:13px;color:var(--mu);margin-bottom:10px">Manage the districts available for booking.</p>
+          <div id="aDistrictList"></div>
+          <div style="display:flex;gap:7px;margin-top:10px">
+            <input class="fi" id="newDistrictInp" placeholder="New district name..." style="flex:1">
+            <button class="btn btn-g" style="font-size:13px" onclick="addDistrict()">+ Add</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="c-hdr"><h3>Database Setup SQL</h3></div>
+          <p style="font-size:13px;color:var(--mu);margin-bottom:9px">Run once in <strong>Supabase → SQL Editor</strong></p>
+          <div id="sqlBlock" style="background:var(--bg2);border-radius:var(--rs);padding:10px;font-size:11px;font-family:monospace;line-height:1.8;color:var(--tx);white-space:pre-wrap;border:1px solid var(--br);max-height:240px;overflow-y:auto"></div>
+          <div style="display:flex;gap:8px;margin-top:9px;flex-wrap:wrap">
+            <button class="btn btn-g" onclick="copySQL()">📋 Copy SQL</button>
+            <a href="https://supabase.com/dashboard" target="_blank" class="btn btn-o">Open Supabase →</a>
+          </div>
+        </div>
+      </div>
+      <div id="aTab-tr" class="hide">
+        <div class="card" style="margin-bottom:12px">
+          <div class="c-hdr">
+            <h3>🌐 Live Translation Editor</h3>
+            <div style="display:flex;gap:6px;align-items:center">
+              <select class="fi" id="trLangSel" style="width:120px;padding:5px 8px;font-size:13px" onchange="loadTransEditor()">
+                <option value="en">🇬🇧 English</option>
+                <option value="ka">🇬🇪 ქართული</option>
+                <option value="ru">🇷🇺 Русский</option>
+              </select>
+              <button class="btn btn-g" style="font-size:12px" onclick="saveTranslations()">💾 Save All</button>
+            </div>
+          </div>
+          <p style="font-size:13px;color:var(--mu);margin-bottom:12px">Edit any text below. Click <strong>Save All</strong> to apply. Changes are instant and saved to the database.</p>
+          <div id="trEditorFields"></div>
+        </div>
+        <div class="card">
+          <div class="c-hdr"><h3>Quick Preview</h3><button class="btn btn-o" style="font-size:12px" onclick="previewTranslations()">🔄 Preview Without Saving</button></div>
+          <p style="font-size:13px;color:var(--mu)">Preview applies your edits temporarily. Save to keep them permanently.</p>
+        </div>
+      </div>
+      <div id="aTab-analytics" class="hide">
+        <div class="card" style="margin-bottom:12px">
+          <div class="c-hdr"><h3>📈 Platform Analytics</h3><button class="btn btn-o" style="font-size:12px" onclick="loadAnalytics()">🔄 Refresh</button></div>
+          <div class="stats" style="grid-template-columns:repeat(3,1fr)">
+            <div class="st" style="border-left:3px solid var(--g)"><div class="st-v" id="anTotalRev">—₾</div><div class="st-l">💰 Total Revenue</div></div>
+            <div class="st" style="border-left:3px solid #22c55e"><div class="st-v" id="anPlatformRev">—₾</div><div class="st-l">🏢 Platform Earnings</div></div>
+            <div class="st" style="border-left:3px solid #7e22ce"><div class="st-v" id="anProRev">—₾</div><div class="st-l">💅 Professional Earnings</div></div>
+          </div>
+          <div class="stats" style="grid-template-columns:repeat(4,1fr);margin-top:10px">
+            <div class="st"><div class="st-v" id="anTotalBk">—</div><div class="st-l">Total Bookings</div></div>
+            <div class="st"><div class="st-v" id="anCompleted">—</div><div class="st-l">✅ Completed</div></div>
+            <div class="st"><div class="st-v" id="anFemale">—</div><div class="st-l">👩 Female</div></div>
+            <div class="st"><div class="st-v" id="anMale">—</div><div class="st-l">👨 Male</div></div>
+          </div>
+        </div>
+        <div class="card" style="margin-bottom:12px">
+          <div class="c-hdr"><h3>💰 Revenue by Service</h3></div>
+          <p style="font-size:12px;color:var(--mu);margin-bottom:10px">Shows each service's total revenue, platform commission %, platform take, and professional earnings.</p>
+          <div class="tw"><table class="tbl">
+            <thead><tr><th>Service</th><th>Bookings</th><th>Revenue</th><th>Comm. %</th><th>Platform</th><th>Pro Earnings</th></tr></thead>
+            <tbody id="anSvcBreakdown"></tbody>
+          </table></div>
+        </div>
+        <div class="card" style="margin-bottom:12px">
+          <div class="c-hdr"><h3>💅 Earnings by Professional</h3></div>
+          <div class="tw"><table class="tbl">
+            <thead><tr><th>Professional</th><th>Bookings</th><th>Revenue</th><th>Comm. %</th><th>Platform</th><th>Pro Gets</th></tr></thead>
+            <tbody id="anProBreakdown"></tbody>
+          </table></div>
+        </div>
+        <div class="card" style="margin-bottom:12px">
+          <div class="c-hdr"><h3>🔥 Most Popular</h3></div>
+          <div id="anPopularSvcs"><p style="color:var(--mu);font-size:13px">Loading...</p></div>
+        </div>
+        <div class="card" style="margin-bottom:12px">
+          <div class="c-hdr"><h3>❄️ Least Popular</h3></div>
+          <div id="anLeastSvcs"><p style="color:var(--mu);font-size:13px">Loading...</p></div>
+        </div>
+        <div class="card">
+          <div class="c-hdr"><h3>🔍 Lookup Client or Professional</h3></div>
+          <p style="font-size:13px;color:var(--mu);margin-bottom:10px">Enter email or unique ID (C/P number) to see their activity.</p>
+          <div style="display:flex;gap:8px;margin-bottom:12px">
+            <input class="fi" id="anLookup" placeholder="Email, Cxxxxx or Pxxxxx..." style="flex:1">
+            <button class="btn btn-g" style="font-size:13px" onclick="doLookup()">Search</button>
+          </div>
+          <div id="anLookupResult"></div>
+        </div>
+      </div>
+      <div id="aTab-blog" class="hide">
+        <div class="card" style="margin-bottom:12px">
+          <div class="c-hdr"><h3>📝 Blog Posts</h3><button class="btn btn-g" style="font-size:13px" onclick="openPostModal(null)">+ New Post</button></div>
+          <div id="aBlogList"><p style="color:var(--mu);font-size:14px">Loading...</p></div>
+        </div>
+        <div class="card">
+          <div class="c-hdr"><h3>📄 Static Pages</h3><button class="btn btn-g" style="font-size:13px" onclick="openPageModal(null)">+ New Page</button></div>
+          <p style="font-size:12px;color:var(--mu);margin-bottom:10px">Create pages like Terms, About, FAQ. Access via /page slug.</p>
+          <div id="aPageList"><p style="color:var(--mu);font-size:14px">Loading...</p></div>
+        </div>
+      </div>
+      <div id="aTab-mcal" class="hide">
+        <div class="card" style="margin-bottom:12px">
+          <div class="c-hdr">
+            <h3>🗓 Master Calendar — All Professionals</h3>
+            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+              <input type="date" class="fi" id="mcalDate" style="width:160px;padding:6px 10px;font-size:13px" onchange="renderMasterCal()">
+              <button class="btn btn-g" style="font-size:12px" onclick="ge('mcalDate').value=fmtDate(new Date());renderMasterCal()">Today</button>
+            </div>
+          </div>
+          <p style="font-size:13px;color:var(--mu);margin-bottom:14px">See every professional's schedule on one timeline. <strong style="color:var(--g)">Gold</strong> = working time. <strong style="color:#7e22ce">Purple</strong> = travel/gap buffer.</p>
+          <div id="mcalTimeline"><p style="color:var(--mu);font-size:13px">Select a date above to view the timeline.</p></div>
+        </div>
+      </div>
+    </div>
+  </div><div class="mob-nav" id="aMobNav"><div class="mob-nav-inner">
+    <button class="mob-tab on" onclick="aTab('ov')"><span class="mt-ico">📊</span>Overview</button>
+    <button class="mob-tab" onclick="aTab('app')"><span class="mt-ico">✅</span>Approvals</button>
+    <button class="mob-tab" onclick="aTab('bks')"><span class="mt-ico">📋</span>Bookings</button>
+    <button class="mob-tab" onclick="aTab('pros')"><span class="mt-ico">💅</span>Pros</button>
+    <button class="mob-tab" onclick="aMobMore()"><span class="mt-ico">⚙️</span>More</button>
+  </div></div>
+</div>
+
+<!-- ══ LIGHTBOX ══ -->
+<div class="lb-ov" id="lbOv" onclick="if(event.target===this)lbClose()">
+  <button class="lb-btn lb-close" onclick="lbClose()">✕</button>
+  <button class="lb-btn lb-prev" onclick="lbNav(-1)">❮</button>
+  <img id="lbImg" class="lb-img" src="" alt="">
+  <button class="lb-btn lb-next" onclick="lbNav(1)">❯</button>
+  <div class="lb-ctr" id="lbCtr"></div>
+</div>
+
+<!-- ══ MODAL: BLOG POST ══ -->
+<div class="mbg" id="modal-post">
+  <div class="mbox mbox-lg">
+    <button class="mx" onclick="closeM('post')">✕</button>
+    <h2 id="postModalTitle" style="font-size:20px;font-weight:300;margin-bottom:14px">New Post</h2>
+    <input type="hidden" id="postEditId">
+    <div class="fg"><label class="fl">Title *</label><input class="fi" id="postTitle" placeholder="Post title" style="font-size:16px;padding:11px"></div>
+    <div class="fg"><label class="fl">Cover Image URL</label><input class="fi" id="postCover" placeholder="https://..."></div>
+    <div class="fg"><label class="fl">Content *</label><textarea class="fi" id="postBody" rows="12" style="font-size:14px;line-height:1.7" placeholder="Write your article... (supports basic HTML)"></textarea></div>
+    <div class="fg"><label class="fl">Tags (comma-separated)</label><input class="fi" id="postTags" placeholder="beauty, tips, nails"></div>
+    <div style="display:flex;gap:8px">
+      <label style="display:flex;align-items:center;gap:5px;font-size:13px;cursor:pointer"><input type="checkbox" id="postPublished" checked> Published</label>
+    </div>
+    <button class="btn btn-g" style="width:100%;justify-content:center;padding:12px;margin-top:8px;font-size:14px" onclick="savePost()">Save Post</button>
+  </div>
+</div>
+
+<!-- ══ MODAL: STATIC PAGE ══ -->
+<div class="mbg" id="modal-page">
+  <div class="mbox mbox-lg">
+    <button class="mx" onclick="closeM('page')">✕</button>
+    <h2 id="pageModalTitle" style="font-size:20px;font-weight:300;margin-bottom:14px">New Page</h2>
+    <input type="hidden" id="pageEditId">
+    <div class="fg"><label class="fl">Page Title *</label><input class="fi" id="pageTitle" placeholder="e.g. Terms of Service" style="font-size:16px;padding:11px"></div>
+    <div class="fg"><label class="fl">Slug *</label><input class="fi" id="pageSlug" placeholder="e.g. terms"></div>
+    <div class="fg"><label class="fl">Content *</label><textarea class="fi" id="pageBody" rows="12" style="font-size:14px;line-height:1.7" placeholder="Page content... (supports basic HTML)"></textarea></div>
+    <div style="display:flex;gap:8px">
+      <label style="display:flex;align-items:center;gap:5px;font-size:13px;cursor:pointer"><input type="checkbox" id="pagePublished" checked> Published</label>
+    </div>
+    <button class="btn btn-g" style="width:100%;justify-content:center;padding:12px;margin-top:8px;font-size:14px" onclick="savePage()">Save Page</button>
+  </div>
+</div>
+
+<!-- ══ FLOATING BOOKING TRACKER ══ -->
+<div class="ftracker" id="fTracker"></div>
+
+<!-- ══ CHAT ══ -->
+<div class="chat-wrap">
+  <div class="chat-win" id="chatWin">
+    <div class="chat-hdr">
+      <span id="chatHdrLabel">💬 Messages</span>
+      <button style="background:none;border:none;color:rgba(255,255,255,.6);cursor:pointer;font-size:17px;line-height:1" onclick="toggleChat()">✕</button>
+    </div>
+    <div class="chat-threads" id="chatThreads"></div>
+    <div class="chat-msgs" id="chatMsgs"><div class="msg msg-sys">Select a conversation above</div></div>
+    <div class="chat-foot">
+      <input class="chat-inp" id="chatInp" placeholder="Type..." onkeydown="if(event.key==='Enter')sendChatMsg()">
+      <button class="chat-send" onclick="sendChatMsg()">➤</button>
+    </div>
+  </div>
+  <button class="chat-float" onclick="toggleChat()">💬</button>
+</div>
+
+<!-- ══ MODAL: AUTH ══ -->
+<div class="mbg" id="modal-auth">
+  <div class="mbox">
+    <button class="mx" onclick="closeM('auth')">✕</button>
+    <h2 id="authWelH" style="font-size:22px;font-weight:300;margin-bottom:14px"></h2>
+    <div class="atabs">
+      <div class="atab on" id="atab-in" onclick="setAuthTab('in')">Sign In</div>
+      <div class="atab" id="atab-client" onclick="setAuthTab('client')">Client</div>
+      <div class="atab" id="atab-pro" onclick="setAuthTab('pro')">Professional</div>
+    </div>
+    <div id="aForm-in">
+      <div class="fg"><label class="fl" id="lEmail1">Email</label><input class="fi" id="siE" type="email" onkeydown="if(event.key==='Enter')doSignIn()"></div>
+      <div class="fg"><label class="fl" id="lPass1">Password</label><input class="fi" id="siP" type="password" onkeydown="if(event.key==='Enter')doSignIn()"></div>
+      <div id="siErr" style="color:#ef4444;font-size:13px;min-height:16px;margin-bottom:7px"></div>
+      <button class="btn btn-g" id="siBtnEl" style="width:100%;justify-content:center;padding:11px" onclick="doSignIn()">Sign In</button>
+      <p style="text-align:center;margin-top:8px;font-size:13px;color:var(--mu)"><span style="color:var(--g);cursor:pointer" onclick="forgotPassword()">Forgot password?</span></p>
+      <p style="text-align:center;margin-top:4px;font-size:13px;color:var(--mu)"><span id="noAccTxt">No account?</span> <span style="color:var(--g);cursor:pointer" onclick="setAuthTab('client')" id="signUpLnk">Sign up</span></p>
+    </div>
+    <div id="aForm-client" class="hide">
+      <div class="fi2">
+        <div class="fg"><label class="fl" id="lFirst2">First Name</label><input class="fi" id="scF"></div>
+        <div class="fg"><label class="fl" id="lLast2">Last Name</label><input class="fi" id="scL"></div>
+      </div>
+      <div class="fg"><label class="fl" id="lEmail2">Email</label><input class="fi" id="scE" type="email"></div>
+      <div class="fg"><label class="fl" id="lPhone2">Phone *</label><input class="fi" id="scPh" placeholder="+995..." required></div>
+      <div class="fg"><label class="fl">Gender *</label><select class="fi" id="scGender"><option value="">Select...</option><option value="female">Female</option><option value="male">Male</option></select></div>
+      <div class="fg"><label class="fl" id="lPass2">Password</label><input class="fi" id="scP" type="password" placeholder="6+ characters"></div>
+      <div id="scErr" style="color:#ef4444;font-size:13px;min-height:16px;margin-bottom:7px"></div>
+      <button class="btn btn-g" id="scBtnEl" style="width:100%;justify-content:center;padding:11px" onclick="doSignUpClient()">Create Account</button>
+    </div>
+    <div id="aForm-pro" class="hide">
+      <div class="fi2">
+        <div class="fg"><label class="fl" id="lFirst3">First Name</label><input class="fi" id="spF"></div>
+        <div class="fg"><label class="fl" id="lLast3">Last Name</label><input class="fi" id="spL"></div>
+      </div>
+      <div class="fg"><label class="fl" id="lEmail3">Email</label><input class="fi" id="spE" type="email"></div>
+      <div class="fg"><label class="fl">Phone *</label><input class="fi" id="spPh" placeholder="+995..." required></div>
+      <div class="fg"><label class="fl">Gender *</label><select class="fi" id="spGender"><option value="">Select...</option><option value="female">Female</option><option value="male">Male</option></select></div>
+      <div class="fg"><label class="fl" id="lSpec3">Specialty</label><select class="fi" id="spSp"></select></div>
+      <div class="fg"><label class="fl" id="lDist3">District</label>
+        <select class="fi" id="spAr"><option>Vake</option><option>Saburtalo</option><option>Isani</option><option>Didi Dighomi</option><option>Vera</option></select>
+      </div>
+      <div class="fg"><label class="fl" id="lPass3">Password</label><input class="fi" id="spP" type="password" placeholder="6+ characters"></div>
+      <div id="proWarnTxt" style="background:rgba(234,184,183,.08);border:1px solid rgba(234,184,183,.2);border-radius:var(--rs);padding:8px 11px;margin-bottom:9px;font-size:12px;color:var(--mu)"></div>
+      <div id="spErr" style="color:#ef4444;font-size:13px;min-height:16px;margin-bottom:7px"></div>
+      <button class="btn btn-g" id="spBtnEl" style="width:100%;justify-content:center;padding:11px" onclick="doSignUpPro()">Apply as Professional</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL: BOOKING DETAIL ══ -->
+<div class="mbg" id="modal-bkd">
+  <div class="mbox mbox-lg">
+    <button class="mx" onclick="closeM('bkd')">✕</button>
+    <h2 id="bkdTitle" style="font-size:20px;font-weight:300;margin-bottom:14px">Booking Details</h2>
+    <div id="bkdContent"></div>
+  </div>
+</div>
+
+<!-- ══ MODAL: REVIEW ══ -->
+<div class="mbg" id="modal-rev">
+  <div class="mbox">
+    <button class="mx" onclick="closeM('rev')">✕</button>
+    <h2 style="font-size:22px;font-weight:300;margin-bottom:6px">Leave a Review</h2>
+    <p id="revSubjectTxt" style="color:var(--mu);font-size:13px;margin-bottom:14px"></p>
+    <input type="hidden" id="revBkId"><input type="hidden" id="revTargetId"><input type="hidden" id="revRole">
+    <div style="margin-bottom:14px">
+      <label class="fl">Rating</label>
+      <div class="star-row" id="starRow">
+        <span class="star" onclick="setRating(1)">★</span>
+        <span class="star" onclick="setRating(2)">★</span>
+        <span class="star" onclick="setRating(3)">★</span>
+        <span class="star" onclick="setRating(4)">★</span>
+        <span class="star" onclick="setRating(5)">★</span>
+      </div>
+    </div>
+    <div class="fg"><label class="fl">Comment (optional)</label><textarea class="fi" id="revComment" rows="3" placeholder="Share your experience..."></textarea></div>
+    <button class="btn btn-g" style="width:100%;justify-content:center;padding:11px" onclick="submitReview()">Submit Review</button>
+  </div>
+</div>
+
+<!-- ══ MODAL: BOOKING CONFIRMED ══ -->
+<div class="mbg" id="modal-bkconf">
+  <div class="mbox" style="text-align:center">
+    <div style="font-size:46px;margin-bottom:9px">✨</div>
+    <h2 id="bkConfTitle" style="font-size:21px;font-weight:300;margin-bottom:6px"></h2>
+    <p id="bkConfSub" style="color:var(--mu);font-size:14px;margin-bottom:14px"></p>
+    <div style="background:var(--bg2);border-radius:var(--rs);padding:11px;text-align:left;margin-bottom:12px" id="bkConfDets"></div>
+    <button class="btn btn-g" id="bkViewBtn" style="width:100%;justify-content:center;padding:11px" onclick="closeM('bkconf');show('dash-client');loadClientDash()"></button>
+  </div>
+</div>
+
+<!-- ══ MODAL: SERVICE ══ -->
+<div class="mbg" id="modal-svc">
+  <div class="mbox">
+    <button class="mx" onclick="closeM('svc')">✕</button>
+    <h2 id="svcModalTitle" style="font-size:20px;font-weight:300;margin-bottom:14px">Add Service</h2>
+    <input type="hidden" id="svcId">
+    <div class="fg"><label class="fl">Service Name</label><input class="fi" id="sN" placeholder="e.g. Classic Gel Manicure"></div>
+    <div class="fg"><label class="fl">Description</label><input class="fi" id="sD" placeholder="Short description"></div>
+    <div class="fi2">
+      <div class="fg"><label class="fl">Price (₾)</label><input class="fi" id="sP" type="number" min="0"></div>
+      <div class="fg"><label class="fl">Duration (min)</label><input class="fi" id="sDr" type="number" min="15" value="60"></div>
+    </div>
+    <button class="btn btn-g" style="width:100%;justify-content:center;padding:11px" onclick="saveSvc()">Save Service</button>
+  </div>
+</div>
+
+<!-- ══ MODAL: NAIL COLOR ══ -->
+<div class="mbg" id="modal-color">
+  <div class="mbox">
+    <button class="mx" onclick="closeM('color')">✕</button>
+    <h2 id="colorModalTitle" style="font-size:20px;font-weight:300;margin-bottom:14px">Add Nail Color</h2>
+    <input type="hidden" id="colorId">
+    <div class="fg"><label class="fl">Color Name</label><input class="fi" id="colorName" placeholder="Cherry Red"></div>
+    <div class="fi2">
+      <div class="fg"><label class="fl">Color Swatch</label><input type="color" id="colorHex" value="#EAB8B7" style="width:100%;height:42px;border-radius:var(--rs);border:1.5px solid var(--br);cursor:pointer;padding:2px 3px;background:var(--ip)"></div>
+      <div class="fg"><label class="fl">Brand (optional)</label><input class="fi" id="colorBrand" placeholder="OPI, Essie..."></div>
+    </div>
+    <div class="fg"><label class="fl">Code (optional)</label><input class="fi" id="colorCode" placeholder="NL-B01"></div>
+    <button class="btn btn-g" style="width:100%;justify-content:center;padding:11px" onclick="saveColor()">Save Color</button>
+  </div>
+</div>
+
+<!-- ══ MODAL: PROMO (admin) ══ -->
+<div class="mbg" id="modal-promo">
+  <div class="mbox">
+    <button class="mx" onclick="closeM('promo')">✕</button>
+    <h2 id="promoModalTitle" style="font-size:20px;font-weight:300;margin-bottom:14px">Create Promo Code</h2>
+    <input type="hidden" id="promoEditId">
+    <div class="fg"><label class="fl">Code</label><input class="fi" id="promoCode" placeholder="SUMMER20" style="text-transform:uppercase;letter-spacing:1px"></div>
+    <div class="fi2">
+      <div class="fg"><label class="fl">Type</label><select class="fi" id="promoType"><option value="percent">Percent (%)</option><option value="fixed">Fixed (₾)</option></select></div>
+      <div class="fg"><label class="fl">Value</label><input class="fi" id="promoVal" type="number" min="1" placeholder="20"></div>
+    </div>
+    <div class="fi2">
+      <div class="fg"><label class="fl">Min Order (₾)</label><input class="fi" id="promoMin" type="number" min="0" placeholder="0"></div>
+      <div class="fg"><label class="fl">Max Uses</label><input class="fi" id="promoMax" type="number" min="1" placeholder="∞"></div>
+    </div>
+    <div class="fg"><label class="fl">Expires At</label><input class="fi" id="promoExp" type="datetime-local"></div>
+    <button class="btn btn-g" style="width:100%;justify-content:center;padding:11px;margin-top:4px" onclick="savePromo()">Save Promo Code</button>
+  </div>
+</div>
+
+<!-- ══ MODAL: CATEGORY (admin) ══ -->
+<div class="mbg" id="modal-cat">
+  <div class="mbox">
+    <button class="mx" onclick="closeM('cat')">✕</button>
+    <h2 id="catModalTitle" style="font-size:20px;font-weight:300;margin-bottom:14px">Add Category</h2>
+    <input type="hidden" id="catEditId">
+    <div class="fg">
+      <label class="fl">Icon</label>
+      <div style="display:flex;gap:12px;align-items:flex-start">
+        <div style="text-align:center">
+          <div id="catIconPreview" style="width:64px;height:64px;border-radius:var(--rs);background:var(--bg2);display:flex;align-items:center;justify-content:center;font-size:32px;overflow:hidden;border:1.5px solid var(--br)">💅</div>
+          <label class="btn btn-o" style="font-size:11px;margin-top:6px;cursor:pointer;padding:4px 10px">
+            Upload PNG
+            <input type="file" id="catIconFile" accept="image/png,image/jpeg,image/webp,image/svg+xml" style="display:none" onchange="previewCatIcon(this)">
+          </label>
+        </div>
+        <div style="flex:1">
+          <div class="fg" style="margin-bottom:6px"><label class="fl">Or use emoji</label><input class="fi" id="catEmoji" placeholder="💅" maxlength="4" style="font-size:22px;text-align:center" oninput="updateCatIconPreview()"></div>
+          <input type="hidden" id="catIconUrl" value="">
+          <p style="font-size:11px;color:var(--mu)">Image takes priority over emoji.</p>
+        </div>
+      </div>
+    </div>
+    <div class="fg"><label class="fl">Name (English) *</label><input class="fi" id="catEn" placeholder="Tattoo Artist"></div>
+    <div class="fg"><label class="fl">Name (Georgian)</label><input class="fi" id="catKa" placeholder="ტატუ მხატვარი"></div>
+    <div class="fg"><label class="fl">Name (Russian)</label><input class="fi" id="catRu" placeholder="Тату-мастер"></div>
+    <div class="fg">
+      <label class="fl">Show on</label>
+      <div style="display:flex;gap:12px;flex-wrap:wrap">
+        <label style="display:flex;align-items:center;gap:5px;font-size:13px;cursor:pointer"><input type="checkbox" id="catShowHome" checked> Homepage</label>
+        <label style="display:flex;align-items:center;gap:5px;font-size:13px;cursor:pointer"><input type="checkbox" id="catShowFilter" checked> Filter bar</label>
+        <label style="display:flex;align-items:center;gap:5px;font-size:13px;cursor:pointer"><input type="checkbox" id="catShowSignup" checked> Pro signup</label>
+      </div>
+    </div>
+    <button class="btn btn-g" style="width:100%;justify-content:center;padding:11px;margin-top:4px" onclick="saveCat()">Save Category</button>
+  </div>
+</div>
+
+<!-- ══ MODAL: SUBCATEGORY (admin) ══ -->
+<div class="mbg" id="modal-subcat">
+  <div class="mbox">
+    <button class="mx" onclick="closeM('subcat')">✕</button>
+    <h2 id="subCatModalTitle" style="font-size:20px;font-weight:300;margin-bottom:14px">Add Subcategory</h2>
+    <input type="hidden" id="subCatEditId">
+    <div class="fg"><label class="fl">Parent Category *</label>
+      <select class="fi" id="subCatParent"></select>
+    </div>
+    <div class="fg"><label class="fl">Name (English) *</label><input class="fi" id="subCatEn" placeholder="e.g. Gel Manicure"></div>
+    <div class="fg"><label class="fl">Name (Georgian)</label><input class="fi" id="subCatKa" placeholder=""></div>
+    <div class="fg"><label class="fl">Name (Russian)</label><input class="fi" id="subCatRu" placeholder=""></div>
+    <div class="fg"><label class="fl">Emoji (optional)</label><input class="fi" id="subCatEmoji" placeholder="💅" maxlength="4" style="font-size:20px;text-align:center;width:70px"></div>
+    <button class="btn btn-g" style="width:100%;justify-content:center;padding:11px;margin-top:4px" onclick="saveSubCat()">Save Subcategory</button>
+  </div>
+</div>
+
+<!-- ══ MODAL: SUPPORT TICKET ══ -->
+<div class="mbg" id="modal-ticket">
+  <div class="mbox mbox-lg">
+    <button class="mx" onclick="closeM('ticket')">✕</button>
+    <h2 id="ticketModalTitle" style="font-size:19px;font-weight:400;margin-bottom:4px">Ticket</h2>
+    <p id="ticketModalSub" style="font-size:13px;color:var(--mu);margin-bottom:13px"></p>
+    <div id="ticketMsgs" style="max-height:280px;overflow-y:auto;padding:9px;background:var(--bg2);border-radius:var(--rs);margin-bottom:11px;display:flex;flex-direction:column;gap:7px"></div>
+    <div style="display:flex;gap:7px">
+      <input class="fi" id="ticketReply" placeholder="Type your reply..." style="flex:1" onkeydown="if(event.key==='Enter')sendTicketReply()">
+      <button class="btn btn-g" onclick="sendTicketReply()">Send</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL: PRO TASK ══ -->
+<div class="mbg" id="modal-protask">
+  <div class="mbox">
+    <button class="mx" onclick="closeM('protask')">✕</button>
+    <h2 style="font-size:20px;font-weight:300;margin-bottom:14px">Add Private Task</h2>
+    <div class="fg"><label class="fl">Task Title</label><input class="fi" id="taskTitle" placeholder="e.g. Dentist appointment"></div>
+    <div class="fi2">
+      <div class="fg"><label class="fl">Date</label><input class="fi" id="taskDate" type="date"></div>
+      <div class="fg"><label class="fl">Time</label><input class="fi" id="taskTime" type="time"></div>
+    </div>
+    <div class="fg"><label class="fl">Notes (optional)</label><input class="fi" id="taskNotes" placeholder="Details..."></div>
+    <button class="btn btn-g" style="width:100%;justify-content:center;padding:11px" onclick="saveProTask()">Save Task</button>
+  </div>
+</div>
+
+<!-- ══ MODAL: ADMIN PRO CALENDAR ══ -->
+<div class="mbg" id="modal-admincal">
+  <div class="mbox mbox-lg">
+    <button class="mx" onclick="closeM('admincal')">✕</button>
+    <h2 id="adminCalTitle" style="font-size:20px;font-weight:300;margin-bottom:14px">Pro Calendar</h2>
+    <div class="cal-nav">
+      <button onclick="adminCalNav(-1)">◀</button>
+      <h3 id="adminCalMonth"></h3>
+      <button onclick="adminCalNav(1)">▶</button>
+    </div>
+    <div class="cal-grid">
+      <div class="cal-hdr">Mon</div><div class="cal-hdr">Tue</div><div class="cal-hdr">Wed</div><div class="cal-hdr">Thu</div><div class="cal-hdr">Fri</div><div class="cal-hdr">Sat</div><div class="cal-hdr">Sun</div>
+    </div>
+    <div class="cal-grid" id="adminCalGrid"></div>
+    <div class="cal-events" id="adminCalEvents"></div>
+  </div>
+</div>
+
+<!-- ══ MODAL: NEW TICKET ══ -->
+<div class="mbg" id="modal-newticket">
+  <div class="mbox">
+    <button class="mx" onclick="closeM('newticket')">✕</button>
+    <h2 style="font-size:20px;font-weight:300;margin-bottom:14px">New Support Ticket</h2>
+    <div class="fg"><label class="fl">Subject</label><input class="fi" id="newTkSubject" placeholder="Describe your issue briefly"></div>
+    <div class="fg"><label class="fl">Priority</label>
+      <select class="fi" id="newTkPriority"><option value="normal">Normal</option><option value="high">High</option><option value="urgent">Urgent</option></select>
+    </div>
+    <div class="fg"><label class="fl">Message</label><textarea class="fi" id="newTkMsg" rows="4" placeholder="Describe your issue in detail..."></textarea></div>
+    <button class="btn btn-g" style="width:100%;justify-content:center;padding:11px;margin-top:4px" onclick="createTicket()">Submit Ticket</button>
+  </div>
+</div>
+
+
+<!-- App JavaScript (load order matters — no ES modules, global namespace) -->
+<script src="js/config.js"></script>
+<script src="js/i18n.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/chat.js"></script>
+<script src="js/categories.js"></script>
+<script src="js/professionals.js"></script>
+<script src="js/booking.js"></script>
+<script src="js/dashboards/client.js"></script>
+<!-- admin.js & professional.js are lazy-loaded by routeByRole() based on user role -->
+<script src="js/whatsapp.js"></script>
+<script src="js/bird.js"></script>
+<script src="js/tracking.js"></script>
+<script src="js/realtime.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
