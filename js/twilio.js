@@ -90,7 +90,7 @@ async function testTwilio() {
     });
     var data = await r.json();
     if (r.ok) toast("Twilio test message sent! Check your phone.", "ok");
-    else toast("Twilio error: " + (data.error || r.status), "err");
+    else toast("Twilio error: " + (data.error || r.status) + (data.details && data.details.message ? " — " + data.details.message : ""), "err");
   } catch(e) {
     toast("Twilio test failed: " + e.message, "err");
   }
