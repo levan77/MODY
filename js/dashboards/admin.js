@@ -1379,21 +1379,79 @@ function gotoMasterCal() {
   aTab("mcal");
 }
 
+// Master calendar state
+var mcalAllPros = [];
+var mcalSelectedIds = {};
+
+function mcalToggleAll(on) {
+  mcalAllPros.forEach(function(p) { mcalSelectedIds[p.id] = on; });
+  mcalUpdateFilterUI();
+  renderMasterCalGrid();
+}
+
+function mcalTogglePro(id) {
+  mcalSelectedIds[id] = !mcalSelectedIds[id];
+  mcalUpdateFilterUI();
+  renderMasterCalGrid();
+}
+
+function mcalFilterProList() {
+  var q = (ge("mcalProSearch") ? ge("mcalProSearch").value : "").toLowerCase();
+  var el = ge("mcalProFilter"); if (!el) return;
+  el.querySelectorAll("[data-pro]").forEach(function(btn) {
+    var name = btn.dataset.name || "";
+    btn.style.display = (!q || name.toLowerCase().includes(q)) ? "" : "none";
+  });
+}
+
+function mcalUpdateFilterUI() {
+  var el = ge("mcalProFilter"); if (!el) return;
+  el.innerHTML = mcalAllPros.map(function(p) {
+    var on = mcalSelectedIds[p.id];
+    return "<button data-pro=\"" + p.id + "\" data-name=\"" + (p.name||"") + "\" onclick=\"mcalTogglePro('" + p.id + "')\" style=\"padding:4px 10px;border-radius:50px;font-size:11px;cursor:pointer;border:1px solid " + (on ? "var(--g)" : "var(--br)") + ";background:" + (on ? "rgba(193,163,142,.15)" : "var(--bg)") + ";color:" + (on ? "var(--g)" : "var(--mu)") + "\">" + (p.name||"Pro") + "</button>";
+  }).join("");
+}
+
 async function renderMasterCal() {
   var dateEl = ge("mcalDate");
   var timeline = ge("mcalTimeline");
   if (!dateEl || !timeline) return;
   if (!dateEl.value) dateEl.value = fmtDate(new Date());
-  var selDate = dateEl.value;
 
   timeline.innerHTML = "<p style=\"color:var(--mu);font-size:13px\">Loading...</p>";
 
   try {
     var pRes = await sb.from("professionals").select("*").eq("status", "approved");
     if (pRes.error) { timeline.innerHTML = "<p style=\"color:#ef4444\">DB error: " + pRes.error.message + "</p>"; return; }
-    var pros = pRes.data || [];
-    if (!pros.length) { timeline.innerHTML = "<p style=\"color:var(--mu)\">No approved professionals yet.</p>"; return; }
+    mcalAllPros = pRes.data || [];
+    if (!mcalAllPros.length) { timeline.innerHTML = "<p style=\"color:var(--mu)\">No approved professionals yet.</p>"; return; }
 
+    // Auto-select first 15 if first load
+    if (!Object.keys(mcalSelectedIds).length) {
+      mcalAllPros.forEach(function(p, i) { mcalSelectedIds[p.id] = i < 15; });
+    }
+    // Add newly approved pros as unselected
+    mcalAllPros.forEach(function(p) { if (mcalSelectedIds[p.id] === undefined) mcalSelectedIds[p.id] = false; });
+
+    mcalUpdateFilterUI();
+    renderMasterCalGrid();
+  } catch(e) {
+    timeline.innerHTML = "<p style=\"color:#ef4444\">Error loading calendar: " + e.message + "</p>";
+  }
+}
+
+async function renderMasterCalGrid() {
+  var timeline = ge("mcalTimeline");
+  var dateEl = ge("mcalDate");
+  if (!timeline || !dateEl) return;
+  var selDate = dateEl.value;
+
+  var pros = mcalAllPros.filter(function(p) { return mcalSelectedIds[p.id]; });
+  if (!pros.length) { timeline.innerHTML = "<p style=\"color:var(--mu);font-size:13px\">Select at least one professional above.</p>"; return; }
+
+  timeline.innerHTML = "<p style=\"color:var(--mu);font-size:13px\">Loading...</p>";
+
+  try {
     var activeStatuses = ["pending","accepted","on_the_way","arrived","in_progress","completed"];
     var bRes = await sb.from("bookings").select("*").in("status", activeStatuses).like("time_slot", selDate + "%");
     var allBookings = bRes.data || [];
@@ -1405,50 +1463,101 @@ async function renderMasterCal() {
       svcDurMap[s.pro_id][s.name] = s.duration || 60;
     });
 
-    // Classic day-grid calendar: rows = 30-min slots, columns = pros
-    var startHr = 8, endHr = 21;
-    var slotHeight = 56; // px per 30-min slot
+    // Determine time range: union of all selected pros' working hours (full 24h for admin view)
+    var globalStart = 24 * 60, globalEnd = 0;
+    pros.forEach(function(pro) {
+      var ws = pro.work_start || "09:00", we = pro.work_end || "19:00";
+      var wsP = ws.split(":"), weP = we.split(":");
+      var wsM = parseInt(wsP[0]) * 60 + parseInt(wsP[1] || 0);
+      var weM = parseInt(weP[0]) * 60 + parseInt(weP[1] || 0);
+      if (weM <= wsM) weM = 24 * 60;
+      if (wsM < globalStart) globalStart = wsM;
+      if (weM > globalEnd) globalEnd = weM;
+    });
+    // Add 1 hour buffer each side, clamp 0-24
+    globalStart = Math.max(0, globalStart - 60);
+    globalEnd = Math.min(24 * 60, globalEnd + 60);
+    // Round to nearest hour
+    globalStart = Math.floor(globalStart / 60) * 60;
+    globalEnd = Math.ceil(globalEnd / 60) * 60;
+
+    var slotHeight = 56;
     var times = [];
-    for (var hh = startHr; hh < endHr; hh++) {
-      times.push(String(hh).padStart(2,"0") + ":00");
-      times.push(String(hh).padStart(2,"0") + ":30");
+    for (var m = globalStart; m < globalEnd; m += 30) {
+      var hh = Math.floor(m / 60), mm = m % 60;
+      times.push(String(hh).padStart(2,"0") + ":" + String(mm).padStart(2,"0"));
     }
 
-    // Status color map
     var statusColors = {
       pending: "#f59e0b", accepted: "#10b981", on_the_way: "#3b82f6",
       arrived: "#8b5cf6", in_progress: "var(--g)", completed: "#6b7280",
       cancelled: "#ef4444"
     };
 
-    var html = "<div style=\"overflow-x:auto;overflow-y:auto;max-height:70vh\">";
-    html += "<table style=\"border-collapse:collapse;width:100%;min-width:" + (140 + pros.length * 180) + "px\">";
+    // Pre-compute traffic gap zones per pro
+    var gapZones = {}; // proId -> [{start, end}]
+    pros.forEach(function(pro) {
+      var proBookings = allBookings.filter(function(bk) { return bk.pro_id === pro.id; });
+      var proSvcMap = svcDurMap[pro.id] || {};
+      var travelBuf = pro.travel_buffer || 60;
+      var zones = [];
+      proBookings.forEach(function(bk) {
+        var parts = bk.time_slot.split(" ");
+        if (parts.length < 2) return;
+        var btp = parts[1].split(":");
+        var bkStart = parseInt(btp[0]) * 60 + parseInt(btp[1]);
+        var dur = bk.service_duration || proSvcMap[bk.service_name] || 60;
+        var bkEnd = bkStart + dur;
+        // Gap zone: after booking ends, travelBuf minutes
+        zones.push({ start: bkEnd, end: bkEnd + travelBuf });
+      });
+      gapZones[pro.id] = zones;
+    });
 
-    // Header row: pros
-    html += "<thead><tr><th style=\"width:64px;min-width:64px;background:var(--cd);position:sticky;left:0;top:0;z-index:3;border:1px solid var(--br);padding:8px;font-size:12px;color:var(--mu)\">Time</th>";
+    var html = "<div style=\"overflow-x:auto;overflow-y:auto;max-height:70vh\">";
+    html += "<table style=\"border-collapse:collapse;width:100%;min-width:" + (70 + pros.length * 160) + "px\">";
+
+    // Header
+    html += "<thead><tr><th style=\"width:56px;min-width:56px;background:var(--cd);position:sticky;left:0;top:0;z-index:3;border:1px solid var(--br);padding:6px;font-size:11px;color:var(--mu)\">Time</th>";
     pros.forEach(function(pro) {
       var avatar = pro.avatar_url
-        ? "<img src=\"" + pro.avatar_url + "\" style=\"width:28px;height:28px;border-radius:50%;object-fit:cover;flex-shrink:0\">"
-        : "<span style=\"width:28px;height:28px;border-radius:50%;background:var(--bg2);display:inline-flex;align-items:center;justify-content:center;font-size:15px\">" + (pro.emoji||"💅") + "</span>";
-      html += "<th style=\"background:var(--cd);position:sticky;top:0;z-index:2;border:1px solid var(--br);padding:8px 6px;min-width:180px\">"
-        + "<div style=\"display:flex;align-items:center;gap:6px;justify-content:center\">"
+        ? "<img src=\"" + pro.avatar_url + "\" style=\"width:26px;height:26px;border-radius:50%;object-fit:cover;flex-shrink:0\">"
+        : "<span style=\"width:26px;height:26px;border-radius:50%;background:var(--bg2);display:inline-flex;align-items:center;justify-content:center;font-size:14px\">" + (pro.emoji||"💅") + "</span>";
+      var wsLabel = (pro.work_start || "09:00") + "–" + (pro.work_end || "19:00");
+      html += "<th style=\"background:var(--cd);position:sticky;top:0;z-index:2;border:1px solid var(--br);padding:6px 4px;min-width:160px\">"
+        + "<div style=\"display:flex;align-items:center;gap:5px;justify-content:center\">"
         + avatar
-        + "<div style=\"text-align:left\"><div style=\"font-size:13px;font-weight:600\">" + pro.name + "</div>"
-        + "<div style=\"font-size:10px;color:var(--mu)\">" + (pro.specialty||"") + "</div></div></div></th>";
+        + "<div style=\"text-align:left\"><div style=\"font-size:12px;font-weight:600\">" + pro.name + "</div>"
+        + "<div style=\"font-size:10px;color:var(--mu)\">" + (pro.specialty||"") + "</div>"
+        + "<div style=\"font-size:9px;color:var(--g)\">" + wsLabel + "</div></div></div></th>";
     });
     html += "</tr></thead><tbody>";
 
-    // Body rows: one per 30-min slot
+    // Body rows
     times.forEach(function(tt) {
       var sp = tt.split(":");
       var slotMin = parseInt(sp[0]) * 60 + parseInt(sp[1]);
       var isHour = sp[1] === "00";
       html += "<tr style=\"height:" + slotHeight + "px\">";
-      html += "<td style=\"position:sticky;left:0;z-index:1;background:var(--cd);border:1px solid var(--br);padding:4px 6px;font-size:11px;font-weight:" + (isHour ? "600" : "400") + ";color:" + (isHour ? "var(--tx)" : "var(--mu)") + ";vertical-align:top;white-space:nowrap\">" + tt + "</td>";
+      html += "<td style=\"position:sticky;left:0;z-index:1;background:var(--cd);border:1px solid var(--br);padding:3px 5px;font-size:11px;font-weight:" + (isHour ? "600" : "400") + ";color:" + (isHour ? "var(--tx)" : "var(--mu)") + ";vertical-align:top;white-space:nowrap\">" + tt + "</td>";
 
       pros.forEach(function(pro) {
         var proSvcMap = svcDurMap[pro.id] || {};
-        // Find bookings that START in this 30-min slot for this pro
+        // Check if slot is outside pro working hours
+        var ws = pro.work_start || "09:00", we = pro.work_end || "19:00";
+        var wsP = ws.split(":"), weP = we.split(":");
+        var wsM = parseInt(wsP[0]) * 60 + parseInt(wsP[1] || 0);
+        var weM = parseInt(weP[0]) * 60 + parseInt(weP[1] || 0);
+        if (weM <= wsM) weM = 24 * 60;
+        var outsideHours = slotMin < wsM || slotMin >= weM;
+
+        // Check if slot is in a traffic gap zone
+        var inGap = false;
+        (gapZones[pro.id] || []).forEach(function(z) {
+          if (slotMin >= z.start && slotMin < z.end) inGap = true;
+        });
+
+        // Find bookings that START in this slot
         var slotBks = allBookings.filter(function(bk) {
           if (bk.pro_id !== pro.id) return false;
           var parts = bk.time_slot.split(" ");
@@ -1457,7 +1566,7 @@ async function renderMasterCal() {
           var bkMin = parseInt(btp[0]) * 60 + parseInt(btp[1]);
           return bkMin === slotMin;
         });
-        // Find bookings that SPAN through this slot (started earlier)
+        // Find bookings that SPAN through this slot
         var spanBks = allBookings.filter(function(bk) {
           if (bk.pro_id !== pro.id) return false;
           var parts = bk.time_slot.split(" ");
@@ -1468,7 +1577,16 @@ async function renderMasterCal() {
           return bkMin < slotMin && (bkMin + dur) > slotMin;
         });
 
-        html += "<td style=\"border:1px solid var(--br);padding:2px;vertical-align:top;background:" + (slotMin % 60 === 0 ? "var(--cd)" : "var(--bg)") + "\">";
+        var bgColor = outsideHours ? "rgba(0,0,0,.06)"
+          : inGap && !slotBks.length && !spanBks.length ? "rgba(126,34,206,.08)"
+          : (slotMin % 60 === 0 ? "var(--cd)" : "var(--bg)");
+
+        html += "<td style=\"border:1px solid var(--br);padding:2px;vertical-align:top;background:" + bgColor + "\">";
+
+        // Traffic gap indicator (only if no booking block here)
+        if (inGap && !slotBks.length && !spanBks.length) {
+          html += "<div style=\"height:" + (slotHeight - 8) + "px;background:rgba(126,34,206,.12);border-left:3px solid #7e22ce;border-radius:0 4px 4px 0;display:flex;align-items:center;padding-left:6px;font-size:10px;color:#7e22ce\">🚗 travel gap</div>";
+        }
 
         slotBks.forEach(function(bk) {
           var dur = bk.service_duration || proSvcMap[bk.service_name] || 60;
@@ -1477,16 +1595,16 @@ async function renderMasterCal() {
           var endH = Math.floor(endMin / 60), endM = endMin % 60;
           var endStr = String(endH).padStart(2,"0") + ":" + String(endM).padStart(2,"0");
           var col = statusColors[bk.status] || "var(--g)";
-          var bkJson = JSON.stringify(bk).replace(/"/g,"&quot;");
-          html += "<div onclick=\"openBkDetail(" + bkJson.replace(/&quot;/g,"'") + ",'admin')\" style=\"background:" + col + ";color:#fff;border-radius:6px;padding:5px 7px;font-size:11px;line-height:1.4;cursor:pointer;min-height:" + (rowSpan * slotHeight - 6) + "px;overflow:hidden;margin-bottom:2px\" title=\"" + (bk.client_name||"") + " — " + (bk.service_name||"") + "\">"
+          var bkId = bk.id || "";
+          html += "<div onclick=\"openBkDetail(JSON.parse(decodeURIComponent('" + encodeURIComponent(JSON.stringify(bk)) + "')),'admin')\" style=\"background:" + col + ";color:#fff;border-radius:6px;padding:5px 7px;font-size:11px;line-height:1.4;cursor:pointer;min-height:" + (rowSpan * slotHeight - 6) + "px;overflow:hidden;margin-bottom:2px\" title=\"" + (bk.client_name||"") + " — " + (bk.service_name||"") + "\">"
             + "<div style=\"font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis\">" + (bk.client_name||"Client") + "</div>"
             + "<div style=\"opacity:.9;overflow:hidden;text-overflow:ellipsis;white-space:nowrap\">" + (bk.service_name||"") + "</div>"
-            + "<div style=\"opacity:.8;font-size:10px\">" + tt + "–" + endStr + (dur > 30 ? " · " + dur + "min" : "") + "</div>"
+            + "<div style=\"opacity:.8;font-size:10px\">" + tt + "–" + endStr + " · " + dur + "min</div>"
             + "<div style=\"opacity:.75;font-size:10px\">" + (bk.status||"").replace(/_/g," ") + "</div>"
             + "</div>";
         });
 
-        if (spanBks.length) {
+        if (spanBks.length && !inGap) {
           spanBks.forEach(function(bk) {
             html += "<div style=\"height:" + (slotHeight - 6) + "px;border-left:3px solid " + (statusColors[bk.status]||"var(--g)") + ";background:rgba(0,0,0,.03);border-radius:0 4px 4px 0;margin:1px 0\"></div>";
           });
@@ -1504,6 +1622,8 @@ async function renderMasterCal() {
       + Object.keys(statusColors).map(function(s) {
           return "<span style=\"display:inline-flex;align-items:center;gap:4px\"><span style=\"width:12px;height:12px;border-radius:3px;background:" + statusColors[s] + ";display:inline-block\"></span>" + s.replace(/_/g," ") + "</span>";
         }).join("")
+      + "<span style=\"display:inline-flex;align-items:center;gap:4px\"><span style=\"width:12px;height:12px;border-radius:3px;background:rgba(126,34,206,.25);border-left:3px solid #7e22ce;display:inline-block\"></span>travel gap</span>"
+      + "<span style=\"display:inline-flex;align-items:center;gap:4px\"><span style=\"width:12px;height:12px;border-radius:3px;background:rgba(0,0,0,.06);display:inline-block\"></span>off hours</span>"
       + "</div>";
 
     timeline.innerHTML = html;

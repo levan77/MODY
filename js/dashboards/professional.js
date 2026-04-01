@@ -71,6 +71,8 @@ async function loadProDash() {
     if (ge("pEditPrice")) ge("pEditPrice").value = pro.price_from || "";
     if (ge("pEditYears")) ge("pEditYears").value = pro.years_experience || "";
     if (ge("pEditBuffer")) { ge("pEditBuffer").value = pro.travel_buffer || 60; var bv = ge("pBufferVal"); if (bv) bv.textContent = (pro.travel_buffer || 60) + " min"; }
+    if (ge("pWorkStart")) ge("pWorkStart").value = pro.work_start || "09:00";
+    if (ge("pWorkEnd")) ge("pWorkEnd").value = pro.work_end || "19:00";
     var pe = ge("pEditStatus");
     if (pe) pe.textContent = pro.status === "approved"
       ? "✅ Profile is live. Changes need re-approval."
@@ -284,6 +286,8 @@ async function saveProProfile() {
   var years = parseInt(ge("pEditYears").value) || null;
   var buffer = parseInt(ge("pEditBuffer").value) || 60;
   if (buffer < 30) buffer = 30; if (buffer > 90) buffer = 90;
+  var workStart = ge("pWorkStart") ? ge("pWorkStart").value : "09:00";
+  var workEnd = ge("pWorkEnd") ? ge("pWorkEnd").value : "19:00";
   if (!name) { toast("Name required", "err"); return; }
   var proId = profile ? profile.pro_id : null;
 
@@ -303,11 +307,11 @@ async function saveProProfile() {
     var r;
     if (proId) {
       r = await sb.from("professionals").update({
-        name: name, specialty: spec, bio: bio, area: area, price_from: price, years_experience: years, travel_buffer: buffer, status: "pending"
+        name: name, specialty: spec, bio: bio, area: area, price_from: price, years_experience: years, travel_buffer: buffer, work_start: workStart, work_end: workEnd, status: "pending"
       }).eq("id", proId).select();
     } else {
       r = await sb.from("professionals").insert({
-        user_id: user.id, name: name, specialty: spec, bio: bio, area: area, price_from: price, years_experience: years, travel_buffer: buffer, status: "pending"
+        user_id: user.id, name: name, specialty: spec, bio: bio, area: area, price_from: price, years_experience: years, travel_buffer: buffer, work_start: workStart, work_end: workEnd, status: "pending"
       }).select().single();
       if (r.data && r.data.id) {
         proId = r.data.id;

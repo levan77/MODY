@@ -232,18 +232,19 @@ function pickDay(ds) { bkSelDateStr = ds; buildCal(); }
 async function buildTimeSlots() {
   var slots = ge("bkSlots"); if (!slots) return;
   var now = new Date(), isToday = bkSelDateStr === fmtDate(now), curHr = now.getHours(), curMin = now.getMinutes();
-  var times = ["09:00","09:30","10:00","10:30","11:00","11:30","12:00","13:00","14:00","15:00","16:00","17:00","18:00","19:00"];
-
   // Fetch existing bookings + pro buffer for collision check
   var blockedSlots = {};
   var proId = selSvcPro().proId;
   var svcDuration = selSvcDuration(); // combined duration of all selected services
   var arrivalBuffer = 60; // minutes before start
+  var workStart = "09:00", workEnd = "19:00";
   if (proId && ["d1","d2","d3","d4","d5","d6"].indexOf(proId) === -1) {
     try {
-      // Get pro's travel buffer
-      var pRes = await sb.from("professionals").select("travel_buffer").eq("id", proId).single();
+      // Get pro's travel buffer and working hours
+      var pRes = await sb.from("professionals").select("travel_buffer,work_start,work_end").eq("id", proId).single();
       var travelBuffer = (pRes.data && pRes.data.travel_buffer) ? pRes.data.travel_buffer : 60;
+      if (pRes.data && pRes.data.work_start) workStart = pRes.data.work_start;
+      if (pRes.data && pRes.data.work_end) workEnd = pRes.data.work_end;
 
       // Get all active bookings for this pro on the selected date
       var activeStatuses = ["pending","accepted","on_the_way","arrived","in_progress"];
@@ -294,6 +295,17 @@ async function buildTimeSlots() {
         (hoursOffRes.data || []).forEach(function(h) { blockedSlots[h.off_hour] = "houroff"; });
       }
     } catch(e) { /* continue */ }
+  }
+
+  // Build time slots based on pro's working hours
+  var wsParts = workStart.split(":"), weParts = workEnd.split(":");
+  var wsMin = parseInt(wsParts[0]) * 60 + parseInt(wsParts[1] || 0);
+  var weMin = parseInt(weParts[0]) * 60 + parseInt(weParts[1] || 0);
+  if (weMin <= wsMin) weMin = 24 * 60; // handle midnight wrap
+  var times = [];
+  for (var m = wsMin; m < weMin; m += 30) {
+    var hh = Math.floor(m / 60), mm = m % 60;
+    times.push(String(hh).padStart(2, "0") + ":" + String(mm).padStart(2, "0"));
   }
 
   slots.innerHTML = times.map(function(tt) {

@@ -558,6 +558,28 @@
             <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--mu);margin-top:4px"><span>30 min</span><span id="pBufferVal" style="font-weight:600;color:var(--g)">60 min</span><span>90 min</span></div>
             <p style="font-size:12px;color:var(--mu);margin-top:4px">Time blocked before &amp; after each booking for travel across the city.</p>
           </div>
+          <div class="fg">
+            <label class="fl">🕐 Working Hours</label>
+            <div style="display:flex;gap:8px;align-items:center">
+              <select class="fi" id="pWorkStart" style="flex:1">
+                <option value="00:00">00:00</option><option value="01:00">01:00</option><option value="02:00">02:00</option>
+                <option value="03:00">03:00</option><option value="04:00">04:00</option><option value="05:00">05:00</option>
+                <option value="06:00">06:00</option><option value="07:00">07:00</option><option value="08:00">08:00</option>
+                <option value="09:00" selected>09:00</option><option value="10:00">10:00</option><option value="11:00">11:00</option>
+                <option value="12:00">12:00</option><option value="13:00">13:00</option><option value="14:00">14:00</option>
+                <option value="15:00">15:00</option><option value="16:00">16:00</option>
+              </select>
+              <span style="color:var(--mu);font-size:13px">to</span>
+              <select class="fi" id="pWorkEnd" style="flex:1">
+                <option value="12:00">12:00</option><option value="13:00">13:00</option><option value="14:00">14:00</option>
+                <option value="15:00">15:00</option><option value="16:00">16:00</option><option value="17:00">17:00</option>
+                <option value="18:00">18:00</option><option value="19:00" selected>19:00</option><option value="20:00">20:00</option>
+                <option value="21:00">21:00</option><option value="22:00">22:00</option><option value="23:00">23:00</option>
+                <option value="23:59">24:00</option>
+              </select>
+            </div>
+            <p style="font-size:12px;color:var(--mu);margin-top:4px">Clients can only book within your working hours.</p>
+          </div>
           <button class="btn btn-g" onclick="saveProProfile()">Submit for Approval</button>
         </div>
         <div class="card">
@@ -982,12 +1004,21 @@
       <div id="aTab-mcal" class="hide">
         <div class="card" style="margin-bottom:12px">
           <div class="c-hdr">
-            <h3>🗓 Master Calendar — All Professionals</h3>
+            <h3>🗓 Master Calendar</h3>
             <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
               <input type="date" class="fi" id="mcalDate" style="width:160px;padding:6px 10px;font-size:13px" onchange="renderMasterCal()">
               <button class="btn btn-g" style="font-size:12px" onclick="ge('mcalDate').value=fmtDate(new Date());renderMasterCal()">Today</button>
               <button class="btn btn-o" style="font-size:12px" onclick="openAdminAddBk()">+ Add Booking</button>
             </div>
+          </div>
+          <div style="margin-bottom:10px">
+            <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px">
+              <span style="font-size:13px;font-weight:500;color:var(--mu)">Show professionals:</span>
+              <button class="btn-sm btn-gh" style="font-size:11px" onclick="mcalToggleAll(true)">All</button>
+              <button class="btn-sm btn-gh" style="font-size:11px" onclick="mcalToggleAll(false)">None</button>
+              <input class="fi" id="mcalProSearch" placeholder="Search pro..." style="width:140px;padding:4px 8px;font-size:12px" oninput="mcalFilterProList()">
+            </div>
+            <div id="mcalProFilter" style="display:flex;gap:6px;flex-wrap:wrap;max-height:80px;overflow-y:auto;padding:4px 0"></div>
           </div>
           <div id="mcalTimeline"><p style="color:var(--mu);font-size:13px">Select a date above to view the schedule.</p></div>
         </div>
@@ -1346,6 +1377,14 @@
     <div class="fg"><label class="fl">New Date</label><input class="fi" type="date" id="adminBkEditDate"></div>
     <div class="fg"><label class="fl">New Time</label>
       <select class="fi" id="adminBkEditTime">
+        <option value="00:00">00:00</option><option value="00:30">00:30</option>
+        <option value="01:00">01:00</option><option value="01:30">01:30</option>
+        <option value="02:00">02:00</option><option value="02:30">02:30</option>
+        <option value="03:00">03:00</option><option value="03:30">03:30</option>
+        <option value="04:00">04:00</option><option value="04:30">04:30</option>
+        <option value="05:00">05:00</option><option value="05:30">05:30</option>
+        <option value="06:00">06:00</option><option value="06:30">06:30</option>
+        <option value="07:00">07:00</option><option value="07:30">07:30</option>
         <option value="08:00">08:00</option><option value="08:30">08:30</option>
         <option value="09:00">09:00</option><option value="09:30">09:30</option>
         <option value="10:00">10:00</option><option value="10:30">10:30</option>
@@ -1359,6 +1398,9 @@
         <option value="18:00">18:00</option><option value="18:30">18:30</option>
         <option value="19:00">19:00</option><option value="19:30">19:30</option>
         <option value="20:00">20:00</option><option value="20:30">20:30</option>
+        <option value="21:00">21:00</option><option value="21:30">21:30</option>
+        <option value="22:00">22:00</option><option value="22:30">22:30</option>
+        <option value="23:00">23:00</option><option value="23:30">23:30</option>
       </select>
     </div>
     <button class="btn btn-g" style="width:100%;justify-content:center;padding:11px;margin-top:4px" onclick="saveAdminBkTime()">💾 Save New Time</button>
@@ -1384,6 +1426,14 @@
       <div class="fg"><label class="fl">Date</label><input class="fi" type="date" id="aabDate"></div>
       <div class="fg"><label class="fl">Time</label>
         <select class="fi" id="aabTime">
+          <option value="00:00">00:00</option><option value="00:30">00:30</option>
+          <option value="01:00">01:00</option><option value="01:30">01:30</option>
+          <option value="02:00">02:00</option><option value="02:30">02:30</option>
+          <option value="03:00">03:00</option><option value="03:30">03:30</option>
+          <option value="04:00">04:00</option><option value="04:30">04:30</option>
+          <option value="05:00">05:00</option><option value="05:30">05:30</option>
+          <option value="06:00">06:00</option><option value="06:30">06:30</option>
+          <option value="07:00">07:00</option><option value="07:30">07:30</option>
           <option value="08:00">08:00</option><option value="08:30">08:30</option>
           <option value="09:00">09:00</option><option value="09:30">09:30</option>
           <option value="10:00">10:00</option><option value="10:30">10:30</option>
@@ -1397,6 +1447,9 @@
           <option value="18:00">18:00</option><option value="18:30">18:30</option>
           <option value="19:00">19:00</option><option value="19:30">19:30</option>
           <option value="20:00">20:00</option><option value="20:30">20:30</option>
+          <option value="21:00">21:00</option><option value="21:30">21:30</option>
+          <option value="22:00">22:00</option><option value="22:30">22:30</option>
+          <option value="23:00">23:00</option><option value="23:30">23:30</option>
         </select>
       </div>
       <div class="fg" style="grid-column:1/-1"><label class="fl">Address / Notes</label><input class="fi" id="aabAddress" placeholder="Delivery address or notes..."></div>
