@@ -753,6 +753,11 @@
             <div><div style="font-weight:600;font-size:15px;color:#ef4444">Emergency Kill Switch</div><div style="font-size:12px;color:var(--mu)">Instantly pause all new bookings and show a banner to clients</div></div>
             <label class="sw"><input type="checkbox" id="setKillSwitch" onchange="toggleKillSwitch(this.checked)"><span class="sw-t"></span></label>
           </div>
+          <!-- Distance / travel fee -->
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:12px;border-bottom:2px solid #3b82f6;background:rgba(59,130,246,.06);border-radius:var(--rs);margin-bottom:10px">
+            <div><div style="font-weight:600;font-size:15px;color:#3b82f6">Out-of-Region Travel Fee</div><div style="font-size:12px;color:var(--mu)">Allow professionals to request an extra travel fee before accepting a booking</div></div>
+            <label class="sw"><input type="checkbox" id="setDistFeeEnabled" onchange="saveSetting('distance_fee_enabled',this.checked)"><span class="sw-t"></span></label>
+          </div>
           <!-- Special tariff -->
           <div style="display:flex;align-items:center;justify-content:space-between;padding:12px;border-bottom:2px solid #f59e0b;background:rgba(245,158,11,.06);border-radius:var(--rs);margin-bottom:10px">
             <div style="flex:1">
@@ -1484,6 +1489,28 @@
       <input class="fi" id="walDesc" placeholder="e.g. Compensation for late arrival, Gift card">
     </div>
     <button class="btn btn-g" style="width:100%;justify-content:center;padding:11px;margin-top:4px" onclick="saveWalletAdjust()">Apply Adjustment</button>
+  </div>
+</div>
+
+<!-- ══ MODAL: REQUEST TRAVEL FEE ══ -->
+<div class="mbg" id="modal-travelFee">
+  <div class="mbox" style="max-width:400px">
+    <button class="mx" onclick="closeM('travelFee')">✕</button>
+    <h2 style="font-size:20px;font-weight:300;margin-bottom:6px">🚗 Request Travel Fee</h2>
+    <p style="font-size:13px;color:var(--mu);margin-bottom:14px">The client must approve this fee before the booking is confirmed. They'll see it immediately in their bookings.</p>
+    <input type="hidden" id="tfBkId">
+    <div class="fg">
+      <label class="fl">Extra travel fee (₾)</label>
+      <input class="fi" type="number" id="tfAmount" min="1" max="500" placeholder="e.g. 15">
+    </div>
+    <div class="fg">
+      <label class="fl">Reason (shown to client)</label>
+      <input class="fi" id="tfReason" placeholder="e.g. Outside Vake — extra 15km">
+    </div>
+    <div style="display:flex;gap:8px;margin-top:4px">
+      <button class="btn btn-g" style="flex:1;justify-content:center;padding:12px" onclick="submitTravelFeeRequest()">Send Request to Client</button>
+      <button class="btn" style="padding:12px;background:var(--bg2);border:1px solid var(--br)" onclick="closeM('travelFee')">Cancel</button>
+    </div>
   </div>
 </div>
 
