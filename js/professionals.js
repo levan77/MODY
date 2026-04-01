@@ -39,7 +39,7 @@ async function viewPro(proId) {
       ]);
       if (res[0].error) { toast("Could not load professional: " + res[0].error.message, "err"); return; }
       pro        = res[0].data;
-      svcs       = res[1].data || [];
+      svcs       = (res[1].data || []).filter(function(s) { return s.visible !== false; });
       portfolio  = (res[2].data || []).map(function(i) { return i.url; });
       nailColors = res[3].data || [];
       reviews    = res[4].data || [];

@@ -23,6 +23,9 @@
 <div id="toast"></div>
 <button class="dm-btn" style="position:fixed;bottom:76px;right:20px;z-index:350" onclick="toggleDark()">🌙</button>
 
+<!-- ══ KILL SWITCH BANNER ══ -->
+<div id="killSwitchBanner" style="display:none;background:#ef4444;color:#fff;text-align:center;padding:14px 20px;font-size:15px;font-weight:600;position:fixed;top:0;left:0;right:0;z-index:9999">Service temporarily paused. We'll be back soon!</div>
+
 <!-- ══ NAV ══ -->
 <nav>
   <div class="nav-w">
@@ -646,6 +649,8 @@
       <button class="ni" id="aN-tr" onclick="aTab('tr')">🌐 Translations</button>
       <button class="ni" id="aN-mcal" onclick="aTab('mcal')">📅 Master Calendar</button>
       <button class="ni" id="aN-notifs" onclick="aTab('notifs')">🔔 Notifications <span id="adminNotifBadge" style="background:rgba(234,184,183,.2);color:#C9918F;padding:1px 6px;border-radius:50px;font-size:11px;margin-left:2px;display:none">0</span></button>
+      <button class="ni" id="aN-crm" onclick="aTab('crm')">👥 Client CRM</button>
+      <button class="ni" id="aN-incidents" onclick="aTab('incidents')">🚨 Disputes</button>
       <button class="ni" id="aN-analytics" onclick="aTab('analytics')">📈 Analytics</button>
       <button class="ni" id="aN-blog" onclick="aTab('blog')">📝 Blog / Pages</button>
     </div>
@@ -743,6 +748,11 @@
       <div id="aTab-set" class="hide">
         <div class="card" style="margin-bottom:12px">
           <div class="c-hdr"><h3>Platform Settings</h3></div>
+          <!-- Kill switch -->
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:12px;border-bottom:2px solid #ef4444;background:rgba(239,68,68,.06);border-radius:var(--rs);margin-bottom:10px">
+            <div><div style="font-weight:600;font-size:15px;color:#ef4444">Emergency Kill Switch</div><div style="font-size:12px;color:var(--mu)">Instantly pause all new bookings and show a banner to clients</div></div>
+            <label class="sw"><input type="checkbox" id="setKillSwitch" onchange="toggleKillSwitch(this.checked)"><span class="sw-t"></span></label>
+          </div>
           <!-- Feature toggles -->
           <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--br)">
             <div><div style="font-weight:500;font-size:14px">Promo Codes Feature</div><div style="font-size:12px;color:var(--mu)">Allow clients to use promo codes</div></div>
@@ -1033,6 +1043,24 @@
             </div>
           </div>
           <div id="adminNotifList"><p style="color:var(--mu);font-size:13px;padding:16px 0">Loading...</p></div>
+        </div>
+      </div>
+      <div id="aTab-crm" class="hide">
+        <div class="card" style="margin-bottom:12px">
+          <div class="c-hdr">
+            <h3>👥 Client Management (CRM)</h3>
+            <input class="fi" id="crmSearch" placeholder="Search client..." style="width:180px;padding:6px 10px;font-size:13px" oninput="renderCrmTable()">
+          </div>
+          <div class="tw"><table class="tbl"><thead><tr><th>Client</th><th>Phone</th><th>Bookings</th><th>Lifetime Spend</th><th>Status</th><th>Notes</th><th>Actions</th></tr></thead><tbody id="crmBody"></tbody></table></div>
+        </div>
+      </div>
+      <div id="aTab-incidents" class="hide">
+        <div class="card" style="margin-bottom:12px">
+          <div class="c-hdr">
+            <h3>🚨 Dispute / Incident Center</h3>
+            <button class="btn btn-g" style="font-size:13px" onclick="openIncidentModal()">+ New Incident</button>
+          </div>
+          <div class="tw"><table class="tbl"><thead><tr><th>Date</th><th>Subject</th><th>Booking</th><th>Client</th><th>Status</th><th>Credit</th><th>Actions</th></tr></thead><tbody id="incidentBody"></tbody></table></div>
         </div>
       </div>
     </div>
@@ -1404,6 +1432,36 @@
       </select>
     </div>
     <button class="btn btn-g" style="width:100%;justify-content:center;padding:11px;margin-top:4px" onclick="saveAdminBkTime()">💾 Save New Time</button>
+  </div>
+</div>
+
+<!-- ══ MODAL: CLIENT NOTE ══ -->
+<div class="mbg" id="modal-clientNote">
+  <div class="mbox">
+    <button class="mx" onclick="closeM('clientNote')">✕</button>
+    <h2 style="font-size:20px;font-weight:300;margin-bottom:14px">📝 Client Notes</h2>
+    <input type="hidden" id="cnClientId">
+    <div id="cnClientName" style="font-weight:600;margin-bottom:10px"></div>
+    <div class="fg"><label class="fl">Admin Notes (private)</label><textarea class="fi" id="cnNote" rows="5" placeholder="e.g. allergic to lash glue, prefers gel polish, VIP client..."></textarea></div>
+    <button class="btn btn-g" style="width:100%;justify-content:center;padding:11px;margin-top:4px" onclick="saveClientNote()">Save Note</button>
+  </div>
+</div>
+
+<!-- ══ MODAL: NEW INCIDENT ══ -->
+<div class="mbg" id="modal-incident">
+  <div class="mbox" style="max-width:520px">
+    <button class="mx" onclick="closeM('incident')">✕</button>
+    <h2 style="font-size:20px;font-weight:300;margin-bottom:14px">🚨 Log Incident</h2>
+    <div class="fg"><label class="fl">Booking ID (optional)</label><input class="fi" id="incBkId" placeholder="Paste booking UUID or leave blank"></div>
+    <div class="fg"><label class="fl">Subject</label><input class="fi" id="incSubject" placeholder="Brief summary of the issue"></div>
+    <div class="fg"><label class="fl">Description</label><textarea class="fi" id="incDesc" rows="4" placeholder="Details of the complaint or incident..."></textarea></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      <div class="fg"><label class="fl">Credit Amount (₾)</label><input class="fi" type="number" id="incCredit" min="0" value="0"></div>
+      <div class="fg"><label class="fl">Credit Type</label>
+        <select class="fi" id="incCreditType"><option value="">None</option><option value="partial">Partial Refund</option><option value="full">Full Refund</option><option value="account_credit">Account Credit</option></select>
+      </div>
+    </div>
+    <button class="btn btn-g" style="width:100%;justify-content:center;padding:11px;margin-top:8px" onclick="submitIncident()">Create Incident</button>
   </div>
 </div>
 

@@ -217,6 +217,11 @@ async function loadSettings() {
   if (cw) cw.style.display = settings.chat_enabled === false ? "none" : "";
   // Toggle pro registration
   updateProRegVisibility();
+  // Kill switch
+  var sks = ge("setKillSwitch"); if (sks) sks.checked = settings.kill_switch === true || settings.kill_switch === "true";
+  // Show/hide kill switch banner on client side
+  var ksb = ge("killSwitchBanner");
+  if (ksb) ksb.style.display = (settings.kill_switch === true || settings.kill_switch === "true") ? "block" : "none";
 }
 
 async function saveSetting(key, value) {
@@ -267,6 +272,15 @@ var SETUP_SQL = [
   "alter table public.professionals add column if not exists commission_rate numeric default 0;",
   "alter table public.professionals add column if not exists travel_buffer integer default 60;",
   "create table if not exists public.pro_locations (booking_id uuid primary key, pro_id uuid references public.professionals(id) on delete cascade, lat numeric not null, lng numeric not null, updated_at timestamptz default now());",
+  "alter table public.services add column if not exists visible boolean default true;",
+  "alter table public.profiles add column if not exists blocked boolean default false;",
+  "alter table public.profiles add column if not exists block_reason text;",
+  "create table if not exists public.client_notes (id uuid default gen_random_uuid() primary key, client_id uuid references auth.users(id) on delete cascade, note text, created_at timestamptz default now(), updated_by text);",
+  "alter table public.client_notes enable row level security;",
+  "grant all on public.client_notes to anon, authenticated;",
+  "create table if not exists public.incidents (id uuid default gen_random_uuid() primary key, booking_id uuid references public.bookings(id) on delete set null, client_id uuid, pro_id uuid, subject text not null, description text, status text default 'open', credit_amount int default 0, credit_type text, resolved_at timestamptz, created_at timestamptz default now());",
+  "alter table public.incidents enable row level security;",
+  "grant all on public.incidents to anon, authenticated;",
   "",
   "alter table public.profiles enable row level security;",
   "alter table public.categories enable row level security;",

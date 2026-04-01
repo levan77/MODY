@@ -418,11 +418,13 @@ async function loadProSvcs() {
     el.innerHTML = !svcs.length
       ? "<p style=\"color:var(--mu);font-size:14px\">No services yet. Click <strong>+ Add</strong> above to create your first service.</p>"
       : svcs.map(function(s) {
-          return "<div class=\"svc-item\">"
-               + "<div><div style=\"font-size:14px;font-weight:500\">" + s.name + "</div>"
+          var vis = s.visible !== false;
+          return "<div class=\"svc-item\" style=\"" + (vis ? "" : "opacity:.5") + "\">"
+               + "<div><div style=\"font-size:14px;font-weight:500\">" + s.name + (vis ? "" : " <span style=\"font-size:11px;color:var(--mu)\">(hidden)</span>") + "</div>"
                + "<div style=\"font-size:12px;color:var(--mu)\">" + (s.description || "") + " · " + s.duration + " min</div></div>"
                + "<div style=\"text-align:right;display:flex;align-items:center;gap:7px\">"
                + "<div style=\"font-family:'Cormorant Garamond',serif;font-size:19px;font-weight:600\">" + s.price + "₾</div>"
+               + "<button class=\"btn-sm btn-gh\" onclick=\"toggleSvcVis('" + s.id + "'," + !vis + ")\" title=\"" + (vis ? "Hide" : "Show") + "\">" + (vis ? "Hide" : "Show") + "</button>"
                + "<button class=\"btn-sm btn-gh\" onclick=\"openSvcModal('" + s.id + "')\">Edit</button>"
                + "<button class=\"btn-sm btn-no\" onclick=\"deleteSvc('" + s.id + "')\">Del</button>"
                + "</div></div>";
@@ -503,6 +505,14 @@ async function saveSvc() {
   } catch(e) {
     toast("Error saving service: " + e.message, "err");
   }
+}
+
+async function toggleSvcVis(id, visible) {
+  try {
+    await sb.from("services").update({ visible: visible }).eq("id", id);
+    toast(visible ? "Service visible to clients" : "Service hidden from clients", "ok");
+    loadProSvcs();
+  } catch(e) { toast("Error: " + e.message, "err"); }
 }
 
 async function deleteSvc(id) {

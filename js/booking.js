@@ -331,6 +331,14 @@ function pickTs(el) {
 // ── SUBMIT BOOKING ────────────────────────────────────────────
 async function submitBooking() {
   if (!user) { toast("Please sign in first", "err"); openM("auth"); return; }
+  // Kill switch check
+  if (settings.kill_switch === true || settings.kill_switch === "true") {
+    toast("Service is temporarily paused. Please try again later.", "err"); return;
+  }
+  // Blocked client check
+  if (profile && profile.blocked) {
+    toast("Your account has been restricted. Please contact support.", "err"); return;
+  }
   var addr = ge("bkAddr").value.trim();
   var slot = document.querySelector("#pg-booking .ts.on");
   if (!addr) { toast("Please enter your address", "err"); return; }

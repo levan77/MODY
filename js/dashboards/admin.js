@@ -11,7 +11,7 @@ var adminAllBks = [];
 
 // ── TAB SWITCHER ──────────────────────────────────────────────
 function aTab(tab) {
-  ["ov","app","bks","pros","usr","cats","promo","rev","sup","set","tr","analytics","blog","mcal","notifs"].forEach(function(x) {
+  ["ov","app","bks","pros","usr","cats","promo","rev","sup","set","tr","analytics","blog","mcal","notifs","crm","incidents"].forEach(function(x) {
     var el = ge("aTab-" + x), ni = ge("aN-" + x);
     if (el) el.classList.toggle("hide", x !== tab);
     if (ni) ni.classList.toggle("on",   x === tab);
@@ -49,6 +49,12 @@ function aTab(tab) {
   }
   if (tab === "notifs") {
     loadAdminNotifs();
+  }
+  if (tab === "crm") {
+    loadCrm();
+  }
+  if (tab === "incidents") {
+    loadIncidents();
   }
 }
 
@@ -1630,5 +1636,225 @@ async function renderMasterCalGrid() {
   } catch(e) {
     timeline.innerHTML = "<p style=\"color:#ef4444\">Error loading calendar: " + e.message + "</p>";
   }
+}
+
+// ══════════════════════════════════════════════════════════════
+//  FEATURE 1: EMERGENCY KILL SWITCH
+// ══════════════════════════════════════════════════════════════
+function toggleKillSwitch(on) {
+  if (on && !confirm("ACTIVATE KILL SWITCH?\n\nThis will immediately block ALL new bookings and show a red banner to every visitor.\n\nContinue?")) {
+    var cb = ge("setKillSwitch"); if (cb) cb.checked = false;
+    return;
+  }
+  saveSetting("kill_switch", on);
+  var ksb = ge("killSwitchBanner");
+  if (ksb) ksb.style.display = on ? "block" : "none";
+}
+
+// ══════════════════════════════════════════════════════════════
+//  FEATURE 2: DYNAMIC SERVICE VISIBILITY
+// ══════════════════════════════════════════════════════════════
+async function toggleSvcVisibility(svcId, visible) {
+  try {
+    await sb.from("services").update({ visible: visible }).eq("id", svcId);
+    toast(visible ? "Service visible" : "Service hidden", "ok");
+  } catch(e) { toast("Error: " + e.message, "err"); }
+}
+
+// ══════════════════════════════════════════════════════════════
+//  FEATURE 3: CLIENT CRM
+// ══════════════════════════════════════════════════════════════
+var crmData = [];
+
+async function loadCrm() {
+  var body = ge("crmBody"); if (!body) return;
+  body.innerHTML = "<tr><td colspan=\"7\" style=\"text-align:center;padding:18px;color:var(--mu)\">Loading...</td></tr>";
+  try {
+    var pRes = await sb.from("profiles").select("*").order("created_at", { ascending: false });
+    var profiles = pRes.data || [];
+    var bRes = await sb.from("bookings").select("client_id,total,status");
+    var bookings = bRes.data || [];
+    var nRes = await sb.from("client_notes").select("*");
+    var notes = nRes.data || [];
+    var noteMap = {};
+    notes.forEach(function(n) { noteMap[n.client_id] = n; });
+
+    var clientStats = {};
+    bookings.forEach(function(bk) {
+      if (!bk.client_id) return;
+      if (!clientStats[bk.client_id]) clientStats[bk.client_id] = { count: 0, spend: 0 };
+      clientStats[bk.client_id].count++;
+      if (bk.status !== "cancelled") clientStats[bk.client_id].spend += (bk.total || 0);
+    });
+
+    crmData = profiles.map(function(p) {
+      var stats = clientStats[p.id] || { count: 0, spend: 0 };
+      return { profile: p, bookings: stats.count, spend: stats.spend, note: noteMap[p.id] };
+    });
+    renderCrmTable();
+  } catch(e) { body.innerHTML = "<tr><td colspan=\"7\" style=\"text-align:center;padding:18px;color:#ef4444\">Error: " + e.message + "</td></tr>"; }
+}
+
+function renderCrmTable() {
+  var body = ge("crmBody"); if (!body) return;
+  var q = (ge("crmSearch") ? ge("crmSearch").value : "").toLowerCase();
+  var filtered = crmData.filter(function(c) {
+    return !q || (c.profile.full_name || "").toLowerCase().includes(q)
+              || (c.profile.email || "").toLowerCase().includes(q)
+              || (c.profile.phone || "").toLowerCase().includes(q);
+  });
+  if (!filtered.length) { body.innerHTML = "<tr><td colspan=\"7\" style=\"text-align:center;padding:18px;color:var(--mu)\">No clients found.</td></tr>"; return; }
+  body.innerHTML = filtered.map(function(c) {
+    var p = c.profile;
+    var noteSnippet = c.note ? c.note.note.substring(0, 40) + (c.note.note.length > 40 ? "..." : "") : "<span style=\"color:var(--mu)\">--</span>";
+    var blocked = p.blocked;
+    return "<tr>"
+      + "<td><strong>" + (p.full_name || "--") + "</strong><div style=\"font-size:11px;color:var(--mu)\">" + (p.email || "") + "</div></td>"
+      + "<td>" + (p.phone || "--") + "</td>"
+      + "<td style=\"text-align:center\">" + c.bookings + "</td>"
+      + "<td style=\"text-align:center;font-weight:600\">" + c.spend + " GEL</td>"
+      + "<td>" + (blocked ? "<span style=\"color:#ef4444;font-weight:600\">Blocked</span>" : "<span style=\"color:#10b981\">Active</span>") + "</td>"
+      + "<td style=\"font-size:12px;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer\" onclick=\"openClientNote('" + p.id + "','" + (p.full_name || "").replace(/'/g, "\\'") + "')\" title=\"Click to edit notes\">" + noteSnippet + "</td>"
+      + "<td style=\"display:flex;gap:4px;flex-wrap:wrap\">"
+      + "<button class=\"btn-sm btn-gh\" onclick=\"openClientNote('" + p.id + "','" + (p.full_name || "").replace(/'/g, "\\'") + "')\" title=\"Notes\">Notes</button>"
+      + "<button class=\"btn-sm " + (blocked ? "btn-gh" : "btn-no") + "\" onclick=\"toggleBlockClient('" + p.id + "'," + !blocked + ")\">" + (blocked ? "Unblock" : "Block") + "</button>"
+      + "</td></tr>";
+  }).join("");
+}
+
+function openClientNote(clientId, name) {
+  ge("cnClientId").value = clientId;
+  ge("cnClientName").textContent = name;
+  var match = crmData.find(function(c) { return c.profile.id === clientId; });
+  ge("cnNote").value = match && match.note ? match.note.note : "";
+  openM("clientNote");
+}
+
+async function saveClientNote() {
+  var clientId = ge("cnClientId").value;
+  var note = ge("cnNote").value.trim();
+  try {
+    var existing = crmData.find(function(c) { return c.profile.id === clientId; });
+    if (existing && existing.note) {
+      await sb.from("client_notes").update({ note: note, updated_by: "admin" }).eq("client_id", clientId);
+    } else {
+      await sb.from("client_notes").insert({ client_id: clientId, note: note, updated_by: "admin" });
+    }
+    toast("Note saved!", "ok");
+    closeM("clientNote");
+    loadCrm();
+  } catch(e) { toast("Error: " + e.message, "err"); }
+}
+
+async function toggleBlockClient(clientId, block) {
+  var msg = block ? "Block this client? They won't be able to make new bookings." : "Unblock this client?";
+  if (!confirm(msg)) return;
+  try {
+    await sb.from("profiles").update({ blocked: block, block_reason: block ? "Blocked by admin" : null }).eq("id", clientId);
+    toast(block ? "Client blocked." : "Client unblocked.", "ok");
+    loadCrm();
+  } catch(e) { toast("Error: " + e.message, "err"); }
+}
+
+// ══════════════════════════════════════════════════════════════
+//  FEATURE 4: DISPUTE / INCIDENT CENTER
+// ══════════════════════════════════════════════════════════════
+var incidentData = [];
+
+async function loadIncidents() {
+  var body = ge("incidentBody"); if (!body) return;
+  body.innerHTML = "<tr><td colspan=\"7\" style=\"text-align:center;padding:18px;color:var(--mu)\">Loading...</td></tr>";
+  try {
+    var r = await sb.from("incidents").select("*").order("created_at", { ascending: false });
+    incidentData = r.data || [];
+    renderIncidents();
+  } catch(e) { body.innerHTML = "<tr><td colspan=\"7\" style=\"text-align:center;padding:18px;color:#ef4444\">Error: " + e.message + ". Run setup SQL first.</td></tr>"; }
+}
+
+function renderIncidents() {
+  var body = ge("incidentBody"); if (!body) return;
+  if (!incidentData.length) { body.innerHTML = "<tr><td colspan=\"7\" style=\"text-align:center;padding:18px;color:var(--mu)\">No incidents logged.</td></tr>"; return; }
+  var statusColors = { open: "#f59e0b", investigating: "#3b82f6", resolved: "#10b981", closed: "#6b7280" };
+  body.innerHTML = incidentData.map(function(inc) {
+    var col = statusColors[inc.status] || "#6b7280";
+    var creditStr = inc.credit_amount ? inc.credit_amount + " GEL (" + (inc.credit_type || "").replace(/_/g, " ") + ")" : "--";
+    var bkStr = inc.booking_id ? inc.booking_id.substring(0, 8) + "..." : "--";
+    return "<tr>"
+      + "<td style=\"font-size:12px;white-space:nowrap\">" + new Date(inc.created_at).toLocaleDateString() + "</td>"
+      + "<td style=\"max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap\" title=\"" + (inc.description || "").replace(/"/g, "&quot;") + "\">" + (inc.subject || "--") + "</td>"
+      + "<td style=\"font-size:11px;font-family:monospace\" title=\"" + (inc.booking_id || "") + "\">" + bkStr + "</td>"
+      + "<td>" + (inc.client_id ? inc.client_id.substring(0, 8) + "..." : "--") + "</td>"
+      + "<td><span style=\"background:" + col + ";color:#fff;padding:2px 8px;border-radius:50px;font-size:11px;font-weight:600\">" + inc.status + "</span></td>"
+      + "<td style=\"font-size:12px\">" + creditStr + "</td>"
+      + "<td style=\"display:flex;gap:4px;flex-wrap:wrap\">"
+      + (inc.status !== "resolved" ? "<button class=\"btn-sm btn-gh\" onclick=\"resolveIncident('" + inc.id + "')\">Resolve</button>" : "")
+      + (inc.status !== "closed" ? "<button class=\"btn-sm btn-no\" onclick=\"closeIncident('" + inc.id + "')\">Close</button>" : "")
+      + "<button class=\"btn-sm btn-gh\" onclick=\"editIncidentCredit('" + inc.id + "')\">Credit</button>"
+      + "</td></tr>";
+  }).join("");
+}
+
+function openIncidentModal() {
+  ge("incBkId").value = "";
+  ge("incSubject").value = "";
+  ge("incDesc").value = "";
+  ge("incCredit").value = "0";
+  ge("incCreditType").value = "";
+  openM("incident");
+}
+
+async function submitIncident() {
+  var subject = (ge("incSubject").value || "").trim();
+  if (!subject) { toast("Subject is required", "err"); return; }
+  var bookingId = (ge("incBkId").value || "").trim() || null;
+  var desc = (ge("incDesc").value || "").trim();
+  var credit = parseInt(ge("incCredit").value) || 0;
+  var creditType = ge("incCreditType").value || null;
+  var clientId = null, proId = null;
+  if (bookingId) {
+    try {
+      var bk = await sb.from("bookings").select("client_id,pro_id").eq("id", bookingId).single();
+      if (bk.data) { clientId = bk.data.client_id; proId = bk.data.pro_id; }
+    } catch(e) {}
+  }
+  try {
+    var r = await sb.from("incidents").insert({
+      booking_id: bookingId, client_id: clientId, pro_id: proId,
+      subject: subject, description: desc,
+      credit_amount: credit, credit_type: creditType, status: "open"
+    });
+    if (r.error) throw r.error;
+    toast("Incident logged.", "ok");
+    closeM("incident");
+    loadIncidents();
+  } catch(e) { toast("Error: " + e.message, "err"); }
+}
+
+async function resolveIncident(id) {
+  try {
+    await sb.from("incidents").update({ status: "resolved", resolved_at: new Date().toISOString() }).eq("id", id);
+    toast("Marked as resolved.", "ok");
+    loadIncidents();
+  } catch(e) { toast("Error: " + e.message, "err"); }
+}
+
+async function closeIncident(id) {
+  try {
+    await sb.from("incidents").update({ status: "closed" }).eq("id", id);
+    toast("Incident closed.", "ok");
+    loadIncidents();
+  } catch(e) { toast("Error: " + e.message, "err"); }
+}
+
+async function editIncidentCredit(id) {
+  var amount = prompt("Enter credit amount (GEL):");
+  if (amount === null) return;
+  amount = parseInt(amount) || 0;
+  var type = prompt("Credit type: partial, full, or account_credit") || "partial";
+  try {
+    await sb.from("incidents").update({ credit_amount: amount, credit_type: type }).eq("id", id);
+    toast("Credit updated.", "ok");
+    loadIncidents();
+  } catch(e) { toast("Error: " + e.message, "err"); }
 }
 
