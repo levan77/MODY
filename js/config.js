@@ -219,6 +219,8 @@ async function loadSettings() {
   updateProRegVisibility();
   // Kill switch
   var sks = ge("setKillSwitch"); if (sks) sks.checked = settings.kill_switch === true || settings.kill_switch === "true";
+  // Distance / travel fee
+  var sdfe = ge("setDistFeeEnabled"); if (sdfe) sdfe.checked = settings.distance_fee_enabled === true || settings.distance_fee_enabled === "true";
   // Special tariff
   var stt2 = ge("setTariffEnabled"); if (stt2) stt2.checked = settings.special_tariff_enabled === true || settings.special_tariff_enabled === "true";
   var stpct = ge("setTariffPercent"); if (stpct) stpct.value = settings.special_tariff_percent || 20;
@@ -287,6 +289,9 @@ var SETUP_SQL = [
   "create table if not exists public.incidents (id uuid default gen_random_uuid() primary key, booking_id uuid references public.bookings(id) on delete set null, client_id uuid, pro_id uuid, subject text not null, description text, status text default 'open', credit_amount int default 0, credit_type text, resolved_at timestamptz, created_at timestamptz default now());",
   "alter table public.incidents enable row level security;",
   "grant all on public.incidents to anon, authenticated;",
+  "alter table public.bookings add column if not exists travel_fee_requested int default 0;",
+  "alter table public.bookings add column if not exists travel_fee_status text;",
+  "alter table public.bookings add column if not exists travel_fee_reason text;",
   "create table if not exists public.client_wallets (client_id uuid primary key references auth.users(id) on delete cascade, balance int default 0, updated_at timestamptz default now());",
   "alter table public.client_wallets enable row level security;",
   "grant all on public.client_wallets to anon, authenticated;",

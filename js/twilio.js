@@ -17,6 +17,9 @@ var TWILIO_MSGS = {
   pro_new:       function(n, d) { return "გამარჯობა " + n + ", ახალი ჯავშანი: " + d + ". გთხოვთ გახსნათ MODY. 📋"; },
   pro_cancelled: function(n, d) { return "გამარჯობა " + n + ", ჯავშანი " + d + " გაუქმებულია. ❌"; },
   pro_completed: function(n, d) { return "გამარჯობა " + n + ", " + d + " შესრულდა! გმადლობთ. ✅"; },
+  travel_fee_request:  function(n, d) { return "გამარჯობა " + n + ", სპეციალისტი " + d + ". გთხოვთ გახსნათ MODY და დაადასტუროთ. 🚗"; },
+  travel_fee_approved: function(n, d) { return "გამარჯობა " + n + ", კლიენტმა " + d + " დაადასტურა. ✓"; },
+  travel_fee_declined: function(n, d) { return "გამარჯობა " + n + ", კლიენტმა " + d + " გზის გადასახადი უარყო. ❌"; },
   custom:        function(n, d) { return d; }
 };
 
