@@ -937,13 +937,43 @@ footer        { background: #1A1A1A; color: rgba(255,255,255,.4); padding: 38px 
   /* Push chat lower on mobile when category is active */
   body.viewing-category .chat-wrap { bottom: 180px !important; }
 
+  /* Nav: prevent overflow, shrink language code text */
+  .nav-w { overflow: visible; }
+  #lCode { display: none; }
+  .ltrig { padding: 4px 6px; gap: 2px; }
+  #navBtns { gap: 4px !important; flex-wrap: nowrap !important; }
+
+  /* Section headings — prevent overflow */
+  .sec-hdr { flex-wrap: wrap; gap: 8px; }
+  .sec-title { font-size: clamp(18px, 5vw, 28px); }
+  h1, h2, h3 { overflow-wrap: break-word; word-break: break-word; }
+  p, span, div { max-width: 100%; }
+
+  /* Pro cards — fix text truncation */
+  .pros-grid .card { overflow: hidden; }
+  .vbadge { font-size: 10px; padding: 2px 7px; }
+
+  /* Sidebar cart on pro profile */
+  #sbCartSummary { font-size: 13px; }
+
+  /* Booking modal — full width */
+  .mbox { padding: 16px !important; width: calc(100vw - 16px) !important; max-width: none !important; margin: 8px !important; }
+
+  /* Time slots grid */
+  .ts-grid { grid-template-columns: repeat(3, 1fr); gap: 6px; }
+  .ts { font-size: 12px; padding: 8px 4px; }
+
   /* Touch targets — WCAG AA minimum */
-  .btn, .btn-sm { min-height: 40px; min-width: 40px; }
+  .btn, .btn-sm { min-height: 40px; min-width: 36px; }
   .fi, .fi select { min-height: 44px; font-size: 16px; }
   .ts  { min-height: 42px; display: flex; align-items: center; justify-content: center; }
   .swatch { width: 36px; height: 36px; }
   .ni  { min-height: 42px; }
   .mx  { min-width: 40px; min-height: 40px; display: flex; align-items: center; justify-content: center; }
+
+  /* Prevent horizontal scroll */
+  body { overflow-x: hidden; }
+  .sec-w, .nav-w, .dash-w { overflow-x: hidden; }
 }
 
 </style>
@@ -3176,10 +3206,16 @@ function setAuthTab(tab) {
 function updateNav() {
   var nb = ge("navBtns");
   if (!nb) return;
+  var mob = window.innerWidth <= 768;
   if (!profile) {
-    nb.innerHTML =
-      "<button class=\"btn btn-o\" onclick=\"openM('auth')\">" + t("tabIn") + "</button>" +
-      "<button class=\"btn btn-g\" onclick=\"openM('auth');setAuthTab('client')\">" + t("joinPro") + "</button>";
+    if (mob) {
+      // Mobile: single compact Sign In button
+      nb.innerHTML = "<button class=\"btn btn-g\" style=\"padding:8px 16px;font-size:12px;min-height:36px\" onclick=\"openM('auth')\">" + t("tabIn") + "</button>";
+    } else {
+      nb.innerHTML =
+        "<button class=\"btn btn-o\" onclick=\"openM('auth')\">" + t("tabIn") + "</button>" +
+        "<button class=\"btn btn-g\" onclick=\"openM('auth');setAuthTab('client')\">" + t("joinPro") + "</button>";
+    }
     return;
   }
   var nm = (profile.full_name || "").split(" ")[0];
@@ -3189,12 +3225,19 @@ function updateNav() {
   var dst = profile.role === "admin" ? "loadScript('js/dashboards/admin.js').then(function(){show('admin');loadAdminData();})"
            : profile.role === "pro"   ? "loadScript('js/dashboards/professional.js').then(function(){show('dash-pro');loadProDash();})"
            : "show('dash-client');loadClientDash()";
-  nb.innerHTML =
-    "<span style=\"font-size:13px;color:var(--mu)\">Hi, " + nm + "</span>" +
-    "<span style=\"background:rgba(234,184,183,.15);color:var(--gd);padding:3px 10px;border-radius:50px;font-size:12px;font-weight:500\">" + rl + "</span>" +
-    "<button id=\"navNotif\" class=\"btn btn-o\" style=\"position:relative\" onclick=\"toggleChat()\" title=\"Messages\">🔔</button>" +
-    "<button class=\"btn btn-g\" onclick=\"" + dst + "\">Dashboard</button>" +
-    "<button class=\"btn btn-o\" onclick=\"signOut()\">" + t("cmOutLbl") + "</button>";
+  if (mob) {
+    // Mobile: only notification bell — bottom nav handles Dashboard/Sign Out
+    nb.innerHTML =
+      "<button id=\"navNotif\" class=\"btn btn-o\" style=\"padding:8px 12px;min-height:36px\" onclick=\"toggleChat()\" title=\"Messages\">🔔</button>" +
+      "<button class=\"btn btn-g\" style=\"padding:8px 12px;font-size:12px;min-height:36px\" onclick=\"" + dst + "\">⊞</button>";
+  } else {
+    nb.innerHTML =
+      "<span style=\"font-size:13px;color:var(--mu)\">Hi, " + nm + "</span>" +
+      "<span style=\"background:rgba(234,184,183,.15);color:var(--gd);padding:3px 10px;border-radius:50px;font-size:12px;font-weight:500\">" + rl + "</span>" +
+      "<button id=\"navNotif\" class=\"btn btn-o\" style=\"position:relative\" onclick=\"toggleChat()\" title=\"Messages\">🔔</button>" +
+      "<button class=\"btn btn-g\" onclick=\"" + dst + "\">Dashboard</button>" +
+      "<button class=\"btn btn-o\" onclick=\"signOut()\">" + t("cmOutLbl") + "</button>";
+  }
   if (typeof updateChatBadge === "function") updateChatBadge();
 }
 

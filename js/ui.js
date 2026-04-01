@@ -132,10 +132,16 @@ function setAuthTab(tab) {
 function updateNav() {
   var nb = ge("navBtns");
   if (!nb) return;
+  var mob = window.innerWidth <= 768;
   if (!profile) {
-    nb.innerHTML =
-      "<button class=\"btn btn-o\" onclick=\"openM('auth')\">" + t("tabIn") + "</button>" +
-      "<button class=\"btn btn-g\" onclick=\"openM('auth');setAuthTab('client')\">" + t("joinPro") + "</button>";
+    if (mob) {
+      // Mobile: single compact Sign In button
+      nb.innerHTML = "<button class=\"btn btn-g\" style=\"padding:8px 16px;font-size:12px;min-height:36px\" onclick=\"openM('auth')\">" + t("tabIn") + "</button>";
+    } else {
+      nb.innerHTML =
+        "<button class=\"btn btn-o\" onclick=\"openM('auth')\">" + t("tabIn") + "</button>" +
+        "<button class=\"btn btn-g\" onclick=\"openM('auth');setAuthTab('client')\">" + t("joinPro") + "</button>";
+    }
     return;
   }
   var nm = (profile.full_name || "").split(" ")[0];
@@ -145,12 +151,19 @@ function updateNav() {
   var dst = profile.role === "admin" ? "loadScript('js/dashboards/admin.js').then(function(){show('admin');loadAdminData();})"
            : profile.role === "pro"   ? "loadScript('js/dashboards/professional.js').then(function(){show('dash-pro');loadProDash();})"
            : "show('dash-client');loadClientDash()";
-  nb.innerHTML =
-    "<span style=\"font-size:13px;color:var(--mu)\">Hi, " + nm + "</span>" +
-    "<span style=\"background:rgba(234,184,183,.15);color:var(--gd);padding:3px 10px;border-radius:50px;font-size:12px;font-weight:500\">" + rl + "</span>" +
-    "<button id=\"navNotif\" class=\"btn btn-o\" style=\"position:relative\" onclick=\"toggleChat()\" title=\"Messages\">🔔</button>" +
-    "<button class=\"btn btn-g\" onclick=\"" + dst + "\">Dashboard</button>" +
-    "<button class=\"btn btn-o\" onclick=\"signOut()\">" + t("cmOutLbl") + "</button>";
+  if (mob) {
+    // Mobile: only notification bell — bottom nav handles Dashboard/Sign Out
+    nb.innerHTML =
+      "<button id=\"navNotif\" class=\"btn btn-o\" style=\"padding:8px 12px;min-height:36px\" onclick=\"toggleChat()\" title=\"Messages\">🔔</button>" +
+      "<button class=\"btn btn-g\" style=\"padding:8px 12px;font-size:12px;min-height:36px\" onclick=\"" + dst + "\">⊞</button>";
+  } else {
+    nb.innerHTML =
+      "<span style=\"font-size:13px;color:var(--mu)\">Hi, " + nm + "</span>" +
+      "<span style=\"background:rgba(234,184,183,.15);color:var(--gd);padding:3px 10px;border-radius:50px;font-size:12px;font-weight:500\">" + rl + "</span>" +
+      "<button id=\"navNotif\" class=\"btn btn-o\" style=\"position:relative\" onclick=\"toggleChat()\" title=\"Messages\">🔔</button>" +
+      "<button class=\"btn btn-g\" onclick=\"" + dst + "\">Dashboard</button>" +
+      "<button class=\"btn btn-o\" onclick=\"signOut()\">" + t("cmOutLbl") + "</button>";
+  }
   if (typeof updateChatBadge === "function") updateChatBadge();
 }
 
