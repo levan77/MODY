@@ -122,17 +122,25 @@ async function viewPro(proId) {
   revHtml += "</div>";
 
   // Services list — multi-select (Add/Remove per service)
+  // Special tariff markup
+  var tariffOn = settings.special_tariff_enabled === true || settings.special_tariff_enabled === "true";
+  var tariffPct = tariffOn ? (parseInt(settings.special_tariff_percent) || 20) : 0;
+
   var svcsHtml = svcs.length === 0
     ? "<p style=\"color:var(--mu);font-size:14px\">No services listed yet.</p>"
     : svcs.map(function(s) {
+        var displayPrice = tariffOn ? Math.ceil(s.price * (1 + tariffPct / 100)) : s.price;
+        var priceHtml = tariffOn
+          ? "<span style=\"text-decoration:line-through;color:var(--mu);font-size:14px;margin-right:4px\">" + s.price + "₾</span><span style=\"color:#ef4444\">" + displayPrice + "₾</span>"
+          : s.price + "₾";
         return "<div class=\"svc-item\">"
              + "<div>"
              + "<div style=\"font-size:14px;font-weight:500\">" + s.name + "</div>"
              + "<div style=\"font-size:12px;color:var(--mu)\">" + (s.description || "") + (s.duration ? " · " + s.duration + " min" : "") + "</div>"
              + "</div>"
              + "<div style=\"text-align:right\">"
-             + "<div style=\"font-family:'Cormorant Garamond',serif;font-size:19px;font-weight:600\">" + s.price + "₾</div>"
-             + "<button class=\"svc-btn\" onclick=\"selectService('" + s.id + "','" + s.name.replace(/'/g,"\\'") + "'," + s.price + ",'" + pro.id + "','" + pro.name.replace(/'/g,"\\'") + "','" + (pro.specialty || "") + "'," + (s.duration || 60) + ")\">Add</button>"
+             + "<div style=\"font-family:'Cormorant Garamond',serif;font-size:19px;font-weight:600\">" + priceHtml + "</div>"
+             + "<button class=\"svc-btn\" onclick=\"selectService('" + s.id + "','" + s.name.replace(/'/g,"\\'") + "'," + displayPrice + ",'" + pro.id + "','" + pro.name.replace(/'/g,"\\'") + "','" + (pro.specialty || "") + "'," + (s.duration || 60) + ")\">Add</button>"
              + "</div></div>";
       }).join("");
 
@@ -170,6 +178,7 @@ async function viewPro(proId) {
     + "<div style=\"font-size:11px;font-weight:600;color:var(--mu);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px\">Selected Services</div>"
     + "<div id=\"sbCartRows\"></div>"
     + "<div style=\"display:flex;justify-content:space-between;font-size:12px;padding:3px 0;color:var(--mu)\"><span>Platform fee</span><span>5₾</span></div>"
+    + "<div id=\"sbWalletHint\" style=\"display:none;font-size:11px;color:#15803d;padding:3px 0\"></div>"
     + "<div style=\"display:flex;justify-content:space-between;font-size:14px;font-weight:600;padding:6px 0 2px;border-top:1px solid var(--br);margin-top:4px\"><span>Total</span><span style=\"font-family:'Cormorant Garamond',serif;font-size:18px\" id=\"sbT\">—</span></div>"
     + "</div>"
     // Time selection

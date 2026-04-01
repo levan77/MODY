@@ -1715,6 +1715,35 @@ footer        { background: #1A1A1A; color: rgba(255,255,255,.4); padding: 38px 
             <div><div style="font-weight:600;font-size:15px;color:#ef4444">Emergency Kill Switch</div><div style="font-size:12px;color:var(--mu)">Instantly pause all new bookings and show a banner to clients</div></div>
             <label class="sw"><input type="checkbox" id="setKillSwitch" onchange="toggleKillSwitch(this.checked)"><span class="sw-t"></span></label>
           </div>
+          <!-- Special tariff -->
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:12px;border-bottom:2px solid #f59e0b;background:rgba(245,158,11,.06);border-radius:var(--rs);margin-bottom:10px">
+            <div style="flex:1">
+              <div style="font-weight:600;font-size:15px;color:#f59e0b">Holiday / Special Tariff</div>
+              <div style="font-size:12px;color:var(--mu)">Manually apply % markup to ALL service prices (holiday surcharge)</div>
+              <div style="display:flex;align-items:center;gap:8px;margin-top:6px">
+                <span style="font-size:13px;color:var(--mu)">Markup:</span>
+                <input class="fi" id="setTariffPercent" type="number" min="1" max="200" value="20" style="width:70px;padding:4px 8px;font-size:13px">
+                <span style="font-size:13px;color:var(--mu)">%</span>
+                <button class="btn btn-g" style="font-size:12px;padding:4px 10px" onclick="saveSetting('special_tariff_percent',ge('setTariffPercent').value)">Save</button>
+              </div>
+            </div>
+            <label class="sw"><input type="checkbox" id="setTariffEnabled" onchange="saveSetting('special_tariff_enabled',this.checked)"><span class="sw-t"></span></label>
+          </div>
+          <!-- Retention engine -->
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:12px;border-bottom:2px solid #10b981;background:rgba(16,185,129,.06);border-radius:var(--rs);margin-bottom:10px">
+            <div style="flex:1">
+              <div style="font-weight:600;font-size:15px;color:#10b981">Retention SMS Reminders</div>
+              <div style="font-size:12px;color:var(--mu)">Auto-queue rebooking SMS X days after each completed booking</div>
+              <div style="display:flex;align-items:center;gap:8px;margin-top:6px">
+                <span style="font-size:13px;color:var(--mu)">Send after:</span>
+                <input class="fi" id="setRetentionDays" type="number" min="1" max="90" value="21" style="width:70px;padding:4px 8px;font-size:13px">
+                <span style="font-size:13px;color:var(--mu)">days</span>
+                <button class="btn btn-g" style="font-size:12px;padding:4px 10px" onclick="saveSetting('retention_days',ge('setRetentionDays').value)">Save</button>
+                <button class="btn btn-o" style="font-size:12px;padding:4px 10px" onclick="processRetentionQueue()">Process Queue Now</button>
+              </div>
+            </div>
+            <label class="sw"><input type="checkbox" id="setRetentionEnabled" onchange="saveSetting('retention_enabled',this.checked)"><span class="sw-t"></span></label>
+          </div>
           <!-- Feature toggles -->
           <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--br)">
             <div><div style="font-weight:500;font-size:14px">Promo Codes Feature</div><div style="font-size:12px;color:var(--mu)">Allow clients to use promo codes</div></div>
@@ -2013,7 +2042,7 @@ footer        { background: #1A1A1A; color: rgba(255,255,255,.4); padding: 38px 
             <h3>👥 Client Management (CRM)</h3>
             <input class="fi" id="crmSearch" placeholder="Search client..." style="width:180px;padding:6px 10px;font-size:13px" oninput="renderCrmTable()">
           </div>
-          <div class="tw"><table class="tbl"><thead><tr><th>Client</th><th>Phone</th><th>Bookings</th><th>Lifetime Spend</th><th>Status</th><th>Notes</th><th>Actions</th></tr></thead><tbody id="crmBody"></tbody></table></div>
+          <div class="tw"><table class="tbl"><thead><tr><th>Client</th><th>Phone</th><th>Bookings</th><th>Spend</th><th>Wallet</th><th>Status</th><th>Notes</th><th>Actions</th></tr></thead><tbody id="crmBody"></tbody></table></div>
         </div>
       </div>
       <div id="aTab-incidents" class="hide">
@@ -2397,6 +2426,29 @@ footer        { background: #1A1A1A; color: rgba(255,255,255,.4); padding: 38px 
   </div>
 </div>
 
+<!-- ══ MODAL: WALLET ADJUST ══ -->
+<div class="mbg" id="modal-walletAdjust">
+  <div class="mbox" style="max-width:420px">
+    <button class="mx" onclick="closeM('walletAdjust')">✕</button>
+    <h2 style="font-size:20px;font-weight:300;margin-bottom:6px">💰 Wallet Adjustment</h2>
+    <input type="hidden" id="walClientId">
+    <div id="walClientName" style="font-size:13px;color:var(--mu);margin-bottom:14px"></div>
+    <div class="fg"><label class="fl">Type</label>
+      <select class="fi" id="walType">
+        <option value="add">Add credit (deposit)</option>
+        <option value="subtract">Remove credit (debit)</option>
+      </select>
+    </div>
+    <div class="fg"><label class="fl">Amount (₾)</label>
+      <input class="fi" type="number" id="walAmount" min="1" placeholder="e.g. 50">
+    </div>
+    <div class="fg"><label class="fl">Reason / Note</label>
+      <input class="fi" id="walDesc" placeholder="e.g. Compensation for late arrival, Gift card">
+    </div>
+    <button class="btn btn-g" style="width:100%;justify-content:center;padding:11px;margin-top:4px" onclick="saveWalletAdjust()">Apply Adjustment</button>
+  </div>
+</div>
+
 <!-- ══ MODAL: CLIENT NOTE ══ -->
 <div class="mbg" id="modal-clientNote">
   <div class="mbox">
@@ -2701,6 +2753,12 @@ async function loadSettings() {
   updateProRegVisibility();
   // Kill switch
   var sks = ge("setKillSwitch"); if (sks) sks.checked = settings.kill_switch === true || settings.kill_switch === "true";
+  // Special tariff
+  var stt2 = ge("setTariffEnabled"); if (stt2) stt2.checked = settings.special_tariff_enabled === true || settings.special_tariff_enabled === "true";
+  var stpct = ge("setTariffPercent"); if (stpct) stpct.value = settings.special_tariff_percent || 20;
+  // Retention
+  var sret = ge("setRetentionEnabled"); if (sret) sret.checked = settings.retention_enabled === true || settings.retention_enabled === "true";
+  var sretd = ge("setRetentionDays"); if (sretd) sretd.value = settings.retention_days || 21;
   // Show/hide kill switch banner on client side
   var ksb = ge("killSwitchBanner");
   if (ksb) ksb.style.display = (settings.kill_switch === true || settings.kill_switch === "true") ? "block" : "none";
@@ -2763,6 +2821,15 @@ var SETUP_SQL = [
   "create table if not exists public.incidents (id uuid default gen_random_uuid() primary key, booking_id uuid references public.bookings(id) on delete set null, client_id uuid, pro_id uuid, subject text not null, description text, status text default 'open', credit_amount int default 0, credit_type text, resolved_at timestamptz, created_at timestamptz default now());",
   "alter table public.incidents enable row level security;",
   "grant all on public.incidents to anon, authenticated;",
+  "create table if not exists public.client_wallets (client_id uuid primary key references auth.users(id) on delete cascade, balance int default 0, updated_at timestamptz default now());",
+  "alter table public.client_wallets enable row level security;",
+  "grant all on public.client_wallets to anon, authenticated;",
+  "create table if not exists public.wallet_transactions (id uuid default gen_random_uuid() primary key, client_id uuid references auth.users(id) on delete cascade, amount int not null, type text not null, description text, created_at timestamptz default now());",
+  "alter table public.wallet_transactions enable row level security;",
+  "grant all on public.wallet_transactions to anon, authenticated;",
+  "create table if not exists public.retention_queue (id uuid default gen_random_uuid() primary key, booking_id uuid references public.bookings(id) on delete set null, client_id uuid, client_phone text, client_name text, service_name text, pro_name text, send_at timestamptz not null, status text default 'pending', sent_at timestamptz, created_at timestamptz default now());",
+  "alter table public.retention_queue enable row level security;",
+  "grant all on public.retention_queue to anon, authenticated;",
   "",
   "alter table public.profiles enable row level security;",
   "alter table public.categories enable row level security;",
@@ -4855,17 +4922,25 @@ async function viewPro(proId) {
   revHtml += "</div>";
 
   // Services list — multi-select (Add/Remove per service)
+  // Special tariff markup
+  var tariffOn = settings.special_tariff_enabled === true || settings.special_tariff_enabled === "true";
+  var tariffPct = tariffOn ? (parseInt(settings.special_tariff_percent) || 20) : 0;
+
   var svcsHtml = svcs.length === 0
     ? "<p style=\"color:var(--mu);font-size:14px\">No services listed yet.</p>"
     : svcs.map(function(s) {
+        var displayPrice = tariffOn ? Math.ceil(s.price * (1 + tariffPct / 100)) : s.price;
+        var priceHtml = tariffOn
+          ? "<span style=\"text-decoration:line-through;color:var(--mu);font-size:14px;margin-right:4px\">" + s.price + "₾</span><span style=\"color:#ef4444\">" + displayPrice + "₾</span>"
+          : s.price + "₾";
         return "<div class=\"svc-item\">"
              + "<div>"
              + "<div style=\"font-size:14px;font-weight:500\">" + s.name + "</div>"
              + "<div style=\"font-size:12px;color:var(--mu)\">" + (s.description || "") + (s.duration ? " · " + s.duration + " min" : "") + "</div>"
              + "</div>"
              + "<div style=\"text-align:right\">"
-             + "<div style=\"font-family:'Cormorant Garamond',serif;font-size:19px;font-weight:600\">" + s.price + "₾</div>"
-             + "<button class=\"svc-btn\" onclick=\"selectService('" + s.id + "','" + s.name.replace(/'/g,"\\'") + "'," + s.price + ",'" + pro.id + "','" + pro.name.replace(/'/g,"\\'") + "','" + (pro.specialty || "") + "'," + (s.duration || 60) + ")\">Add</button>"
+             + "<div style=\"font-family:'Cormorant Garamond',serif;font-size:19px;font-weight:600\">" + priceHtml + "</div>"
+             + "<button class=\"svc-btn\" onclick=\"selectService('" + s.id + "','" + s.name.replace(/'/g,"\\'") + "'," + displayPrice + ",'" + pro.id + "','" + pro.name.replace(/'/g,"\\'") + "','" + (pro.specialty || "") + "'," + (s.duration || 60) + ")\">Add</button>"
              + "</div></div>";
       }).join("");
 
@@ -4903,6 +4978,7 @@ async function viewPro(proId) {
     + "<div style=\"font-size:11px;font-weight:600;color:var(--mu);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px\">Selected Services</div>"
     + "<div id=\"sbCartRows\"></div>"
     + "<div style=\"display:flex;justify-content:space-between;font-size:12px;padding:3px 0;color:var(--mu)\"><span>Platform fee</span><span>5₾</span></div>"
+    + "<div id=\"sbWalletHint\" style=\"display:none;font-size:11px;color:#15803d;padding:3px 0\"></div>"
     + "<div style=\"display:flex;justify-content:space-between;font-size:14px;font-weight:600;padding:6px 0 2px;border-top:1px solid var(--br);margin-top:4px\"><span>Total</span><span style=\"font-family:'Cormorant Garamond',serif;font-size:18px\" id=\"sbT\">—</span></div>"
     + "</div>"
     // Time selection
@@ -5006,6 +5082,18 @@ function updateSvcCart() {
     }).join("");
   }
   var total = selSvcTotal() + 5;
+  // Show wallet balance hint
+  var walletHint = ge("sbWalletHint");
+  if (user && walletHint) {
+    sb.from("client_wallets").select("balance").eq("client_id", user.id).single().then(function(wr) {
+      if (wr.data && wr.data.balance > 0) {
+        walletHint.style.display = "block";
+        walletHint.textContent = "Wallet: " + wr.data.balance + " GEL (auto-applied at checkout)";
+      } else {
+        walletHint.style.display = "none";
+      }
+    }).catch(function() { if (walletHint) walletHint.style.display = "none"; });
+  }
   var st = ge("sbT"); if (st) st.textContent = total + "₾";
   if (btn) {
     btn.textContent = "Book " + selSvcs.length + " service" + (selSvcs.length > 1 ? "s" : "") + " — " + total + "₾";
@@ -5328,6 +5416,17 @@ async function submitBooking() {
   var total = selSvcTotal() - promoDisc + 5;
   var pro = selSvcPro();
 
+  // Check wallet balance and auto-apply
+  var walletUsed = 0;
+  try {
+    var wRes = await sb.from("client_wallets").select("balance").eq("client_id", user.id).single();
+    if (wRes.data && wRes.data.balance > 0) {
+      walletUsed = Math.min(wRes.data.balance, total);
+      total = total - walletUsed;
+      if (total < 0) total = 0;
+    }
+  } catch(e) {}
+
   // Upload design if present
   var designUrl = null;
   var dfi = ge("designFile");
@@ -5360,6 +5459,38 @@ async function submitBooking() {
   var r = await sb.from("bookings").insert(bk).select().single();
   if (r.error) { toast("Booking failed: " + r.error.message, "err"); return; }
   var insertedBk = r.data || bk;
+
+  // Deduct wallet balance if used
+  if (walletUsed > 0) {
+    try {
+      var curWallet = await sb.from("client_wallets").select("balance").eq("client_id", user.id).single();
+      var newBal = (curWallet.data ? curWallet.data.balance : 0) - walletUsed;
+      await sb.from("client_wallets").update({ balance: Math.max(0, newBal), updated_at: new Date().toISOString() }).eq("client_id", user.id);
+      await sb.from("wallet_transactions").insert({
+        client_id: user.id, amount: -walletUsed, type: "booking_payment",
+        description: "Applied to booking " + (insertedBk.id || "").substring(0, 8)
+      });
+    } catch(e) {}
+  }
+
+  // Queue retention reminder
+  if (insertedBk && insertedBk.id && (settings.retention_enabled === true || settings.retention_enabled === "true")) {
+    try {
+      var retDays = parseInt(settings.retention_days) || 21;
+      var sendAt = new Date();
+      sendAt.setDate(sendAt.getDate() + retDays);
+      await sb.from("retention_queue").insert({
+        booking_id: insertedBk.id,
+        client_id: user.id,
+        client_phone: profile ? (profile.phone || "") : "",
+        client_name: profile ? profile.full_name : "",
+        service_name: selSvcNames(),
+        pro_name: pro.proName,
+        send_at: sendAt.toISOString(),
+        status: "pending"
+      });
+    } catch(e) {}
+  }
 
   // Increment promo usage counter
   if (promoApplied) {
@@ -5398,6 +5529,7 @@ async function submitBooking() {
   + "<div style=\"display:flex;justify-content:space-between;padding:3px 0;font-size:13px\"><span>Time</span><span>" + slot.textContent + "</span></div>"
   + "<div style=\"display:flex;justify-content:space-between;padding:3px 0;font-size:13px\"><span>Address</span><span>" + addr + "</span></div>"
   + (promoDisc > 0 ? "<div style=\"display:flex;justify-content:space-between;padding:3px 0;font-size:13px;color:#15803d\"><span>Discount</span><span>-" + promoDisc + "₾</span></div>" : "")
+  + (walletUsed > 0 ? "<div style=\"display:flex;justify-content:space-between;padding:3px 0;font-size:13px;color:#15803d\"><span>Wallet Credit</span><span>-" + walletUsed + "₾</span></div>" : "")
   + "<div style=\"display:flex;justify-content:space-between;padding:7px 0 2px;font-size:14px;font-weight:500;border-top:1px solid var(--br);margin-top:4px\"><span>Total</span><span>" + total + "₾</span></div>";
 
   openM("bkconf");
@@ -5879,7 +6011,8 @@ var TWILIO_MSGS = {
   declined:      function(n, d) { return "გამარჯობა " + n + ", სამწუხაროდ სპეციალისტმა ვერ მიიღო " + d + " ჯავშანი."; },
   pro_new:       function(n, d) { return "გამარჯობა " + n + ", ახალი ჯავშანი: " + d + ". გთხოვთ გახსნათ MODY. 📋"; },
   pro_cancelled: function(n, d) { return "გამარჯობა " + n + ", ჯავშანი " + d + " გაუქმებულია. ❌"; },
-  pro_completed: function(n, d) { return "გამარჯობა " + n + ", " + d + " შესრულდა! გმადლობთ. ✅"; }
+  pro_completed: function(n, d) { return "გამარჯობა " + n + ", " + d + " შესრულდა! გმადლობთ. ✅"; },
+  custom:        function(n, d) { return d; }
 };
 
 // ── SEND SMS/WHATSAPP VIA TWILIO REST API ─────────────────
@@ -8127,7 +8260,7 @@ var crmData = [];
 
 async function loadCrm() {
   var body = ge("crmBody"); if (!body) return;
-  body.innerHTML = "<tr><td colspan=\"7\" style=\"text-align:center;padding:18px;color:var(--mu)\">Loading...</td></tr>";
+  body.innerHTML = "<tr><td colspan=\"8\" style=\"text-align:center;padding:18px;color:var(--mu)\">Loading...</td></tr>";
   try {
     var pRes = await sb.from("profiles").select("*").order("created_at", { ascending: false });
     var profiles = pRes.data || [];
@@ -8135,8 +8268,11 @@ async function loadCrm() {
     var bookings = bRes.data || [];
     var nRes = await sb.from("client_notes").select("*");
     var notes = nRes.data || [];
-    var noteMap = {};
+    var wRes = await sb.from("client_wallets").select("client_id,balance");
+    var wallets = wRes.data || [];
+    var noteMap = {}, walletMap = {};
     notes.forEach(function(n) { noteMap[n.client_id] = n; });
+    wallets.forEach(function(w) { walletMap[w.client_id] = w.balance; });
 
     var clientStats = {};
     bookings.forEach(function(bk) {
@@ -8148,10 +8284,10 @@ async function loadCrm() {
 
     crmData = profiles.map(function(p) {
       var stats = clientStats[p.id] || { count: 0, spend: 0 };
-      return { profile: p, bookings: stats.count, spend: stats.spend, note: noteMap[p.id] };
+      return { profile: p, bookings: stats.count, spend: stats.spend, note: noteMap[p.id], wallet: walletMap[p.id] || 0 };
     });
     renderCrmTable();
-  } catch(e) { body.innerHTML = "<tr><td colspan=\"7\" style=\"text-align:center;padding:18px;color:#ef4444\">Error: " + e.message + "</td></tr>"; }
+  } catch(e) { body.innerHTML = "<tr><td colspan=\"8\" style=\"text-align:center;padding:18px;color:#ef4444\">Error: " + e.message + "</td></tr>"; }
 }
 
 function renderCrmTable() {
@@ -8162,20 +8298,23 @@ function renderCrmTable() {
               || (c.profile.email || "").toLowerCase().includes(q)
               || (c.profile.phone || "").toLowerCase().includes(q);
   });
-  if (!filtered.length) { body.innerHTML = "<tr><td colspan=\"7\" style=\"text-align:center;padding:18px;color:var(--mu)\">No clients found.</td></tr>"; return; }
+  if (!filtered.length) { body.innerHTML = "<tr><td colspan=\"8\" style=\"text-align:center;padding:18px;color:var(--mu)\">No clients found.</td></tr>"; return; }
   body.innerHTML = filtered.map(function(c) {
     var p = c.profile;
     var noteSnippet = c.note ? c.note.note.substring(0, 40) + (c.note.note.length > 40 ? "..." : "") : "<span style=\"color:var(--mu)\">--</span>";
     var blocked = p.blocked;
+    var walBal = c.wallet || 0;
+    var walStyle = walBal > 0 ? "color:#15803d;font-weight:600" : "color:var(--mu)";
     return "<tr>"
       + "<td><strong>" + (p.full_name || "--") + "</strong><div style=\"font-size:11px;color:var(--mu)\">" + (p.email || "") + "</div></td>"
       + "<td>" + (p.phone || "--") + "</td>"
       + "<td style=\"text-align:center\">" + c.bookings + "</td>"
-      + "<td style=\"text-align:center;font-weight:600\">" + c.spend + " GEL</td>"
+      + "<td style=\"text-align:center;font-weight:600\">" + c.spend + "₾</td>"
+      + "<td style=\"text-align:center\"><span style=\"" + walStyle + "\">" + walBal + "₾</span><br><button class=\"btn-sm btn-gh\" style=\"font-size:10px;margin-top:2px\" onclick=\"openWalletModal('" + p.id + "','" + (p.full_name || "").replace(/'/g, "\\'") + "'," + walBal + ")\">Adjust</button></td>"
       + "<td>" + (blocked ? "<span style=\"color:#ef4444;font-weight:600\">Blocked</span>" : "<span style=\"color:#10b981\">Active</span>") + "</td>"
-      + "<td style=\"font-size:12px;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer\" onclick=\"openClientNote('" + p.id + "','" + (p.full_name || "").replace(/'/g, "\\'") + "')\" title=\"Click to edit notes\">" + noteSnippet + "</td>"
+      + "<td style=\"font-size:12px;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer\" onclick=\"openClientNote('" + p.id + "','" + (p.full_name || "").replace(/'/g, "\\'") + "')\">" + noteSnippet + "</td>"
       + "<td style=\"display:flex;gap:4px;flex-wrap:wrap\">"
-      + "<button class=\"btn-sm btn-gh\" onclick=\"openClientNote('" + p.id + "','" + (p.full_name || "").replace(/'/g, "\\'") + "')\" title=\"Notes\">Notes</button>"
+      + "<button class=\"btn-sm btn-gh\" onclick=\"openClientNote('" + p.id + "','" + (p.full_name || "").replace(/'/g, "\\'") + "')\">Notes</button>"
       + "<button class=\"btn-sm " + (blocked ? "btn-gh" : "btn-no") + "\" onclick=\"toggleBlockClient('" + p.id + "'," + !blocked + ")\">" + (blocked ? "Unblock" : "Block") + "</button>"
       + "</td></tr>";
   }).join("");
@@ -8317,6 +8456,81 @@ async function editIncidentCredit(id) {
   } catch(e) { toast("Error: " + e.message, "err"); }
 }
 
+
+// ══════════════════════════════════════════════════════════════
+//  WALLET MANAGEMENT
+// ══════════════════════════════════════════════════════════════
+function openWalletModal(clientId, name, currentBalance) {
+  ge("walClientId").value = clientId;
+  ge("walClientName").textContent = name + " — Current balance: " + currentBalance + "₾";
+  ge("walAmount").value = "";
+  ge("walType").value = "add";
+  ge("walDesc").value = "";
+  openM("walletAdjust");
+}
+
+async function saveWalletAdjust() {
+  var clientId = ge("walClientId").value;
+  var amount = parseInt(ge("walAmount").value) || 0;
+  var type = ge("walType").value;
+  var desc = (ge("walDesc").value || "").trim() || (type === "add" ? "Admin credit" : "Admin debit");
+  if (!amount || amount <= 0) { toast("Enter a valid amount", "err"); return; }
+
+  var delta = type === "add" ? amount : -amount;
+
+  try {
+    // Get current balance
+    var cur = await sb.from("client_wallets").select("balance").eq("client_id", clientId).single();
+    var newBal = (cur.data ? cur.data.balance : 0) + delta;
+    if (newBal < 0) { toast("Balance cannot go below 0", "err"); return; }
+
+    if (cur.data) {
+      await sb.from("client_wallets").update({ balance: newBal, updated_at: new Date().toISOString() }).eq("client_id", clientId);
+    } else {
+      await sb.from("client_wallets").insert({ client_id: clientId, balance: Math.max(0, delta), updated_at: new Date().toISOString() });
+    }
+    await sb.from("wallet_transactions").insert({
+      client_id: clientId, amount: delta, type: type === "add" ? "admin_credit" : "admin_debit", description: desc
+    });
+
+    toast(type === "add" ? "+" + amount + "₾ added to wallet" : "-" + amount + "₾ removed from wallet", "ok");
+    closeM("walletAdjust");
+    loadCrm();
+  } catch(e) { toast("Error: " + e.message, "err"); }
+}
+
+// ══════════════════════════════════════════════════════════════
+//  RETENTION QUEUE PROCESSOR
+// ══════════════════════════════════════════════════════════════
+async function processRetentionQueue() {
+  if (!settings.twilio_enabled || settings.twilio_enabled === "false") {
+    toast("Enable Twilio first in Settings", "err"); return;
+  }
+  var now = new Date().toISOString();
+  try {
+    var r = await sb.from("retention_queue")
+      .select("*").eq("status", "pending").lte("send_at", now);
+    var due = r.data || [];
+    if (!due.length) { toast("No reminders due right now", "ok"); return; }
+
+    var sent = 0, failed = 0;
+    for (var i = 0; i < due.length; i++) {
+      var item = due[i];
+      try {
+        var msg = "Hi " + (item.client_name || "there") + "! It's been a while since your last "
+          + (item.service_name || "appointment") + " with " + (item.pro_name || "us")
+          + ". Time to treat yourself again? Book at MODY 💅";
+        await sendTwilioNotification(item.client_phone, "custom", item.client_name, msg);
+        await sb.from("retention_queue").update({ status: "sent", sent_at: new Date().toISOString() }).eq("id", item.id);
+        sent++;
+      } catch(e) {
+        await sb.from("retention_queue").update({ status: "failed" }).eq("id", item.id);
+        failed++;
+      }
+    }
+    toast("Sent " + sent + " reminder" + (sent !== 1 ? "s" : "") + (failed ? " (" + failed + " failed)" : ""), sent ? "ok" : "err");
+  } catch(e) { toast("Error: " + e.message, "err"); }
+}
 
 // ── professional.js (normally lazy-loaded) ──
 // ═══════════════════════════════════════════════════════════════

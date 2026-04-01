@@ -1668,7 +1668,7 @@ var crmData = [];
 
 async function loadCrm() {
   var body = ge("crmBody"); if (!body) return;
-  body.innerHTML = "<tr><td colspan=\"7\" style=\"text-align:center;padding:18px;color:var(--mu)\">Loading...</td></tr>";
+  body.innerHTML = "<tr><td colspan=\"8\" style=\"text-align:center;padding:18px;color:var(--mu)\">Loading...</td></tr>";
   try {
     var pRes = await sb.from("profiles").select("*").order("created_at", { ascending: false });
     var profiles = pRes.data || [];
@@ -1676,8 +1676,11 @@ async function loadCrm() {
     var bookings = bRes.data || [];
     var nRes = await sb.from("client_notes").select("*");
     var notes = nRes.data || [];
-    var noteMap = {};
+    var wRes = await sb.from("client_wallets").select("client_id,balance");
+    var wallets = wRes.data || [];
+    var noteMap = {}, walletMap = {};
     notes.forEach(function(n) { noteMap[n.client_id] = n; });
+    wallets.forEach(function(w) { walletMap[w.client_id] = w.balance; });
 
     var clientStats = {};
     bookings.forEach(function(bk) {
@@ -1689,10 +1692,10 @@ async function loadCrm() {
 
     crmData = profiles.map(function(p) {
       var stats = clientStats[p.id] || { count: 0, spend: 0 };
-      return { profile: p, bookings: stats.count, spend: stats.spend, note: noteMap[p.id] };
+      return { profile: p, bookings: stats.count, spend: stats.spend, note: noteMap[p.id], wallet: walletMap[p.id] || 0 };
     });
     renderCrmTable();
-  } catch(e) { body.innerHTML = "<tr><td colspan=\"7\" style=\"text-align:center;padding:18px;color:#ef4444\">Error: " + e.message + "</td></tr>"; }
+  } catch(e) { body.innerHTML = "<tr><td colspan=\"8\" style=\"text-align:center;padding:18px;color:#ef4444\">Error: " + e.message + "</td></tr>"; }
 }
 
 function renderCrmTable() {
@@ -1703,20 +1706,23 @@ function renderCrmTable() {
               || (c.profile.email || "").toLowerCase().includes(q)
               || (c.profile.phone || "").toLowerCase().includes(q);
   });
-  if (!filtered.length) { body.innerHTML = "<tr><td colspan=\"7\" style=\"text-align:center;padding:18px;color:var(--mu)\">No clients found.</td></tr>"; return; }
+  if (!filtered.length) { body.innerHTML = "<tr><td colspan=\"8\" style=\"text-align:center;padding:18px;color:var(--mu)\">No clients found.</td></tr>"; return; }
   body.innerHTML = filtered.map(function(c) {
     var p = c.profile;
     var noteSnippet = c.note ? c.note.note.substring(0, 40) + (c.note.note.length > 40 ? "..." : "") : "<span style=\"color:var(--mu)\">--</span>";
     var blocked = p.blocked;
+    var walBal = c.wallet || 0;
+    var walStyle = walBal > 0 ? "color:#15803d;font-weight:600" : "color:var(--mu)";
     return "<tr>"
       + "<td><strong>" + (p.full_name || "--") + "</strong><div style=\"font-size:11px;color:var(--mu)\">" + (p.email || "") + "</div></td>"
       + "<td>" + (p.phone || "--") + "</td>"
       + "<td style=\"text-align:center\">" + c.bookings + "</td>"
-      + "<td style=\"text-align:center;font-weight:600\">" + c.spend + " GEL</td>"
+      + "<td style=\"text-align:center;font-weight:600\">" + c.spend + "₾</td>"
+      + "<td style=\"text-align:center\"><span style=\"" + walStyle + "\">" + walBal + "₾</span><br><button class=\"btn-sm btn-gh\" style=\"font-size:10px;margin-top:2px\" onclick=\"openWalletModal('" + p.id + "','" + (p.full_name || "").replace(/'/g, "\\'") + "'," + walBal + ")\">Adjust</button></td>"
       + "<td>" + (blocked ? "<span style=\"color:#ef4444;font-weight:600\">Blocked</span>" : "<span style=\"color:#10b981\">Active</span>") + "</td>"
-      + "<td style=\"font-size:12px;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer\" onclick=\"openClientNote('" + p.id + "','" + (p.full_name || "").replace(/'/g, "\\'") + "')\" title=\"Click to edit notes\">" + noteSnippet + "</td>"
+      + "<td style=\"font-size:12px;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer\" onclick=\"openClientNote('" + p.id + "','" + (p.full_name || "").replace(/'/g, "\\'") + "')\">" + noteSnippet + "</td>"
       + "<td style=\"display:flex;gap:4px;flex-wrap:wrap\">"
-      + "<button class=\"btn-sm btn-gh\" onclick=\"openClientNote('" + p.id + "','" + (p.full_name || "").replace(/'/g, "\\'") + "')\" title=\"Notes\">Notes</button>"
+      + "<button class=\"btn-sm btn-gh\" onclick=\"openClientNote('" + p.id + "','" + (p.full_name || "").replace(/'/g, "\\'") + "')\">Notes</button>"
       + "<button class=\"btn-sm " + (blocked ? "btn-gh" : "btn-no") + "\" onclick=\"toggleBlockClient('" + p.id + "'," + !blocked + ")\">" + (blocked ? "Unblock" : "Block") + "</button>"
       + "</td></tr>";
   }).join("");
@@ -1858,3 +1864,78 @@ async function editIncidentCredit(id) {
   } catch(e) { toast("Error: " + e.message, "err"); }
 }
 
+
+// ══════════════════════════════════════════════════════════════
+//  WALLET MANAGEMENT
+// ══════════════════════════════════════════════════════════════
+function openWalletModal(clientId, name, currentBalance) {
+  ge("walClientId").value = clientId;
+  ge("walClientName").textContent = name + " — Current balance: " + currentBalance + "₾";
+  ge("walAmount").value = "";
+  ge("walType").value = "add";
+  ge("walDesc").value = "";
+  openM("walletAdjust");
+}
+
+async function saveWalletAdjust() {
+  var clientId = ge("walClientId").value;
+  var amount = parseInt(ge("walAmount").value) || 0;
+  var type = ge("walType").value;
+  var desc = (ge("walDesc").value || "").trim() || (type === "add" ? "Admin credit" : "Admin debit");
+  if (!amount || amount <= 0) { toast("Enter a valid amount", "err"); return; }
+
+  var delta = type === "add" ? amount : -amount;
+
+  try {
+    // Get current balance
+    var cur = await sb.from("client_wallets").select("balance").eq("client_id", clientId).single();
+    var newBal = (cur.data ? cur.data.balance : 0) + delta;
+    if (newBal < 0) { toast("Balance cannot go below 0", "err"); return; }
+
+    if (cur.data) {
+      await sb.from("client_wallets").update({ balance: newBal, updated_at: new Date().toISOString() }).eq("client_id", clientId);
+    } else {
+      await sb.from("client_wallets").insert({ client_id: clientId, balance: Math.max(0, delta), updated_at: new Date().toISOString() });
+    }
+    await sb.from("wallet_transactions").insert({
+      client_id: clientId, amount: delta, type: type === "add" ? "admin_credit" : "admin_debit", description: desc
+    });
+
+    toast(type === "add" ? "+" + amount + "₾ added to wallet" : "-" + amount + "₾ removed from wallet", "ok");
+    closeM("walletAdjust");
+    loadCrm();
+  } catch(e) { toast("Error: " + e.message, "err"); }
+}
+
+// ══════════════════════════════════════════════════════════════
+//  RETENTION QUEUE PROCESSOR
+// ══════════════════════════════════════════════════════════════
+async function processRetentionQueue() {
+  if (!settings.twilio_enabled || settings.twilio_enabled === "false") {
+    toast("Enable Twilio first in Settings", "err"); return;
+  }
+  var now = new Date().toISOString();
+  try {
+    var r = await sb.from("retention_queue")
+      .select("*").eq("status", "pending").lte("send_at", now);
+    var due = r.data || [];
+    if (!due.length) { toast("No reminders due right now", "ok"); return; }
+
+    var sent = 0, failed = 0;
+    for (var i = 0; i < due.length; i++) {
+      var item = due[i];
+      try {
+        var msg = "Hi " + (item.client_name || "there") + "! It's been a while since your last "
+          + (item.service_name || "appointment") + " with " + (item.pro_name || "us")
+          + ". Time to treat yourself again? Book at MODY 💅";
+        await sendTwilioNotification(item.client_phone, "custom", item.client_name, msg);
+        await sb.from("retention_queue").update({ status: "sent", sent_at: new Date().toISOString() }).eq("id", item.id);
+        sent++;
+      } catch(e) {
+        await sb.from("retention_queue").update({ status: "failed" }).eq("id", item.id);
+        failed++;
+      }
+    }
+    toast("Sent " + sent + " reminder" + (sent !== 1 ? "s" : "") + (failed ? " (" + failed + " failed)" : ""), sent ? "ok" : "err");
+  } catch(e) { toast("Error: " + e.message, "err"); }
+}

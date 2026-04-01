@@ -16,7 +16,8 @@ var TWILIO_MSGS = {
   declined:      function(n, d) { return "გამარჯობა " + n + ", სამწუხაროდ სპეციალისტმა ვერ მიიღო " + d + " ჯავშანი."; },
   pro_new:       function(n, d) { return "გამარჯობა " + n + ", ახალი ჯავშანი: " + d + ". გთხოვთ გახსნათ MODY. 📋"; },
   pro_cancelled: function(n, d) { return "გამარჯობა " + n + ", ჯავშანი " + d + " გაუქმებულია. ❌"; },
-  pro_completed: function(n, d) { return "გამარჯობა " + n + ", " + d + " შესრულდა! გმადლობთ. ✅"; }
+  pro_completed: function(n, d) { return "გამარჯობა " + n + ", " + d + " შესრულდა! გმადლობთ. ✅"; },
+  custom:        function(n, d) { return d; }
 };
 
 // ── SEND SMS/WHATSAPP VIA TWILIO REST API ─────────────────

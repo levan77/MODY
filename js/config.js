@@ -219,6 +219,12 @@ async function loadSettings() {
   updateProRegVisibility();
   // Kill switch
   var sks = ge("setKillSwitch"); if (sks) sks.checked = settings.kill_switch === true || settings.kill_switch === "true";
+  // Special tariff
+  var stt2 = ge("setTariffEnabled"); if (stt2) stt2.checked = settings.special_tariff_enabled === true || settings.special_tariff_enabled === "true";
+  var stpct = ge("setTariffPercent"); if (stpct) stpct.value = settings.special_tariff_percent || 20;
+  // Retention
+  var sret = ge("setRetentionEnabled"); if (sret) sret.checked = settings.retention_enabled === true || settings.retention_enabled === "true";
+  var sretd = ge("setRetentionDays"); if (sretd) sretd.value = settings.retention_days || 21;
   // Show/hide kill switch banner on client side
   var ksb = ge("killSwitchBanner");
   if (ksb) ksb.style.display = (settings.kill_switch === true || settings.kill_switch === "true") ? "block" : "none";
@@ -281,6 +287,15 @@ var SETUP_SQL = [
   "create table if not exists public.incidents (id uuid default gen_random_uuid() primary key, booking_id uuid references public.bookings(id) on delete set null, client_id uuid, pro_id uuid, subject text not null, description text, status text default 'open', credit_amount int default 0, credit_type text, resolved_at timestamptz, created_at timestamptz default now());",
   "alter table public.incidents enable row level security;",
   "grant all on public.incidents to anon, authenticated;",
+  "create table if not exists public.client_wallets (client_id uuid primary key references auth.users(id) on delete cascade, balance int default 0, updated_at timestamptz default now());",
+  "alter table public.client_wallets enable row level security;",
+  "grant all on public.client_wallets to anon, authenticated;",
+  "create table if not exists public.wallet_transactions (id uuid default gen_random_uuid() primary key, client_id uuid references auth.users(id) on delete cascade, amount int not null, type text not null, description text, created_at timestamptz default now());",
+  "alter table public.wallet_transactions enable row level security;",
+  "grant all on public.wallet_transactions to anon, authenticated;",
+  "create table if not exists public.retention_queue (id uuid default gen_random_uuid() primary key, booking_id uuid references public.bookings(id) on delete set null, client_id uuid, client_phone text, client_name text, service_name text, pro_name text, send_at timestamptz not null, status text default 'pending', sent_at timestamptz, created_at timestamptz default now());",
+  "alter table public.retention_queue enable row level security;",
+  "grant all on public.retention_queue to anon, authenticated;",
   "",
   "alter table public.profiles enable row level security;",
   "alter table public.categories enable row level security;",

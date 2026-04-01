@@ -753,6 +753,35 @@
             <div><div style="font-weight:600;font-size:15px;color:#ef4444">Emergency Kill Switch</div><div style="font-size:12px;color:var(--mu)">Instantly pause all new bookings and show a banner to clients</div></div>
             <label class="sw"><input type="checkbox" id="setKillSwitch" onchange="toggleKillSwitch(this.checked)"><span class="sw-t"></span></label>
           </div>
+          <!-- Special tariff -->
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:12px;border-bottom:2px solid #f59e0b;background:rgba(245,158,11,.06);border-radius:var(--rs);margin-bottom:10px">
+            <div style="flex:1">
+              <div style="font-weight:600;font-size:15px;color:#f59e0b">Holiday / Special Tariff</div>
+              <div style="font-size:12px;color:var(--mu)">Manually apply % markup to ALL service prices (holiday surcharge)</div>
+              <div style="display:flex;align-items:center;gap:8px;margin-top:6px">
+                <span style="font-size:13px;color:var(--mu)">Markup:</span>
+                <input class="fi" id="setTariffPercent" type="number" min="1" max="200" value="20" style="width:70px;padding:4px 8px;font-size:13px">
+                <span style="font-size:13px;color:var(--mu)">%</span>
+                <button class="btn btn-g" style="font-size:12px;padding:4px 10px" onclick="saveSetting('special_tariff_percent',ge('setTariffPercent').value)">Save</button>
+              </div>
+            </div>
+            <label class="sw"><input type="checkbox" id="setTariffEnabled" onchange="saveSetting('special_tariff_enabled',this.checked)"><span class="sw-t"></span></label>
+          </div>
+          <!-- Retention engine -->
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:12px;border-bottom:2px solid #10b981;background:rgba(16,185,129,.06);border-radius:var(--rs);margin-bottom:10px">
+            <div style="flex:1">
+              <div style="font-weight:600;font-size:15px;color:#10b981">Retention SMS Reminders</div>
+              <div style="font-size:12px;color:var(--mu)">Auto-queue rebooking SMS X days after each completed booking</div>
+              <div style="display:flex;align-items:center;gap:8px;margin-top:6px">
+                <span style="font-size:13px;color:var(--mu)">Send after:</span>
+                <input class="fi" id="setRetentionDays" type="number" min="1" max="90" value="21" style="width:70px;padding:4px 8px;font-size:13px">
+                <span style="font-size:13px;color:var(--mu)">days</span>
+                <button class="btn btn-g" style="font-size:12px;padding:4px 10px" onclick="saveSetting('retention_days',ge('setRetentionDays').value)">Save</button>
+                <button class="btn btn-o" style="font-size:12px;padding:4px 10px" onclick="processRetentionQueue()">Process Queue Now</button>
+              </div>
+            </div>
+            <label class="sw"><input type="checkbox" id="setRetentionEnabled" onchange="saveSetting('retention_enabled',this.checked)"><span class="sw-t"></span></label>
+          </div>
           <!-- Feature toggles -->
           <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--br)">
             <div><div style="font-weight:500;font-size:14px">Promo Codes Feature</div><div style="font-size:12px;color:var(--mu)">Allow clients to use promo codes</div></div>
@@ -1051,7 +1080,7 @@
             <h3>👥 Client Management (CRM)</h3>
             <input class="fi" id="crmSearch" placeholder="Search client..." style="width:180px;padding:6px 10px;font-size:13px" oninput="renderCrmTable()">
           </div>
-          <div class="tw"><table class="tbl"><thead><tr><th>Client</th><th>Phone</th><th>Bookings</th><th>Lifetime Spend</th><th>Status</th><th>Notes</th><th>Actions</th></tr></thead><tbody id="crmBody"></tbody></table></div>
+          <div class="tw"><table class="tbl"><thead><tr><th>Client</th><th>Phone</th><th>Bookings</th><th>Spend</th><th>Wallet</th><th>Status</th><th>Notes</th><th>Actions</th></tr></thead><tbody id="crmBody"></tbody></table></div>
         </div>
       </div>
       <div id="aTab-incidents" class="hide">
@@ -1432,6 +1461,29 @@
       </select>
     </div>
     <button class="btn btn-g" style="width:100%;justify-content:center;padding:11px;margin-top:4px" onclick="saveAdminBkTime()">💾 Save New Time</button>
+  </div>
+</div>
+
+<!-- ══ MODAL: WALLET ADJUST ══ -->
+<div class="mbg" id="modal-walletAdjust">
+  <div class="mbox" style="max-width:420px">
+    <button class="mx" onclick="closeM('walletAdjust')">✕</button>
+    <h2 style="font-size:20px;font-weight:300;margin-bottom:6px">💰 Wallet Adjustment</h2>
+    <input type="hidden" id="walClientId">
+    <div id="walClientName" style="font-size:13px;color:var(--mu);margin-bottom:14px"></div>
+    <div class="fg"><label class="fl">Type</label>
+      <select class="fi" id="walType">
+        <option value="add">Add credit (deposit)</option>
+        <option value="subtract">Remove credit (debit)</option>
+      </select>
+    </div>
+    <div class="fg"><label class="fl">Amount (₾)</label>
+      <input class="fi" type="number" id="walAmount" min="1" placeholder="e.g. 50">
+    </div>
+    <div class="fg"><label class="fl">Reason / Note</label>
+      <input class="fi" id="walDesc" placeholder="e.g. Compensation for late arrival, Gift card">
+    </div>
+    <button class="btn btn-g" style="width:100%;justify-content:center;padding:11px;margin-top:4px" onclick="saveWalletAdjust()">Apply Adjustment</button>
   </div>
 </div>
 

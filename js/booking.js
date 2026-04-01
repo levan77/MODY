@@ -68,6 +68,18 @@ function updateSvcCart() {
     }).join("");
   }
   var total = selSvcTotal() + 5;
+  // Show wallet balance hint
+  var walletHint = ge("sbWalletHint");
+  if (user && walletHint) {
+    sb.from("client_wallets").select("balance").eq("client_id", user.id).single().then(function(wr) {
+      if (wr.data && wr.data.balance > 0) {
+        walletHint.style.display = "block";
+        walletHint.textContent = "Wallet: " + wr.data.balance + " GEL (auto-applied at checkout)";
+      } else {
+        walletHint.style.display = "none";
+      }
+    }).catch(function() { if (walletHint) walletHint.style.display = "none"; });
+  }
   var st = ge("sbT"); if (st) st.textContent = total + "₾";
   if (btn) {
     btn.textContent = "Book " + selSvcs.length + " service" + (selSvcs.length > 1 ? "s" : "") + " — " + total + "₾";
@@ -390,6 +402,17 @@ async function submitBooking() {
   var total = selSvcTotal() - promoDisc + 5;
   var pro = selSvcPro();
 
+  // Check wallet balance and auto-apply
+  var walletUsed = 0;
+  try {
+    var wRes = await sb.from("client_wallets").select("balance").eq("client_id", user.id).single();
+    if (wRes.data && wRes.data.balance > 0) {
+      walletUsed = Math.min(wRes.data.balance, total);
+      total = total - walletUsed;
+      if (total < 0) total = 0;
+    }
+  } catch(e) {}
+
   // Upload design if present
   var designUrl = null;
   var dfi = ge("designFile");
@@ -422,6 +445,38 @@ async function submitBooking() {
   var r = await sb.from("bookings").insert(bk).select().single();
   if (r.error) { toast("Booking failed: " + r.error.message, "err"); return; }
   var insertedBk = r.data || bk;
+
+  // Deduct wallet balance if used
+  if (walletUsed > 0) {
+    try {
+      var curWallet = await sb.from("client_wallets").select("balance").eq("client_id", user.id).single();
+      var newBal = (curWallet.data ? curWallet.data.balance : 0) - walletUsed;
+      await sb.from("client_wallets").update({ balance: Math.max(0, newBal), updated_at: new Date().toISOString() }).eq("client_id", user.id);
+      await sb.from("wallet_transactions").insert({
+        client_id: user.id, amount: -walletUsed, type: "booking_payment",
+        description: "Applied to booking " + (insertedBk.id || "").substring(0, 8)
+      });
+    } catch(e) {}
+  }
+
+  // Queue retention reminder
+  if (insertedBk && insertedBk.id && (settings.retention_enabled === true || settings.retention_enabled === "true")) {
+    try {
+      var retDays = parseInt(settings.retention_days) || 21;
+      var sendAt = new Date();
+      sendAt.setDate(sendAt.getDate() + retDays);
+      await sb.from("retention_queue").insert({
+        booking_id: insertedBk.id,
+        client_id: user.id,
+        client_phone: profile ? (profile.phone || "") : "",
+        client_name: profile ? profile.full_name : "",
+        service_name: selSvcNames(),
+        pro_name: pro.proName,
+        send_at: sendAt.toISOString(),
+        status: "pending"
+      });
+    } catch(e) {}
+  }
 
   // Increment promo usage counter
   if (promoApplied) {
@@ -460,6 +515,7 @@ async function submitBooking() {
   + "<div style=\"display:flex;justify-content:space-between;padding:3px 0;font-size:13px\"><span>Time</span><span>" + slot.textContent + "</span></div>"
   + "<div style=\"display:flex;justify-content:space-between;padding:3px 0;font-size:13px\"><span>Address</span><span>" + addr + "</span></div>"
   + (promoDisc > 0 ? "<div style=\"display:flex;justify-content:space-between;padding:3px 0;font-size:13px;color:#15803d\"><span>Discount</span><span>-" + promoDisc + "₾</span></div>" : "")
+  + (walletUsed > 0 ? "<div style=\"display:flex;justify-content:space-between;padding:3px 0;font-size:13px;color:#15803d\"><span>Wallet Credit</span><span>-" + walletUsed + "₾</span></div>" : "")
   + "<div style=\"display:flex;justify-content:space-between;padding:7px 0 2px;font-size:14px;font-weight:500;border-top:1px solid var(--br);margin-top:4px\"><span>Total</span><span>" + total + "₾</span></div>";
 
   openM("bkconf");
