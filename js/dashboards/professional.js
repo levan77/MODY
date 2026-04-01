@@ -458,6 +458,7 @@ async function saveSvc() {
   var dur  = parseInt(ge("sDr").value) || 60;
   if (!name) { toast("Service name is required", "err"); return; }
   if (!price) { toast("Price is required", "err"); return; }
+  if (!dur || dur < 15) { toast("Duration is required — minimum 15 minutes", "err"); return; }
 
   // Get pro_id — try profile first, then look it up
   var proId = profile ? profile.pro_id : null;

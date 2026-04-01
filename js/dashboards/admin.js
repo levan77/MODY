@@ -11,7 +11,7 @@ var adminAllBks = [];
 
 // ── TAB SWITCHER ──────────────────────────────────────────────
 function aTab(tab) {
-  ["ov","app","bks","pros","usr","cats","promo","rev","sup","set","tr","analytics","blog","mcal"].forEach(function(x) {
+  ["ov","app","bks","pros","usr","cats","promo","rev","sup","set","tr","analytics","blog","mcal","notifs"].forEach(function(x) {
     var el = ge("aTab-" + x), ni = ge("aN-" + x);
     if (el) el.classList.toggle("hide", x !== tab);
     if (ni) ni.classList.toggle("on",   x === tab);
@@ -46,6 +46,9 @@ function aTab(tab) {
   }
   if (tab === "mcal") {
     renderMasterCal();
+  }
+  if (tab === "notifs") {
+    loadAdminNotifs();
   }
 }
 
@@ -147,21 +150,160 @@ function renderAdminBks() {
               || (b.pro_name || "").toLowerCase().includes(q)
               || (b.service_name || "").toLowerCase().includes(q);
   });
-  if (!bks.length) { body.innerHTML = "<tr><td colspan=\"7\" style=\"text-align:center;padding:18px;color:var(--mu)\">No bookings found.</td></tr>"; return; }
+  if (!bks.length) { body.innerHTML = "<tr><td colspan=\"8\" style=\"text-align:center;padding:18px;color:var(--mu)\">No bookings found.</td></tr>"; return; }
   var opts = ["pending","accepted","on_the_way","arrived","in_progress","completed","cancelled","no_show","late","refunded"];
   body.innerHTML = bks.map(function(b) {
+    var dur = b.service_duration ? b.service_duration + " min" : "—";
     return "<tr>"
-         + "<td>" + (b.client_name || "—") + "</td>"
+         + "<td>" + (b.client_name || "—") + "<div style=\"font-size:10px;color:var(--mu)\">" + (b.client_phone || "") + "</div></td>"
          + "<td>" + (b.pro_name || "—") + "</td>"
-         + "<td>" + (b.service_name || "—") + "</td>"
+         + "<td>" + (b.service_name || "—") + "<div style=\"font-size:10px;color:var(--mu)\">" + dur + "</div></td>"
          + "<td>" + (b.time_slot || "ASAP") + "</td>"
          + "<td>" + (b.total || 0) + "₾</td>"
          + "<td>" + sBadge(b.status) + "</td>"
          + "<td><select class=\"fi\" style=\"font-size:12px;padding:3px 6px\" onchange=\"chBkStatus('" + b.id + "',this.value,'admin')\">"
          + "<option value=\"\">Change…</option>"
          + opts.map(function(s) { return "<option value=\"" + s + "\">" + s.replace(/_/g," ") + "</option>"; }).join("")
-         + "</select></td></tr>";
+         + "</select></td>"
+         + "<td style=\"display:flex;gap:4px;flex-wrap:wrap\">"
+         + "<button class=\"btn-sm btn-gh\" onclick=\"openAdminBkEdit('" + b.id + "','" + (b.time_slot||"").replace(/'/g,"\\'") + "')\" title=\"Edit time\">✏️</button>"
+         + "<button class=\"btn-sm btn-no\" onclick=\"chBkStatus('" + b.id + "','cancelled','admin')\" title=\"Cancel booking\">🗑</button>"
+         + "</td></tr>";
   }).join("");
+}
+
+// ── ADMIN: EDIT BOOKING TIME ──────────────────────────────
+var adminEditBkId = null;
+function openAdminBkEdit(id, currentSlot) {
+  adminEditBkId = id;
+  var parts = (currentSlot || "").split(" ");
+  var dateEl = ge("adminBkEditDate"); if (dateEl) dateEl.value = parts[0] || "";
+  var timeEl = ge("adminBkEditTime"); if (timeEl) timeEl.value = parts[1] || "";
+  openM("adminBkEdit");
+}
+
+async function saveAdminBkTime() {
+  if (!adminEditBkId) return;
+  var d = ge("adminBkEditDate").value;
+  var t = ge("adminBkEditTime").value;
+  if (!d || !t) { toast("Pick a date and time", "err"); return; }
+  try {
+    var r = await sb.from("bookings").update({ time_slot: d + " " + t }).eq("id", adminEditBkId);
+    if (r.error) throw r.error;
+    toast("Booking rescheduled!", "ok");
+    closeM("adminBkEdit");
+    loadAdminBks();
+  } catch(e) { toast("Error: " + e.message, "err"); }
+}
+
+// ── ADMIN: ADD BOOKING MANUALLY ───────────────────────────
+function openAdminAddBk() {
+  // Populate pro dropdown
+  var proSel = ge("aabProSel");
+  if (proSel && typeof allPros !== "undefined") {
+    proSel.innerHTML = "<option value=\"\">— Select Pro —</option>"
+      + allPros.filter(function(p) { return p.status === "approved"; })
+               .map(function(p) { return "<option value=\"" + p.id + "\" data-name=\"" + (p.name||"").replace(/"/g,"&quot;") + "\" data-phone=\"" + (p.phone||"") + "\">" + p.name + " (" + (p.specialty||"") + ")</option>"; }).join("");
+  }
+  ge("aabDate").value = fmtDate(new Date());
+  ge("aabClientName").value = "";
+  ge("aabClientPhone").value = "";
+  ge("aabPrice").value = "";
+  ge("aabDuration").value = "60";
+  ge("aabAddress").value = "";
+  ge("aabSvcSel").innerHTML = "<option value=\"\">— Select Service —</option>";
+  openM("adminAddBk");
+}
+
+function aabProChanged() {
+  var proSel = ge("aabProSel");
+  var proId = proSel ? proSel.value : "";
+  var svcSel = ge("aabSvcSel");
+  if (!svcSel) return;
+  svcSel.innerHTML = "<option value=\"\">— Select Service —</option>";
+  if (!proId || typeof allPros === "undefined") return;
+  var pro = allPros.find(function(p) { return p.id === proId; });
+  if (!pro || !pro.services || !pro.services.length) return;
+  pro.services.forEach(function(s) {
+    var opt = document.createElement("option");
+    opt.value = typeof s === "object" ? (s.name || s) : s;
+    opt.textContent = typeof s === "object" ? ((s.name || s) + (s.price ? " — " + s.price + "₾" : "") + (s.duration ? " (" + s.duration + "min)" : "")) : s;
+    if (typeof s === "object" && s.price) opt.dataset.price = s.price;
+    if (typeof s === "object" && s.duration) opt.dataset.dur = s.duration;
+    svcSel.appendChild(opt);
+  });
+  svcSel.onchange = function() {
+    var o = svcSel.options[svcSel.selectedIndex];
+    if (o && o.dataset.price) ge("aabPrice").value = o.dataset.price;
+    if (o && o.dataset.dur) ge("aabDuration").value = o.dataset.dur;
+  };
+}
+
+async function submitAdminAddBk() {
+  var clientName = (ge("aabClientName").value || "").trim();
+  var clientPhone = (ge("aabClientPhone").value || "").trim();
+  var proSel = ge("aabProSel");
+  var proId = proSel ? proSel.value : "";
+  var proOpt = proSel ? proSel.options[proSel.selectedIndex] : null;
+  var proName = proOpt ? (proOpt.dataset.name || proOpt.text.split(" (")[0]) : "";
+  var svcSel = ge("aabSvcSel");
+  var svcName = svcSel ? svcSel.value : "";
+  var svcPrice = parseInt(ge("aabPrice").value) || 0;
+  var svcDur = parseInt(ge("aabDuration").value) || 60;
+  var date = ge("aabDate").value;
+  var time = ge("aabTime").value;
+  var addr = (ge("aabAddress").value || "").trim();
+  if (!clientName || !proId || !svcName || !date || !time) { toast("Fill in all required fields", "err"); return; }
+  try {
+    var r = await sb.from("bookings").insert({
+      client_name: clientName, client_phone: clientPhone,
+      pro_id: proId, pro_name: proName,
+      service_name: svcName, service_price: svcPrice, service_duration: svcDur,
+      total: svcPrice, address: addr,
+      time_slot: date + " " + time, status: "accepted"
+    });
+    if (r.error) throw r.error;
+    toast("Booking added!", "ok");
+    closeM("adminAddBk");
+    loadAdminBks();
+  } catch(e) { toast("Error: " + e.message, "err"); }
+}
+
+// ── ADMIN: NOTIFICATIONS ──────────────────────────────────
+async function loadAdminNotifs() {
+  var el = ge("adminNotifList"); if (!el) return;
+  el.innerHTML = "<p style=\"color:var(--mu);font-size:13px\">Loading...</p>";
+  try {
+    var r = await sb.from("notifications").select("*").order("created_at", { ascending: false }).limit(50);
+    var list = r.data || [];
+    var unread = list.filter(function(n) { return !n.read; }).length;
+    var badge = ge("adminNotifBadge");
+    if (badge) badge.style.display = unread ? "inline-flex" : "none", badge.textContent = unread;
+    if (!list.length) { el.innerHTML = "<p style=\"color:var(--mu);font-size:13px;padding:12px 0\">No notifications yet.</p>"; return; }
+    el.innerHTML = list.map(function(n) {
+      return "<div style=\"padding:12px;border-bottom:1px solid var(--br);background:" + (n.read ? "transparent" : "rgba(234,184,183,.07)") + "\">"
+        + "<div style=\"display:flex;justify-content:space-between;align-items:flex-start;gap:8px\">"
+        + "<div style=\"font-size:13px;line-height:1.6;white-space:pre-wrap\">" + (n.message || "") + "</div>"
+        + "<button class=\"btn-sm btn-gh\" onclick=\"markNotifRead('" + n.id + "')\" style=\"flex-shrink:0\">" + (n.read ? "✓" : "Mark read") + "</button>"
+        + "</div>"
+        + "<div style=\"font-size:11px;color:var(--mu);margin-top:4px\">" + new Date(n.created_at).toLocaleString() + "</div>"
+        + "</div>";
+    }).join("");
+  } catch(e) { el.innerHTML = "<p style=\"color:#ef4444\">Error: " + e.message + "</p>"; }
+}
+
+async function markNotifRead(id) {
+  try {
+    await sb.from("notifications").update({ read: true }).eq("id", id);
+    loadAdminNotifs();
+  } catch(e) {}
+}
+
+async function markAllNotifsRead() {
+  try {
+    await sb.from("notifications").update({ read: true }).eq("read", false);
+    loadAdminNotifs();
+  } catch(e) {}
 }
 
 // ── ALL PROFESSIONALS ─────────────────────────────────────────
@@ -1241,26 +1383,21 @@ async function renderMasterCal() {
   var dateEl = ge("mcalDate");
   var timeline = ge("mcalTimeline");
   if (!dateEl || !timeline) return;
-
-  // Default to today if no date selected
   if (!dateEl.value) dateEl.value = fmtDate(new Date());
   var selDate = dateEl.value;
 
   timeline.innerHTML = "<p style=\"color:var(--mu);font-size:13px\">Loading...</p>";
 
   try {
-    // Fetch all approved professionals
     var pRes = await sb.from("professionals").select("*").eq("status", "approved");
     if (pRes.error) { timeline.innerHTML = "<p style=\"color:#ef4444\">DB error: " + pRes.error.message + "</p>"; return; }
     var pros = pRes.data || [];
-    if (!pros.length) { timeline.innerHTML = "<p style=\"color:var(--mu)\">No approved professionals found. Check that pros have status = 'approved' in the database.</p>"; return; }
+    if (!pros.length) { timeline.innerHTML = "<p style=\"color:var(--mu)\">No approved professionals yet.</p>"; return; }
 
-    // Fetch all bookings for this date
     var activeStatuses = ["pending","accepted","on_the_way","arrived","in_progress","completed"];
     var bRes = await sb.from("bookings").select("*").in("status", activeStatuses).like("time_slot", selDate + "%");
     var allBookings = bRes.data || [];
 
-    // Fetch all services for duration lookup
     var sRes = await sb.from("services").select("pro_id,name,duration");
     var svcDurMap = {};
     (sRes.data || []).forEach(function(s) {
@@ -1268,94 +1405,105 @@ async function renderMasterCal() {
       svcDurMap[s.pro_id][s.name] = s.duration || 60;
     });
 
-    // Timeline config: 8:00 to 22:00 (14 hours)
-    var startHr = 8, endHr = 22, totalMin = (endHr - startHr) * 60;
-
-    // Build header with hour markers
-    var html = "<div class=\"mcal-wrap\">";
-    html += "<div class=\"mcal-header\">";
-    html += "<div class=\"mcal-label\">Professional</div>";
-    html += "<div class=\"mcal-hours\">";
-    for (var h = startHr; h <= endHr; h++) {
-      var pct = ((h - startHr) * 60 / totalMin * 100);
-      html += "<span class=\"mcal-hr\" style=\"left:" + pct + "%\">" + String(h).padStart(2, "0") + ":00</span>";
+    // Classic day-grid calendar: rows = 30-min slots, columns = pros
+    var startHr = 8, endHr = 21;
+    var slotHeight = 56; // px per 30-min slot
+    var times = [];
+    for (var hh = startHr; hh < endHr; hh++) {
+      times.push(String(hh).padStart(2,"0") + ":00");
+      times.push(String(hh).padStart(2,"0") + ":30");
     }
-    html += "</div></div>";
 
-    // Render each pro row
+    // Status color map
+    var statusColors = {
+      pending: "#f59e0b", accepted: "#10b981", on_the_way: "#3b82f6",
+      arrived: "#8b5cf6", in_progress: "var(--g)", completed: "#6b7280",
+      cancelled: "#ef4444"
+    };
+
+    var html = "<div style=\"overflow-x:auto;overflow-y:auto;max-height:70vh\">";
+    html += "<table style=\"border-collapse:collapse;width:100%;min-width:" + (140 + pros.length * 180) + "px\">";
+
+    // Header row: pros
+    html += "<thead><tr><th style=\"width:64px;min-width:64px;background:var(--cd);position:sticky;left:0;top:0;z-index:3;border:1px solid var(--br);padding:8px;font-size:12px;color:var(--mu)\">Time</th>";
     pros.forEach(function(pro) {
-      var buffer = pro.travel_buffer || 60;
-      var arrivalBuf = 60;
-      var proBks = allBookings.filter(function(b) { return b.pro_id === pro.id; });
-      var proSvcMap = svcDurMap[pro.id] || {};
-
       var avatar = pro.avatar_url
-        ? "<img src=\"" + pro.avatar_url + "\" class=\"mcal-avatar\">"
-        : "<span class=\"mcal-avatar-emoji\">" + (pro.emoji || "💅") + "</span>";
+        ? "<img src=\"" + pro.avatar_url + "\" style=\"width:28px;height:28px;border-radius:50%;object-fit:cover;flex-shrink:0\">"
+        : "<span style=\"width:28px;height:28px;border-radius:50%;background:var(--bg2);display:inline-flex;align-items:center;justify-content:center;font-size:15px\">" + (pro.emoji||"💅") + "</span>";
+      html += "<th style=\"background:var(--cd);position:sticky;top:0;z-index:2;border:1px solid var(--br);padding:8px 6px;min-width:180px\">"
+        + "<div style=\"display:flex;align-items:center;gap:6px;justify-content:center\">"
+        + avatar
+        + "<div style=\"text-align:left\"><div style=\"font-size:13px;font-weight:600\">" + pro.name + "</div>"
+        + "<div style=\"font-size:10px;color:var(--mu)\">" + (pro.specialty||"") + "</div></div></div></th>";
+    });
+    html += "</tr></thead><tbody>";
 
-      html += "<div class=\"mcal-row\">";
-      html += "<div class=\"mcal-label\">" + avatar + "<span class=\"mcal-name\">" + pro.name + "</span></div>";
-      html += "<div class=\"mcal-track\">";
+    // Body rows: one per 30-min slot
+    times.forEach(function(tt) {
+      var sp = tt.split(":");
+      var slotMin = parseInt(sp[0]) * 60 + parseInt(sp[1]);
+      var isHour = sp[1] === "00";
+      html += "<tr style=\"height:" + slotHeight + "px\">";
+      html += "<td style=\"position:sticky;left:0;z-index:1;background:var(--cd);border:1px solid var(--br);padding:4px 6px;font-size:11px;font-weight:" + (isHour ? "600" : "400") + ";color:" + (isHour ? "var(--tx)" : "var(--mu)") + ";vertical-align:top;white-space:nowrap\">" + tt + "</td>";
 
-      if (!proBks.length) {
-        html += "<span class=\"mcal-empty\">No bookings</span>";
-      }
+      pros.forEach(function(pro) {
+        var proSvcMap = svcDurMap[pro.id] || {};
+        // Find bookings that START in this 30-min slot for this pro
+        var slotBks = allBookings.filter(function(bk) {
+          if (bk.pro_id !== pro.id) return false;
+          var parts = bk.time_slot.split(" ");
+          if (parts.length < 2) return false;
+          var btp = parts[1].split(":");
+          var bkMin = parseInt(btp[0]) * 60 + parseInt(btp[1]);
+          return bkMin === slotMin;
+        });
+        // Find bookings that SPAN through this slot (started earlier)
+        var spanBks = allBookings.filter(function(bk) {
+          if (bk.pro_id !== pro.id) return false;
+          var parts = bk.time_slot.split(" ");
+          if (parts.length < 2) return false;
+          var btp = parts[1].split(":");
+          var bkMin = parseInt(btp[0]) * 60 + parseInt(btp[1]);
+          var dur = bk.service_duration || proSvcMap[bk.service_name] || 60;
+          return bkMin < slotMin && (bkMin + dur) > slotMin;
+        });
 
-      proBks.forEach(function(bk) {
-        var parts = bk.time_slot.split(" ");
-        if (parts.length < 2) return;
-        var tp = parts[1].split(":");
-        var bkStartMin = parseInt(tp[0]) * 60 + parseInt(tp[1]);
-        var svcDuration = proSvcMap[bk.service_name] || 60;
-        var bkEndMin = bkStartMin + svcDuration;
+        html += "<td style=\"border:1px solid var(--br);padding:2px;vertical-align:top;background:" + (slotMin % 60 === 0 ? "var(--cd)" : "var(--bg)") + "\">";
 
-        // Travel buffer before (arrival buffer)
-        var bufBeforeStart = bkStartMin - arrivalBuf;
-        if (bufBeforeStart < startHr * 60) bufBeforeStart = startHr * 60;
-        var bufBeforeLeft = (bufBeforeStart - startHr * 60) / totalMin * 100;
-        var bufBeforeWidth = (bkStartMin - bufBeforeStart) / totalMin * 100;
+        slotBks.forEach(function(bk) {
+          var dur = bk.service_duration || proSvcMap[bk.service_name] || 60;
+          var rowSpan = Math.max(1, Math.ceil(dur / 30));
+          var endMin = slotMin + dur;
+          var endH = Math.floor(endMin / 60), endM = endMin % 60;
+          var endStr = String(endH).padStart(2,"0") + ":" + String(endM).padStart(2,"0");
+          var col = statusColors[bk.status] || "var(--g)";
+          var bkJson = JSON.stringify(bk).replace(/"/g,"&quot;");
+          html += "<div onclick=\"openBkDetail(" + bkJson.replace(/&quot;/g,"'") + ",'admin')\" style=\"background:" + col + ";color:#fff;border-radius:6px;padding:5px 7px;font-size:11px;line-height:1.4;cursor:pointer;min-height:" + (rowSpan * slotHeight - 6) + "px;overflow:hidden;margin-bottom:2px\" title=\"" + (bk.client_name||"") + " — " + (bk.service_name||"") + "\">"
+            + "<div style=\"font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis\">" + (bk.client_name||"Client") + "</div>"
+            + "<div style=\"opacity:.9;overflow:hidden;text-overflow:ellipsis;white-space:nowrap\">" + (bk.service_name||"") + "</div>"
+            + "<div style=\"opacity:.8;font-size:10px\">" + tt + "–" + endStr + (dur > 30 ? " · " + dur + "min" : "") + "</div>"
+            + "<div style=\"opacity:.75;font-size:10px\">" + (bk.status||"").replace(/_/g," ") + "</div>"
+            + "</div>";
+        });
 
-        // Working time block
-        var workLeft = (bkStartMin - startHr * 60) / totalMin * 100;
-        var workWidth = svcDuration / totalMin * 100;
-
-        // Travel buffer after
-        var bufAfterEnd = bkEndMin + buffer;
-        if (bufAfterEnd > endHr * 60) bufAfterEnd = endHr * 60;
-        var bufAfterLeft = (bkEndMin - startHr * 60) / totalMin * 100;
-        var bufAfterWidth = (bufAfterEnd - bkEndMin) / totalMin * 100;
-
-        var startTime = parts[1];
-        var endH = Math.floor(bkEndMin / 60), endM = bkEndMin % 60;
-        var endTime = String(endH).padStart(2, "0") + ":" + String(endM).padStart(2, "0");
-
-        // Arrival buffer block (purple)
-        if (bufBeforeWidth > 0) {
-          html += "<div class=\"mcal-block mcal-buf\" style=\"left:" + bufBeforeLeft + "%;width:" + bufBeforeWidth + "%\" title=\"Arrival buffer: " + arrivalBuf + " min before\">"
-            + "<span class=\"mcal-blk-txt\">🚗</span></div>";
+        if (spanBks.length) {
+          spanBks.forEach(function(bk) {
+            html += "<div style=\"height:" + (slotHeight - 6) + "px;border-left:3px solid " + (statusColors[bk.status]||"var(--g)") + ";background:rgba(0,0,0,.03);border-radius:0 4px 4px 0;margin:1px 0\"></div>";
+          });
         }
 
-        // Working time block (gold)
-        html += "<div class=\"mcal-block mcal-work\" style=\"left:" + workLeft + "%;width:" + workWidth + "%\" title=\"" + bk.service_name + " — " + startTime + " to " + endTime + "\">"
-          + "<span class=\"mcal-blk-txt\">" + (bk.client_name || "Client") + " · " + bk.service_name + "<br>" + startTime + "–" + endTime
-          + (bk.address ? "<br>📍 " + bk.address : "") + "</span></div>";
-
-        // Travel buffer after block (purple)
-        if (bufAfterWidth > 0) {
-          html += "<div class=\"mcal-block mcal-buf\" style=\"left:" + bufAfterLeft + "%;width:" + bufAfterWidth + "%\" title=\"Travel buffer: " + buffer + " min after\">"
-            + "<span class=\"mcal-blk-txt\">🚗</span></div>";
-        }
+        html += "</td>";
       });
-
-      html += "</div></div>";
+      html += "</tr>";
     });
 
-    html += "</div>";
+    html += "</tbody></table></div>";
 
     // Legend
-    html += "<div style=\"display:flex;gap:16px;margin-top:12px;font-size:12px;color:var(--mu)\">"
-      + "<span><span style=\"display:inline-block;width:14px;height:14px;background:var(--g);border-radius:3px;vertical-align:middle;margin-right:4px\"></span> Working Time</span>"
-      + "<span><span style=\"display:inline-block;width:14px;height:14px;background:#7e22ce;border-radius:3px;vertical-align:middle;margin-right:4px\"></span> Travel / Gap Buffer</span>"
+    html += "<div style=\"display:flex;gap:12px;margin-top:12px;font-size:11px;flex-wrap:wrap\">"
+      + Object.keys(statusColors).map(function(s) {
+          return "<span style=\"display:inline-flex;align-items:center;gap:4px\"><span style=\"width:12px;height:12px;border-radius:3px;background:" + statusColors[s] + ";display:inline-block\"></span>" + s.replace(/_/g," ") + "</span>";
+        }).join("")
       + "</div>";
 
     timeline.innerHTML = html;

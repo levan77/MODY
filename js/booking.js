@@ -247,12 +247,12 @@ async function buildTimeSlots() {
 
       // Get all active bookings for this pro on the selected date
       var activeStatuses = ["pending","accepted","on_the_way","arrived","in_progress"];
-      var bRes = await sb.from("bookings").select("time_slot,service_name")
+      var bRes = await sb.from("bookings").select("time_slot,service_name,service_duration")
         .eq("pro_id", proId).in("status", activeStatuses)
         .like("time_slot", bkSelDateStr + "%");
       var bookings = (bRes.data || []);
 
-      // Get service durations for booked services
+      // Get service durations for booked services (fallback for old bookings without service_duration)
       var svcRes = await sb.from("services").select("name,duration").eq("pro_id", proId);
       var svcMap = {};
       (svcRes.data || []).forEach(function(s) { svcMap[s.name] = s.duration || 60; });
@@ -263,7 +263,7 @@ async function buildTimeSlots() {
         if (parts.length < 2) return;
         var tp = parts[1].split(":");
         var bkStartMin = parseInt(tp[0]) * 60 + parseInt(tp[1]); // minutes from midnight
-        var bkDuration = svcMap[bk.service_name] || 60;
+        var bkDuration = bk.service_duration || svcMap[bk.service_name] || 60;
         var bkEndMin = bkStartMin + bkDuration;
         // Blocked zone: [bkStartMin - arrivalBuffer - travelBuffer, bkEndMin + travelBuffer]
         var blockStart = bkStartMin - arrivalBuffer - travelBuffer;
@@ -337,7 +337,7 @@ async function submitBooking() {
       var arrBuf = 60; // arrival buffer
       var svcDur = selSvcDuration();
 
-      var bkCheck = await sb.from("bookings").select("time_slot,service_name")
+      var bkCheck = await sb.from("bookings").select("time_slot,service_name,service_duration")
         .eq("pro_id", proId).in("status", activeStatuses)
         .like("time_slot", bkSelDateStr + "%");
 
@@ -354,7 +354,7 @@ async function submitBooking() {
         if (parts.length < 2) return false;
         var bt = parts[1].split(":");
         var exStart = parseInt(bt[0]) * 60 + parseInt(bt[1]);
-        var exDur = durMap[bk.service_name] || 60;
+        var exDur = bk.service_duration || durMap[bk.service_name] || 60;
         var exEnd = exStart + exDur;
         // Check overlap with buffers
         return (newEnd + travelBuf > exStart - arrBuf) && (newStart - arrBuf < exEnd + travelBuf);
@@ -395,11 +395,13 @@ async function submitBooking() {
     notes:                 ge("bkNotes").value,
     selected_nail_colors:  selNailColors.length ? JSON.stringify(selNailColors) : null,
     design_url:            designUrl,
+    service_duration:      selSvcDuration(),
     status:                "pending"
   };
 
-  var r = await sb.from("bookings").insert(bk);
+  var r = await sb.from("bookings").insert(bk).select().single();
   if (r.error) { toast("Booking failed: " + r.error.message, "err"); return; }
+  var insertedBk = r.data || bk;
 
   // Increment promo usage counter
   if (promoApplied) {
@@ -407,6 +409,22 @@ async function submitBooking() {
       await sb.from("promo_codes")
         .update({ used_count: (promoApplied.used_count || 0) + 1 })
         .eq("id", promoApplied.id);
+    } catch(e) {}
+  }
+
+  // Check for simultaneous multi-pro bookings (same client, same day, different pro)
+  if (user && proId) {
+    try {
+      var sameDay = bk.time_slot.split(" ")[0];
+      var simCheck = await sb.from("bookings")
+        .select("id,pro_name,service_name,time_slot")
+        .eq("client_id", user.id)
+        .neq("pro_id", proId)
+        .like("time_slot", sameDay + "%")
+        .in("status", ["pending","accepted"]);
+      if (simCheck.data && simCheck.data.length) {
+        notifyAdminSimultaneous(insertedBk, simCheck.data);
+      }
     } catch(e) {}
   }
 
@@ -428,7 +446,7 @@ async function submitBooking() {
   toast(t("bookingOk"), "ok");
 
   // Twilio notification for new booking
-  twilioNotifyBooking(bk, "new_booking");
+  twilioNotifyBooking(insertedBk, "new_booking");
 }
 
 // ── BOOKING DETAIL MODAL ──────────────────────────────────────

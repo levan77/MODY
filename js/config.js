@@ -204,6 +204,7 @@ async function loadSettings() {
   var stt = ge("setTwilioToken");   if (stt) stt.value = settings.twilio_auth_token || "";
   var stf = ge("setTwilioFrom");    if (stf) stf.value = settings.twilio_from_number || "";
   var stc = ge("setTwilioChannel"); if (stc) stc.value = settings.twilio_channel || "sms";
+  var sap = ge("setAdminPhone");    if (sap) sap.value = settings.admin_phone || "";
   // Apply accent color if saved
   if (settings.accent_color) {
     var sac = ge("setAccentColor"); if (sac) sac.value = settings.accent_color;
@@ -257,6 +258,10 @@ var SETUP_SQL = [
   "create table if not exists public.messages (id uuid default gen_random_uuid() primary key, thread_id text not null, thread_type text default 'booking', sender_id uuid references auth.users(id), sender_name text, sender_role text, content text not null, created_at timestamptz default now());",
   "create table if not exists public.support_tickets (id uuid default gen_random_uuid() primary key, user_id uuid references auth.users(id), user_name text, user_role text, subject text not null, status text default 'open', priority text default 'normal', created_at timestamptz default now());",
   "create table if not exists public.platform_settings (key text primary key, value text);",
+  "create table if not exists public.notifications (id uuid default gen_random_uuid() primary key, type text not null, message text not null, data jsonb, read boolean default false, created_at timestamptz default now());",
+  "alter table public.notifications enable row level security;",
+  "grant all on public.notifications to anon, authenticated;",
+  "alter table public.bookings add column if not exists service_duration integer default 60;",
   "create table if not exists public.pro_locations (booking_id uuid primary key, pro_id uuid references public.professionals(id) on delete cascade, lat numeric not null, lng numeric not null, updated_at timestamptz default now());",
   "",
   "alter table public.profiles enable row level security;",

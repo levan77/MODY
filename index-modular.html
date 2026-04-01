@@ -623,6 +623,7 @@
       <button class="ni" id="aN-set" onclick="aTab('set')">⚙️ Settings</button>
       <button class="ni" id="aN-tr" onclick="aTab('tr')">🌐 Translations</button>
       <button class="ni" id="aN-mcal" onclick="aTab('mcal')">📅 Master Calendar</button>
+      <button class="ni" id="aN-notifs" onclick="aTab('notifs')">🔔 Notifications <span id="adminNotifBadge" style="background:rgba(234,184,183,.2);color:#C9918F;padding:1px 6px;border-radius:50px;font-size:11px;margin-left:2px;display:none">0</span></button>
       <button class="ni" id="aN-analytics" onclick="aTab('analytics')">📈 Analytics</button>
       <button class="ni" id="aN-blog" onclick="aTab('blog')">📝 Blog / Pages</button>
     </div>
@@ -647,8 +648,14 @@
       </div>
       <div id="aTab-bks" class="hide">
         <div class="card">
-          <div class="c-hdr"><h3>All Bookings</h3><input class="fi" id="bkSearch" placeholder="Search..." style="width:180px;padding:6px 10px;font-size:13px" oninput="renderAdminBks()"></div>
-          <div class="tw"><table class="tbl"><thead><tr><th>Client</th><th>Pro</th><th>Service</th><th>Time</th><th>Total</th><th>Status</th><th>Action</th></tr></thead><tbody id="aAllBkBody"></tbody></table></div>
+          <div class="c-hdr">
+            <h3>All Bookings</h3>
+            <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+              <input class="fi" id="bkSearch" placeholder="Search..." style="width:160px;padding:6px 10px;font-size:13px" oninput="renderAdminBks()">
+              <button class="btn btn-g" style="font-size:13px" onclick="openAdminAddBk()">+ Add Booking</button>
+            </div>
+          </div>
+          <div class="tw"><table class="tbl"><thead><tr><th>Client</th><th>Pro</th><th>Service</th><th>Time</th><th>Total</th><th>Status</th><th></th><th>Actions</th></tr></thead><tbody id="aAllBkBody"></tbody></table></div>
         </div>
       </div>
       <div id="aTab-pros" class="hide">
@@ -861,6 +868,14 @@
               </select>
             </div>
           </div>
+          <div style="padding:10px 0;border-bottom:1px solid var(--br)">
+            <div style="font-weight:500;font-size:14px;margin-bottom:6px">Admin Phone Number</div>
+            <div style="font-size:12px;color:var(--mu);margin-bottom:4px">Receive simultaneous-booking alerts and admin notifications</div>
+            <div style="display:flex;gap:6px">
+              <input class="fi" id="setAdminPhone" type="text" style="flex:1" placeholder="+995599...">
+              <button class="btn btn-g" style="font-size:13px" onclick="saveSetting('admin_phone',document.getElementById('setAdminPhone').value)">Save</button>
+            </div>
+          </div>
           <div style="padding:10px 0;border-top:1px solid var(--br);display:flex;gap:8px">
             <button class="btn btn-g" style="font-size:13px" onclick="testTwilio()">📱 Send Test Message</button>
           </div>
@@ -971,10 +986,22 @@
             <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
               <input type="date" class="fi" id="mcalDate" style="width:160px;padding:6px 10px;font-size:13px" onchange="renderMasterCal()">
               <button class="btn btn-g" style="font-size:12px" onclick="ge('mcalDate').value=fmtDate(new Date());renderMasterCal()">Today</button>
+              <button class="btn btn-o" style="font-size:12px" onclick="openAdminAddBk()">+ Add Booking</button>
             </div>
           </div>
-          <p style="font-size:13px;color:var(--mu);margin-bottom:14px">See every professional's schedule on one timeline. <strong style="color:var(--g)">Gold</strong> = working time. <strong style="color:#7e22ce">Purple</strong> = travel/gap buffer.</p>
-          <div id="mcalTimeline"><p style="color:var(--mu);font-size:13px">Select a date above to view the timeline.</p></div>
+          <div id="mcalTimeline"><p style="color:var(--mu);font-size:13px">Select a date above to view the schedule.</p></div>
+        </div>
+      </div>
+      <div id="aTab-notifs" class="hide">
+        <div class="card">
+          <div class="c-hdr">
+            <h3>🔔 Admin Notifications</h3>
+            <div style="display:flex;gap:6px">
+              <button class="btn btn-g" style="font-size:13px" onclick="loadAdminNotifs()">↻ Refresh</button>
+              <button class="btn" style="font-size:13px;background:var(--bg2);border:1px solid var(--br)" onclick="markAllNotifsRead()">Mark all read</button>
+            </div>
+          </div>
+          <div id="adminNotifList"><p style="color:var(--mu);font-size:13px;padding:16px 0">Loading...</p></div>
         </div>
       </div>
     </div>
@@ -1309,6 +1336,74 @@
   </div>
 </div>
 
+
+<!-- ══ MODAL: ADMIN EDIT BOOKING TIME ══ -->
+<div class="mbg" id="modal-adminBkEdit">
+  <div class="mbox">
+    <button class="mx" onclick="closeM('adminBkEdit')">✕</button>
+    <h2 style="font-size:20px;font-weight:300;margin-bottom:14px">✏️ Edit Booking Time</h2>
+    <input type="hidden" id="adminBkEditId">
+    <div class="fg"><label class="fl">New Date</label><input class="fi" type="date" id="adminBkEditDate"></div>
+    <div class="fg"><label class="fl">New Time</label>
+      <select class="fi" id="adminBkEditTime">
+        <option value="08:00">08:00</option><option value="08:30">08:30</option>
+        <option value="09:00">09:00</option><option value="09:30">09:30</option>
+        <option value="10:00">10:00</option><option value="10:30">10:30</option>
+        <option value="11:00">11:00</option><option value="11:30">11:30</option>
+        <option value="12:00">12:00</option><option value="12:30">12:30</option>
+        <option value="13:00">13:00</option><option value="13:30">13:30</option>
+        <option value="14:00">14:00</option><option value="14:30">14:30</option>
+        <option value="15:00">15:00</option><option value="15:30">15:30</option>
+        <option value="16:00">16:00</option><option value="16:30">16:30</option>
+        <option value="17:00">17:00</option><option value="17:30">17:30</option>
+        <option value="18:00">18:00</option><option value="18:30">18:30</option>
+        <option value="19:00">19:00</option><option value="19:30">19:30</option>
+        <option value="20:00">20:00</option><option value="20:30">20:30</option>
+      </select>
+    </div>
+    <button class="btn btn-g" style="width:100%;justify-content:center;padding:11px;margin-top:4px" onclick="saveAdminBkTime()">💾 Save New Time</button>
+  </div>
+</div>
+
+<!-- ══ MODAL: ADMIN ADD BOOKING ══ -->
+<div class="mbg" id="modal-adminAddBk">
+  <div class="mbox" style="max-width:520px">
+    <button class="mx" onclick="closeM('adminAddBk')">✕</button>
+    <h2 style="font-size:20px;font-weight:300;margin-bottom:14px">+ Add Booking</h2>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      <div class="fg"><label class="fl">Client Name</label><input class="fi" id="aabClientName" placeholder="Full name"></div>
+      <div class="fg"><label class="fl">Client Phone</label><input class="fi" id="aabClientPhone" placeholder="+995..."></div>
+      <div class="fg" style="grid-column:1/-1"><label class="fl">Professional</label>
+        <select class="fi" id="aabProSel" onchange="aabProChanged()"><option value="">— Select Pro —</option></select>
+      </div>
+      <div class="fg" style="grid-column:1/-1"><label class="fl">Service</label>
+        <select class="fi" id="aabSvcSel"><option value="">— Select Service —</option></select>
+      </div>
+      <div class="fg"><label class="fl">Price (₾)</label><input class="fi" type="number" id="aabPrice" min="0" placeholder="0"></div>
+      <div class="fg"><label class="fl">Duration (min)</label><input class="fi" type="number" id="aabDuration" min="15" value="60"></div>
+      <div class="fg"><label class="fl">Date</label><input class="fi" type="date" id="aabDate"></div>
+      <div class="fg"><label class="fl">Time</label>
+        <select class="fi" id="aabTime">
+          <option value="08:00">08:00</option><option value="08:30">08:30</option>
+          <option value="09:00">09:00</option><option value="09:30">09:30</option>
+          <option value="10:00">10:00</option><option value="10:30">10:30</option>
+          <option value="11:00">11:00</option><option value="11:30">11:30</option>
+          <option value="12:00">12:00</option><option value="12:30">12:30</option>
+          <option value="13:00">13:00</option><option value="13:30">13:30</option>
+          <option value="14:00">14:00</option><option value="14:30">14:30</option>
+          <option value="15:00">15:00</option><option value="15:30">15:30</option>
+          <option value="16:00">16:00</option><option value="16:30">16:30</option>
+          <option value="17:00">17:00</option><option value="17:30">17:30</option>
+          <option value="18:00">18:00</option><option value="18:30">18:30</option>
+          <option value="19:00">19:00</option><option value="19:30">19:30</option>
+          <option value="20:00">20:00</option><option value="20:30">20:30</option>
+        </select>
+      </div>
+      <div class="fg" style="grid-column:1/-1"><label class="fl">Address / Notes</label><input class="fi" id="aabAddress" placeholder="Delivery address or notes..."></div>
+    </div>
+    <button class="btn btn-g" style="width:100%;justify-content:center;padding:11px;margin-top:8px" onclick="submitAdminAddBk()">✅ Create Booking</button>
+  </div>
+</div>
 
 <!-- App JavaScript (load order matters — no ES modules, global namespace) -->
 <script src="js/config.js"></script>

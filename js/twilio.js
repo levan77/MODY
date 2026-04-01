@@ -143,3 +143,39 @@ async function testTwilio() {
     toast("Twilio test failed: " + e.message, "err");
   }
 }
+
+// ── SIMULTANEOUS MULTI-PRO BOOKING ALERT ──────────────────
+async function notifyAdminSimultaneous(newBk, otherBks) {
+  var adminPhone = settings.admin_phone || "";
+  var msg = "⚠️ MODY: " + (newBk.client_name || "A client") + " has booked MULTIPLE professionals simultaneously on " + (newBk.time_slot || "").split(" ")[0] + ":\n"
+    + "NEW: " + newBk.pro_name + " — " + newBk.service_name + " at " + (newBk.time_slot || "").split(" ")[1] + "\n"
+    + otherBks.map(function(b) { return "ALSO: " + b.pro_name + " — " + b.service_name + " at " + (b.time_slot || "").split(" ")[1]; }).join("\n");
+
+  // Send SMS to admin
+  if (adminPhone && settings.twilio_account_sid && settings.twilio_auth_token && settings.twilio_from_number) {
+    var sid = settings.twilio_account_sid;
+    var token = settings.twilio_auth_token;
+    var from = settings.twilio_from_number;
+    var channel = settings.twilio_channel || "sms";
+    var clean = adminPhone.replace(/[\s\-()]/g, "");
+    if (!clean.startsWith("+")) { clean = clean.replace(/^0+/, ""); if (!clean.startsWith("995")) clean = "995" + clean; clean = "+" + clean; }
+    var to = channel === "whatsapp" ? "whatsapp:" + clean : clean;
+    var fromNum = channel === "whatsapp" ? "whatsapp:" + from : from;
+    try {
+      await fetch("https://api.twilio.com/2010-04-01/Accounts/" + sid + "/Messages.json", {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded", "Authorization": "Basic " + btoa(sid + ":" + token) },
+        body: "To=" + encodeURIComponent(to) + "&From=" + encodeURIComponent(fromNum) + "&Body=" + encodeURIComponent(msg)
+      });
+    } catch(e) {}
+  }
+
+  // Save to notifications table for admin panel
+  try {
+    await sb.from("notifications").insert({
+      type: "simultaneous_booking",
+      message: msg,
+      data: { new_booking: newBk, other_bookings: otherBks }
+    });
+  } catch(e) {}
+}
