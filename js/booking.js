@@ -71,7 +71,7 @@ function updateSvcCart() {
   // Show wallet balance hint
   var walletHint = ge("sbWalletHint");
   if (user && walletHint) {
-    sb.from("client_wallets").select("balance").eq("client_id", user.id).single().then(function(wr) {
+    sb.from("client_wallets").select("balance").eq("client_id", user.id).maybeSingle().then(function(wr) {
       if (wr.data && wr.data.balance > 0) {
         walletHint.style.display = "block";
         walletHint.textContent = "Wallet: " + wr.data.balance + " GEL (auto-applied at checkout)";
@@ -405,7 +405,7 @@ async function submitBooking() {
   // Check wallet balance and auto-apply
   var walletUsed = 0;
   try {
-    var wRes = await sb.from("client_wallets").select("balance").eq("client_id", user.id).single();
+    var wRes = await sb.from("client_wallets").select("balance").eq("client_id", user.id).maybeSingle();
     if (wRes.data && wRes.data.balance > 0) {
       walletUsed = Math.min(wRes.data.balance, total);
       total = total - walletUsed;
@@ -449,7 +449,7 @@ async function submitBooking() {
   // Deduct wallet balance if used
   if (walletUsed > 0) {
     try {
-      var curWallet = await sb.from("client_wallets").select("balance").eq("client_id", user.id).single();
+      var curWallet = await sb.from("client_wallets").select("balance").eq("client_id", user.id).maybeSingle();
       var newBal = (curWallet.data ? curWallet.data.balance : 0) - walletUsed;
       await sb.from("client_wallets").update({ balance: Math.max(0, newBal), updated_at: new Date().toISOString() }).eq("client_id", user.id);
       await sb.from("wallet_transactions").insert({

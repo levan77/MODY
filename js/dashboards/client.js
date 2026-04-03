@@ -58,7 +58,7 @@ async function loadClientDash() {
 
   // Wallet balance
   try {
-    var wRes = await sb.from("client_wallets").select("balance").eq("client_id", user.id).single();
+    var wRes = await sb.from("client_wallets").select("balance").eq("client_id", user.id).maybeSingle();
     var wBal = (wRes.data && wRes.data.balance) ? wRes.data.balance : 0;
     var wEl = ge("cWalletBal");
     if (wEl) { wEl.textContent = wBal + "₾"; wEl.parentElement.style.display = wBal > 0 ? "" : "none"; }

@@ -991,14 +991,16 @@ footer        { background: #1A1A1A; color: rgba(255,255,255,.4); padding: 38px 
 
 <!-- LOADING SCREEN -->
 <div id="loadingScreen" style="position:fixed;inset:0;z-index:99999;background:#FAF8F5;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity .5s">
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 120" style="width:220px;margin-bottom:20px">
-    <text x="0" y="95" font-family="'Jost',sans-serif" font-size="110" font-weight="400" fill="#2d2d2d" letter-spacing="8">M</text>
-    <circle cx="152" cy="60" r="38" fill="none" stroke="#C9918F" stroke-width="8"/>
-    <line x1="142" y1="78" x2="155" y2="42" stroke="#C4A85A" stroke-width="2.5" stroke-linecap="round"/>
-    <line x1="149" y1="78" x2="162" y2="42" stroke="#C4A85A" stroke-width="2.5" stroke-linecap="round"/>
-    <text x="195" y="95" font-family="'Jost',sans-serif" font-size="110" font-weight="400" fill="#2d2d2d" letter-spacing="8">DY</text>
-  </svg>
-  <div style="width:40px;height:40px;border:3px solid rgba(201,145,143,.2);border-top-color:#C9918F;border-radius:50%;animation:spin 1s linear infinite"></div>
+  <div style="display:flex;flex-direction:column;align-items:center">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 120" style="width:200px;margin-bottom:24px">
+      <text x="0" y="95" font-family="'Jost',sans-serif" font-size="110" font-weight="400" fill="#2d2d2d" letter-spacing="8">M</text>
+      <circle cx="152" cy="60" r="38" fill="none" stroke="#C9918F" stroke-width="8"/>
+      <line x1="142" y1="78" x2="155" y2="42" stroke="#C4A85A" stroke-width="2.5" stroke-linecap="round"/>
+      <line x1="149" y1="78" x2="162" y2="42" stroke="#C4A85A" stroke-width="2.5" stroke-linecap="round"/>
+      <text x="195" y="95" font-family="'Jost',sans-serif" font-size="110" font-weight="400" fill="#2d2d2d" letter-spacing="8">DY</text>
+    </svg>
+    <div style="width:36px;height:36px;border:3px solid rgba(201,145,143,.2);border-top-color:#C9918F;border-radius:50%;animation:spin 1s linear infinite"></div>
+  </div>
   <style>@keyframes spin{to{transform:rotate(360deg)}}</style>
 </div>
 
@@ -5139,7 +5141,7 @@ function updateSvcCart() {
   // Show wallet balance hint
   var walletHint = ge("sbWalletHint");
   if (user && walletHint) {
-    sb.from("client_wallets").select("balance").eq("client_id", user.id).single().then(function(wr) {
+    sb.from("client_wallets").select("balance").eq("client_id", user.id).maybeSingle().then(function(wr) {
       if (wr.data && wr.data.balance > 0) {
         walletHint.style.display = "block";
         walletHint.textContent = "Wallet: " + wr.data.balance + " GEL (auto-applied at checkout)";
@@ -5473,7 +5475,7 @@ async function submitBooking() {
   // Check wallet balance and auto-apply
   var walletUsed = 0;
   try {
-    var wRes = await sb.from("client_wallets").select("balance").eq("client_id", user.id).single();
+    var wRes = await sb.from("client_wallets").select("balance").eq("client_id", user.id).maybeSingle();
     if (wRes.data && wRes.data.balance > 0) {
       walletUsed = Math.min(wRes.data.balance, total);
       total = total - walletUsed;
@@ -5517,7 +5519,7 @@ async function submitBooking() {
   // Deduct wallet balance if used
   if (walletUsed > 0) {
     try {
-      var curWallet = await sb.from("client_wallets").select("balance").eq("client_id", user.id).single();
+      var curWallet = await sb.from("client_wallets").select("balance").eq("client_id", user.id).maybeSingle();
       var newBal = (curWallet.data ? curWallet.data.balance : 0) - walletUsed;
       await sb.from("client_wallets").update({ balance: Math.max(0, newBal), updated_at: new Date().toISOString() }).eq("client_id", user.id);
       await sb.from("wallet_transactions").insert({
@@ -6051,7 +6053,7 @@ async function loadClientDash() {
 
   // Wallet balance
   try {
-    var wRes = await sb.from("client_wallets").select("balance").eq("client_id", user.id).single();
+    var wRes = await sb.from("client_wallets").select("balance").eq("client_id", user.id).maybeSingle();
     var wBal = (wRes.data && wRes.data.balance) ? wRes.data.balance : 0;
     var wEl = ge("cWalletBal");
     if (wEl) { wEl.textContent = wBal + "₾"; wEl.parentElement.style.display = wBal > 0 ? "" : "none"; }
@@ -8648,7 +8650,7 @@ async function saveWalletAdjust() {
 
   try {
     // Get current balance
-    var cur = await sb.from("client_wallets").select("balance").eq("client_id", clientId).single();
+    var cur = await sb.from("client_wallets").select("balance").eq("client_id", clientId).maybeSingle();
     var newBal = (cur.data ? cur.data.balance : 0) + delta;
     if (newBal < 0) { toast("Balance cannot go below 0", "err"); return; }
 

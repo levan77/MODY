@@ -1888,7 +1888,7 @@ async function saveWalletAdjust() {
 
   try {
     // Get current balance
-    var cur = await sb.from("client_wallets").select("balance").eq("client_id", clientId).single();
+    var cur = await sb.from("client_wallets").select("balance").eq("client_id", clientId).maybeSingle();
     var newBal = (cur.data ? cur.data.balance : 0) + delta;
     if (newBal < 0) { toast("Balance cannot go below 0", "err"); return; }
 
