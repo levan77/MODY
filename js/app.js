@@ -39,6 +39,10 @@ async function init() {
     updateNav();
   }
 
+  // Dismiss loading screen
+  var ls = ge("loadingScreen");
+  if (ls) { ls.style.opacity = "0"; setTimeout(function() { ls.remove(); }, 500); }
+
   // Listen for future auth changes
   sb.auth.onAuthStateChange(async function(event, session) {
     if (event === "SIGNED_IN" && session && session.user && !user) {

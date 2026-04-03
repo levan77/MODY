@@ -56,6 +56,16 @@ async function loadClientDash() {
   if (ge("cS2")) ge("cS2").textContent = upcoming.length;
   if (ge("cS3")) ge("cS3").textContent = done.length;
 
+  // Wallet balance
+  try {
+    var wRes = await sb.from("client_wallets").select("balance").eq("client_id", user.id).single();
+    var wBal = (wRes.data && wRes.data.balance) ? wRes.data.balance : 0;
+    var wEl = ge("cWalletBal");
+    if (wEl) { wEl.textContent = wBal + "₾"; wEl.parentElement.style.display = wBal > 0 ? "" : "none"; }
+  } catch(e) {
+    var wEl2 = ge("cWalletBal"); if (wEl2) wEl2.parentElement.style.display = "none";
+  }
+
   // ── Arrival & On-the-Way Banners ──
   var bannerEl = ge("cArrivalBanner");
   if (bannerEl) {

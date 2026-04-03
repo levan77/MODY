@@ -890,7 +890,15 @@ footer        { background: #1A1A1A; color: rgba(255,255,255,.4); padding: 38px 
 
   /* Grids */
   .cat-grid    { grid-template-columns: repeat(2, 1fr); }
-  .pros-grid   { grid-template-columns: 1fr; }
+  .pros-grid   { grid-template-columns: 1fr; gap: 8px; }
+  .pros-grid .pro-card { display: grid; grid-template-columns: 100px 1fr; }
+  .pros-grid .pro-card .pro-img { height: 100%; min-height: 100px; }
+  .pros-grid .pro-card .pro-img + div { padding: 10px 12px; }
+  .pros-grid .pro-card .pro-img + div > div:first-child { margin-bottom: 3px; }
+  .pros-grid .pro-card .pro-img + div > div:first-child > div:first-child { font-size: 20px; }
+  .pros-grid .pro-card .pro-img + div > div:nth-child(2) { font-size: 13px; margin-bottom: 4px; }
+  .pros-grid .pro-card .pro-img + div > div:last-child { font-size: 13px; }
+  .pros-grid .pro-card .pro-img + div > div:last-child strong { font-size: 16px; }
   .stats       { grid-template-columns: 1fr 1fr; }
   .footer-grid { grid-template-columns: 1fr; }
   .port-grid   { grid-template-columns: repeat(2, 1fr); }
@@ -980,6 +988,19 @@ footer        { background: #1A1A1A; color: rgba(255,255,255,.4); padding: 38px 
 </head>
 <body>
 <body>
+
+<!-- LOADING SCREEN -->
+<div id="loadingScreen" style="position:fixed;inset:0;z-index:99999;background:#FAF8F5;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity .5s">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 120" style="width:220px;margin-bottom:20px">
+    <text x="0" y="95" font-family="'Jost',sans-serif" font-size="110" font-weight="400" fill="#2d2d2d" letter-spacing="8">M</text>
+    <circle cx="152" cy="60" r="38" fill="none" stroke="#C9918F" stroke-width="8"/>
+    <line x1="142" y1="78" x2="155" y2="42" stroke="#C4A85A" stroke-width="2.5" stroke-linecap="round"/>
+    <line x1="149" y1="78" x2="162" y2="42" stroke="#C4A85A" stroke-width="2.5" stroke-linecap="round"/>
+    <text x="195" y="95" font-family="'Jost',sans-serif" font-size="110" font-weight="400" fill="#2d2d2d" letter-spacing="8">DY</text>
+  </svg>
+  <div style="width:40px;height:40px;border:3px solid rgba(201,145,143,.2);border-top-color:#C9918F;border-radius:50%;animation:spin 1s linear infinite"></div>
+  <style>@keyframes spin{to{transform:rotate(360deg)}}</style>
+</div>
 
 <!-- PART 2: HTML BODY -->
 <div id="toast"></div>
@@ -1319,6 +1340,7 @@ footer        { background: #1A1A1A; color: rgba(255,255,255,.4); padding: 38px 
           <div class="st"><div class="st-v" id="cS1">0</div><div class="st-l" id="cSL1"></div></div>
           <div class="st"><div class="st-v" id="cS2">0</div><div class="st-l" id="cSL2"></div></div>
           <div class="st"><div class="st-v" id="cS3">0</div><div class="st-l" id="cSL3"></div></div>
+          <div class="st" style="display:none"><div class="st-v" style="color:#15803d" id="cWalletBal">0₾</div><div class="st-l">Wallet</div></div>
         </div>
         <div class="card">
           <div class="c-hdr"><h3 id="cdBkHdr"></h3><button class="btn btn-g" id="cdNewBtn" style="font-size:12px" onclick="show('list')"></button></div>
@@ -6027,6 +6049,16 @@ async function loadClientDash() {
   if (ge("cS2")) ge("cS2").textContent = upcoming.length;
   if (ge("cS3")) ge("cS3").textContent = done.length;
 
+  // Wallet balance
+  try {
+    var wRes = await sb.from("client_wallets").select("balance").eq("client_id", user.id).single();
+    var wBal = (wRes.data && wRes.data.balance) ? wRes.data.balance : 0;
+    var wEl = ge("cWalletBal");
+    if (wEl) { wEl.textContent = wBal + "₾"; wEl.parentElement.style.display = wBal > 0 ? "" : "none"; }
+  } catch(e) {
+    var wEl2 = ge("cWalletBal"); if (wEl2) wEl2.parentElement.style.display = "none";
+  }
+
   // ── Arrival & On-the-Way Banners ──
   var bannerEl = ge("cArrivalBanner");
   if (bannerEl) {
@@ -6697,6 +6729,10 @@ async function init() {
   } catch(e) {
     updateNav();
   }
+
+  // Dismiss loading screen
+  var ls = ge("loadingScreen");
+  if (ls) { ls.style.opacity = "0"; setTimeout(function() { ls.remove(); }, 500); }
 
   // Listen for future auth changes
   sb.auth.onAuthStateChange(async function(event, session) {

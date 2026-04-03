@@ -301,7 +301,15 @@ footer        { background: #1A1A1A; color: rgba(255,255,255,.4); padding: 38px 
 
   /* Grids */
   .cat-grid    { grid-template-columns: repeat(2, 1fr); }
-  .pros-grid   { grid-template-columns: 1fr; }
+  .pros-grid   { grid-template-columns: 1fr; gap: 8px; }
+  .pros-grid .pro-card { display: grid; grid-template-columns: 100px 1fr; }
+  .pros-grid .pro-card .pro-img { height: 100%; min-height: 100px; }
+  .pros-grid .pro-card .pro-img + div { padding: 10px 12px; }
+  .pros-grid .pro-card .pro-img + div > div:first-child { margin-bottom: 3px; }
+  .pros-grid .pro-card .pro-img + div > div:first-child > div:first-child { font-size: 20px; }
+  .pros-grid .pro-card .pro-img + div > div:nth-child(2) { font-size: 13px; margin-bottom: 4px; }
+  .pros-grid .pro-card .pro-img + div > div:last-child { font-size: 13px; }
+  .pros-grid .pro-card .pro-img + div > div:last-child strong { font-size: 16px; }
   .stats       { grid-template-columns: 1fr 1fr; }
   .footer-grid { grid-template-columns: 1fr; }
   .port-grid   { grid-template-columns: repeat(2, 1fr); }
