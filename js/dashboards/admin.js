@@ -1018,6 +1018,104 @@ async function loadAnalytics() {
   } catch(e) { toast("Analytics error: " + e.message, "err"); }
 }
 
+// ── EXPORT ANALYTICS TO EXCEL (CSV) ─────────────────────────
+async function exportAnalyticsExcel() {
+  toast("Generating export...");
+  try {
+    var bkRes = await sb.from("bookings").select("*").order("created_at", { ascending: false });
+    var bks = bkRes.data || [];
+    if (!bks.length) { toast("No bookings to export", "err"); return; }
+
+    var prosRes = await sb.from("professionals").select("id,name,specialty,commission_rate");
+    var pros = prosRes.data || [];
+
+    // Sheet 1: All Bookings
+    var bkRows = [["Booking ID","Client","Phone","Professional","Service","Date/Time","Status","Total (GEL)","District","Address","Created"]];
+    bks.forEach(function(b) {
+      bkRows.push([
+        b.id, b.client_name || "", b.client_phone || "", b.pro_name || "",
+        b.service_name || "", b.time_slot || "", b.status || "",
+        b.total || 0, b.district || "", b.address || "",
+        b.created_at ? new Date(b.created_at).toLocaleString() : ""
+      ]);
+    });
+
+    // Sheet 2: Revenue by Service
+    var completed = bks.filter(function(b) { return b.status === "completed"; });
+    var svcMap = {};
+    completed.forEach(function(b) {
+      var sn = b.service_name || "Unknown";
+      if (!svcMap[sn]) svcMap[sn] = { count: 0, revenue: 0, platform: 0, proEarn: 0 };
+      var amt = b.total || 0;
+      var proObj = pros.find(function(p) { return p.id === b.pro_id; });
+      var cr = getCommRate(b.pro_id, proObj ? proObj.specialty : "");
+      var pc = Math.round(amt * cr / 100);
+      svcMap[sn].count++;
+      svcMap[sn].revenue += amt;
+      svcMap[sn].platform += pc;
+      svcMap[sn].proEarn += (amt - pc);
+    });
+    var svcRows = [["Service","Bookings","Revenue (GEL)","Platform Earnings","Pro Earnings"]];
+    Object.keys(svcMap).forEach(function(k) {
+      var s = svcMap[k];
+      svcRows.push([k, s.count, s.revenue, s.platform, s.proEarn]);
+    });
+
+    // Sheet 3: Revenue by Pro
+    var proMap = {};
+    completed.forEach(function(b) {
+      var pid = b.pro_id || "unknown";
+      if (!proMap[pid]) proMap[pid] = { name: b.pro_name || "Unknown", count: 0, revenue: 0, platform: 0, proEarn: 0 };
+      var amt = b.total || 0;
+      var proObj = pros.find(function(p) { return p.id === pid; });
+      var cr = getCommRate(pid, proObj ? proObj.specialty : "");
+      var pc = Math.round(amt * cr / 100);
+      proMap[pid].count++;
+      proMap[pid].revenue += amt;
+      proMap[pid].platform += pc;
+      proMap[pid].proEarn += (amt - pc);
+    });
+    var proRows = [["Professional","Bookings","Revenue (GEL)","Platform Earnings","Pro Earnings"]];
+    Object.keys(proMap).forEach(function(k) {
+      var p = proMap[k];
+      proRows.push([p.name, p.count, p.revenue, p.platform, p.proEarn]);
+    });
+
+    // Build multi-sheet XLSX using XML spreadsheet format
+    var esc = function(v) { return String(v).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); };
+    var buildSheet = function(name, rows) {
+      var xml = '<Worksheet ss:Name="' + esc(name) + '"><Table>';
+      rows.forEach(function(row, ri) {
+        xml += "<Row>";
+        row.forEach(function(cell) {
+          var isNum = typeof cell === "number";
+          xml += '<Cell><Data ss:Type="' + (isNum ? "Number" : "String") + '">' + esc(cell) + '</Data></Cell>';
+        });
+        xml += "</Row>";
+      });
+      xml += "</Table></Worksheet>";
+      return xml;
+    };
+
+    var xls = '<?xml version="1.0"?><?mso-application progid="Excel.Sheet"?>'
+      + '<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"'
+      + ' xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet">'
+      + buildSheet("All Bookings", bkRows)
+      + buildSheet("Revenue by Service", svcRows)
+      + buildSheet("Revenue by Professional", proRows)
+      + '</Workbook>';
+
+    var blob = new Blob([xls], { type: "application/vnd.ms-excel" });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement("a");
+    a.href = url;
+    a.download = "MODY_Analytics_" + new Date().toISOString().slice(0,10) + ".xls";
+    a.click();
+    URL.revokeObjectURL(url);
+    toast("Excel exported!", "ok");
+  } catch(e) { toast("Export error: " + e.message, "err"); }
+}
+
 // ── LOOKUP ───────────────────────────────────────────────────
 async function doLookup() {
   var q = (ge("anLookup").value || "").trim();
@@ -1671,13 +1769,16 @@ async function loadCrm() {
   body.innerHTML = "<tr><td colspan=\"8\" style=\"text-align:center;padding:18px;color:var(--mu)\">Loading...</td></tr>";
   try {
     var pRes = await sb.from("profiles").select("*").order("created_at", { ascending: false });
+    if (pRes.error) throw pRes.error;
     var profiles = pRes.data || [];
     var bRes = await sb.from("bookings").select("client_id,total,status");
-    var bookings = bRes.data || [];
-    var nRes = await sb.from("client_notes").select("*");
-    var notes = nRes.data || [];
-    var wRes = await sb.from("client_wallets").select("client_id,balance");
-    var wallets = wRes.data || [];
+    var bookings = (bRes.data || []);
+
+    // These tables may not exist yet — tolerate errors
+    var notes = [], wallets = [];
+    try { var nRes = await sb.from("client_notes").select("*"); notes = nRes.data || []; } catch(e) {}
+    try { var wRes = await sb.from("client_wallets").select("client_id,balance"); wallets = wRes.data || []; } catch(e) {}
+
     var noteMap = {}, walletMap = {};
     notes.forEach(function(n) { noteMap[n.client_id] = n; });
     wallets.forEach(function(w) { walletMap[w.client_id] = w.balance; });
@@ -1690,12 +1791,15 @@ async function loadCrm() {
       if (bk.status !== "cancelled") clientStats[bk.client_id].spend += (bk.total || 0);
     });
 
-    crmData = profiles.map(function(p) {
+    // Filter to only client/no-role profiles (exclude admin/pro)
+    crmData = profiles.filter(function(p) {
+      return !p.role || p.role === "client";
+    }).map(function(p) {
       var stats = clientStats[p.id] || { count: 0, spend: 0 };
       return { profile: p, bookings: stats.count, spend: stats.spend, note: noteMap[p.id], wallet: walletMap[p.id] || 0 };
     });
     renderCrmTable();
-  } catch(e) { body.innerHTML = "<tr><td colspan=\"8\" style=\"text-align:center;padding:18px;color:#ef4444\">Error: " + e.message + "</td></tr>"; }
+  } catch(e) { body.innerHTML = "<tr><td colspan=\"8\" style=\"text-align:center;padding:18px;color:#ef4444\">Error loading CRM: " + e.message + "<br><span style=\"font-size:11px\">Run SQL Setup in Settings to create required tables.</span></td></tr>"; }
 }
 
 function renderCrmTable() {
