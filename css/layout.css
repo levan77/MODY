@@ -337,7 +337,7 @@ footer        { background: #1A1A1A; color: rgba(255,255,255,.4); padding: 38px 
 
   /* Chat */
   .chat-wrap { bottom: 80px; right: 12px; }
-  .chat-win { width: calc(100vw - 24px); right: -8px; bottom: 54px; height: 380px; }
+  .chat-win { width: calc(100vw - 24px); right: 0; bottom: 54px; height: 60vh; max-height: 420px; left: auto; position: fixed; right: 12px; bottom: 140px; z-index: 401; }
 
   /* Booking flow */
   .bk-flow     { gap: 0; }
