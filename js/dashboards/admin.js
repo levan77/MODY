@@ -1018,34 +1018,94 @@ async function loadAnalytics() {
   } catch(e) { toast("Analytics error: " + e.message, "err"); }
 }
 
-// ── EXPORT ANALYTICS TO EXCEL (CSV) ─────────────────────────
+// ── EXPORT FULL ANALYTICS TO EXCEL ──────────────────────────
 async function exportAnalyticsExcel() {
-  toast("Generating export...");
+  toast("Generating full report...");
   try {
-    var bkRes = await sb.from("bookings").select("*").order("created_at", { ascending: false });
+    var [bkRes, prosRes, profRes, svcRes] = await Promise.all([
+      sb.from("bookings").select("*").order("created_at", { ascending: false }),
+      sb.from("professionals").select("id,name,specialty,commission_rate,area"),
+      sb.from("profiles").select("id,full_name,email,phone,role,gender,created_at"),
+      sb.from("services").select("id,name,price,pro_id,duration")
+    ]);
     var bks = bkRes.data || [];
+    var pros = prosRes.data || [];
+    var profs = profRes.data || [];
+    var svcs = svcRes.data || [];
     if (!bks.length) { toast("No bookings to export", "err"); return; }
 
-    var prosRes = await sb.from("professionals").select("id,name,specialty,commission_rate");
-    var pros = prosRes.data || [];
+    var completed = bks.filter(function(b) { return b.status === "completed"; });
+    var cancelled = bks.filter(function(b) { return b.status === "cancelled"; });
+    var pending = bks.filter(function(b) { return b.status === "pending"; });
+    var globalRate = parseFloat(settings.commission) || 5;
 
-    // Sheet 1: All Bookings
-    var bkRows = [["Booking ID","Client","Phone","Professional","Service","Date/Time","Status","Total (GEL)","District","Address","Created"]];
+    // ══ SHEET 1: DASHBOARD SUMMARY ══
+    var totalRev = 0, platformRev = 0, proRev = 0;
+    completed.forEach(function(b) {
+      var amt = b.total || 0;
+      var proObj = pros.find(function(p) { return p.id === b.pro_id; });
+      var cr = getCommRate(b.pro_id, proObj ? proObj.specialty : "");
+      var pc = Math.round(amt * cr / 100);
+      totalRev += amt;
+      platformRev += pc;
+      proRev += (amt - pc);
+    });
+    var avgOrder = completed.length ? Math.round(totalRev / completed.length) : 0;
+    var convRate = bks.length ? Math.round(completed.length / bks.length * 100) : 0;
+    var cancelRate = bks.length ? Math.round(cancelled.length / bks.length * 100) : 0;
+    var profitMargin = totalRev ? Math.round(platformRev / totalRev * 100) : 0;
+    var clients = profs.filter(function(p) { return !p.role || p.role === "client"; });
+
+    var sumRows = [
+      ["MODY Platform Analytics Report"],
+      ["Generated", new Date().toLocaleString()],
+      [""],
+      ["KEY METRICS",""],
+      ["Total Bookings", bks.length],
+      ["Completed Bookings", completed.length],
+      ["Cancelled Bookings", cancelled.length],
+      ["Pending Bookings", pending.length],
+      ["Conversion Rate (%)", convRate],
+      ["Cancellation Rate (%)", cancelRate],
+      [""],
+      ["REVENUE",""],
+      ["Total Revenue (GEL)", totalRev],
+      ["Platform Revenue (GEL)", platformRev],
+      ["Professional Payouts (GEL)", proRev],
+      ["Platform Profit Margin (%)", profitMargin],
+      ["Average Order Value (GEL)", avgOrder],
+      ["Default Commission Rate (%)", globalRate],
+      [""],
+      ["USERS",""],
+      ["Total Clients", clients.length],
+      ["Female Clients", clients.filter(function(p) { return p.gender === "female"; }).length],
+      ["Male Clients", clients.filter(function(p) { return p.gender === "male"; }).length],
+      ["Total Professionals", pros.length],
+      ["Total Services Listed", svcs.length]
+    ];
+
+    // ══ SHEET 2: ALL BOOKINGS ══
+    var bkRows = [["Booking ID","Client","Client Phone","Professional","Service","Date/Time","Status","Gross Total (GEL)","Commission %","Platform Cut (GEL)","Pro Earnings (GEL)","Wallet Used (GEL)","Travel Fee (GEL)","Travel Fee Status","District","Address","Notes","Created"]];
     bks.forEach(function(b) {
+      var amt = b.total || 0;
+      var proObj = pros.find(function(p) { return p.id === b.pro_id; });
+      var cr = b.status === "completed" ? getCommRate(b.pro_id, proObj ? proObj.specialty : "") : 0;
+      var pc = Math.round(amt * cr / 100);
       bkRows.push([
         b.id, b.client_name || "", b.client_phone || "", b.pro_name || "",
         b.service_name || "", b.time_slot || "", b.status || "",
-        b.total || 0, b.district || "", b.address || "",
+        amt, b.status === "completed" ? cr : "", b.status === "completed" ? pc : "", b.status === "completed" ? (amt - pc) : "",
+        b.wallet_used || "", b.travel_fee_requested || "", b.travel_fee_status || "",
+        b.district || "", b.address || "", b.notes || "",
         b.created_at ? new Date(b.created_at).toLocaleString() : ""
       ]);
     });
 
-    // Sheet 2: Revenue by Service
-    var completed = bks.filter(function(b) { return b.status === "completed"; });
+    // ══ SHEET 3: REVENUE BY SERVICE (with percentages) ══
     var svcMap = {};
     completed.forEach(function(b) {
       var sn = b.service_name || "Unknown";
-      if (!svcMap[sn]) svcMap[sn] = { count: 0, revenue: 0, platform: 0, proEarn: 0 };
+      if (!svcMap[sn]) svcMap[sn] = { count: 0, revenue: 0, platform: 0, proEarn: 0, commRate: 0 };
       var amt = b.total || 0;
       var proObj = pros.find(function(p) { return p.id === b.pro_id; });
       var cr = getCommRate(b.pro_id, proObj ? proObj.specialty : "");
@@ -1054,38 +1114,105 @@ async function exportAnalyticsExcel() {
       svcMap[sn].revenue += amt;
       svcMap[sn].platform += pc;
       svcMap[sn].proEarn += (amt - pc);
+      svcMap[sn].commRate = cr;
     });
-    var svcRows = [["Service","Bookings","Revenue (GEL)","Platform Earnings","Pro Earnings"]];
-    Object.keys(svcMap).forEach(function(k) {
+    var svcRows = [["Service","Bookings","% of Total Bookings","Revenue (GEL)","% of Total Revenue","Commission %","Platform Earnings (GEL)","Pro Earnings (GEL)","Avg Order (GEL)"]];
+    var svcArr = Object.keys(svcMap).sort(function(a,b) { return svcMap[b].revenue - svcMap[a].revenue; });
+    svcArr.forEach(function(k) {
       var s = svcMap[k];
-      svcRows.push([k, s.count, s.revenue, s.platform, s.proEarn]);
+      svcRows.push([k, s.count,
+        completed.length ? Math.round(s.count / completed.length * 100) : 0,
+        s.revenue,
+        totalRev ? Math.round(s.revenue / totalRev * 100) : 0,
+        s.commRate, s.platform, s.proEarn,
+        s.count ? Math.round(s.revenue / s.count) : 0
+      ]);
     });
+    svcRows.push(["TOTAL", completed.length, 100, totalRev, 100, "", platformRev, proRev, avgOrder]);
 
-    // Sheet 3: Revenue by Pro
+    // ══ SHEET 4: REVENUE BY PROFESSIONAL (with percentages) ══
     var proMap = {};
     completed.forEach(function(b) {
       var pid = b.pro_id || "unknown";
-      if (!proMap[pid]) proMap[pid] = { name: b.pro_name || "Unknown", count: 0, revenue: 0, platform: 0, proEarn: 0 };
-      var amt = b.total || 0;
       var proObj = pros.find(function(p) { return p.id === pid; });
+      if (!proMap[pid]) proMap[pid] = { name: b.pro_name || "Unknown", specialty: proObj ? proObj.specialty : "", area: proObj ? proObj.area : "", count: 0, revenue: 0, platform: 0, proEarn: 0, commRate: 0 };
+      var amt = b.total || 0;
       var cr = getCommRate(pid, proObj ? proObj.specialty : "");
       var pc = Math.round(amt * cr / 100);
       proMap[pid].count++;
       proMap[pid].revenue += amt;
       proMap[pid].platform += pc;
       proMap[pid].proEarn += (amt - pc);
+      proMap[pid].commRate = cr;
     });
-    var proRows = [["Professional","Bookings","Revenue (GEL)","Platform Earnings","Pro Earnings"]];
-    Object.keys(proMap).forEach(function(k) {
+    var proRows = [["Professional","Specialty","Area","Bookings","% of Total Bookings","Revenue (GEL)","% of Total Revenue","Commission %","Platform Earnings (GEL)","Pro Earnings (GEL)","Avg Order (GEL)"]];
+    var proArr = Object.keys(proMap).sort(function(a,b) { return proMap[b].revenue - proMap[a].revenue; });
+    proArr.forEach(function(k) {
       var p = proMap[k];
-      proRows.push([p.name, p.count, p.revenue, p.platform, p.proEarn]);
+      proRows.push([p.name, p.specialty, p.area, p.count,
+        completed.length ? Math.round(p.count / completed.length * 100) : 0,
+        p.revenue,
+        totalRev ? Math.round(p.revenue / totalRev * 100) : 0,
+        p.commRate, p.platform, p.proEarn,
+        p.count ? Math.round(p.revenue / p.count) : 0
+      ]);
+    });
+    proRows.push(["TOTAL", "", "", completed.length, 100, totalRev, 100, "", platformRev, proRev, avgOrder]);
+
+    // ══ SHEET 5: MONTHLY BREAKDOWN ══
+    var monthMap = {};
+    bks.forEach(function(b) {
+      var d = b.created_at ? b.created_at.substring(0, 7) : "Unknown";
+      if (!monthMap[d]) monthMap[d] = { total: 0, completed: 0, cancelled: 0, revenue: 0, platform: 0, proEarn: 0 };
+      monthMap[d].total++;
+      if (b.status === "completed") {
+        monthMap[d].completed++;
+        var amt = b.total || 0;
+        var proObj = pros.find(function(p) { return p.id === b.pro_id; });
+        var cr = getCommRate(b.pro_id, proObj ? proObj.specialty : "");
+        var pc = Math.round(amt * cr / 100);
+        monthMap[d].revenue += amt;
+        monthMap[d].platform += pc;
+        monthMap[d].proEarn += (amt - pc);
+      }
+      if (b.status === "cancelled") monthMap[d].cancelled++;
+    });
+    var monthRows = [["Month","Total Bookings","Completed","Cancelled","Conversion %","Revenue (GEL)","Platform Revenue (GEL)","Pro Payouts (GEL)","Profit Margin %","Avg Order (GEL)"]];
+    Object.keys(monthMap).sort().forEach(function(m) {
+      var d = monthMap[m];
+      monthRows.push([m, d.total, d.completed, d.cancelled,
+        d.total ? Math.round(d.completed / d.total * 100) : 0,
+        d.revenue, d.platform, d.proEarn,
+        d.revenue ? Math.round(d.platform / d.revenue * 100) : 0,
+        d.completed ? Math.round(d.revenue / d.completed) : 0
+      ]);
     });
 
-    // Build multi-sheet XLSX using XML spreadsheet format
+    // ══ SHEET 6: CLIENT LIST ══
+    var clientBks = {};
+    bks.forEach(function(b) {
+      if (!b.client_id) return;
+      if (!clientBks[b.client_id]) clientBks[b.client_id] = { count: 0, spend: 0, completed: 0, cancelled: 0, last: "" };
+      clientBks[b.client_id].count++;
+      if (b.status === "completed") { clientBks[b.client_id].completed++; clientBks[b.client_id].spend += (b.total || 0); }
+      if (b.status === "cancelled") clientBks[b.client_id].cancelled++;
+      if (!clientBks[b.client_id].last || b.created_at > clientBks[b.client_id].last) clientBks[b.client_id].last = b.created_at;
+    });
+    var cliRows = [["Name","Email","Phone","Gender","Total Bookings","Completed","Cancelled","Total Spend (GEL)","Last Booking","Registered"]];
+    clients.forEach(function(c) {
+      var st = clientBks[c.id] || { count: 0, spend: 0, completed: 0, cancelled: 0, last: "" };
+      cliRows.push([c.full_name || "", c.email || "", c.phone || "", c.gender || "",
+        st.count, st.completed, st.cancelled, st.spend,
+        st.last ? new Date(st.last).toLocaleDateString() : "",
+        c.created_at ? new Date(c.created_at).toLocaleDateString() : ""
+      ]);
+    });
+
+    // ══ BUILD MULTI-SHEET XLS ══
     var esc = function(v) { return String(v).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); };
     var buildSheet = function(name, rows) {
       var xml = '<Worksheet ss:Name="' + esc(name) + '"><Table>';
-      rows.forEach(function(row, ri) {
+      rows.forEach(function(row) {
         xml += "<Row>";
         row.forEach(function(cell) {
           var isNum = typeof cell === "number";
@@ -1100,9 +1227,12 @@ async function exportAnalyticsExcel() {
     var xls = '<?xml version="1.0"?><?mso-application progid="Excel.Sheet"?>'
       + '<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"'
       + ' xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet">'
+      + buildSheet("Dashboard Summary", sumRows)
       + buildSheet("All Bookings", bkRows)
       + buildSheet("Revenue by Service", svcRows)
       + buildSheet("Revenue by Professional", proRows)
+      + buildSheet("Monthly Breakdown", monthRows)
+      + buildSheet("Client List", cliRows)
       + '</Workbook>';
 
     var blob = new Blob([xls], { type: "application/vnd.ms-excel" });
@@ -1112,7 +1242,7 @@ async function exportAnalyticsExcel() {
     a.download = "MODY_Analytics_" + new Date().toISOString().slice(0,10) + ".xls";
     a.click();
     URL.revokeObjectURL(url);
-    toast("Excel exported!", "ok");
+    toast("Full report exported!", "ok");
   } catch(e) { toast("Export error: " + e.message, "err"); }
 }
 
