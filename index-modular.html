@@ -185,8 +185,8 @@
       <div class="footer-grid">
         <div><span class="footer-logo">MODY<span style="color:var(--g)">.</span></span><p id="footerTag" style="font-size:12px;line-height:1.7"></p></div>
         <div class="footer-col"><h4 id="fhSvc"></h4><div id="footerSvcs"></div></div>
-        <div class="footer-col"><h4 id="fhCo"></h4><a onclick="viewStaticPage('about')">About</a><a onclick="loadBlogPublic()">Blog</a></div>
-        <div class="footer-col"><h4 id="fhSup"></h4><a onclick="openM('newticket')">Help Center</a><a onclick="viewStaticPage('terms')">Terms</a><a onclick="viewStaticPage('privacy')">Privacy</a></div>
+        <div class="footer-col"><h4 id="fhCo"></h4><a onclick="viewStaticPage('about')" id="ftAbout"></a><a onclick="loadBlogPublic()" id="ftBlog"></a></div>
+        <div class="footer-col"><h4 id="fhSup"></h4><a onclick="openM('newticket')" id="ftHelp"></a><a onclick="viewStaticPage('terms')" id="ftTerms"></a><a onclick="viewStaticPage('privacy')" id="ftPrivacy"></a></div>
       </div>
       <div style="border-top:1px solid rgba(255,255,255,.07);padding-top:12px;display:flex;justify-content:space-between;font-size:12px">
         <span>© 2025 MODY Georgia LLC.</span><span>Tbilisi 🇬🇪</span>
@@ -432,11 +432,11 @@
     </div>
   </div>
   <div class="mob-nav" id="cMobNav"><div class="mob-nav-inner">
-    <button class="mob-tab on" onclick="cTab('bk')"><span class="mt-ico">📋</span>Bookings</button>
-    <button class="mob-tab" onclick="cTab('rev')"><span class="mt-ico">⭐</span>Reviews</button>
-    <button class="mob-tab" onclick="cTab('prof')"><span class="mt-ico">👤</span>Profile</button>
-    <button class="mob-tab" onclick="cTab('sup')"><span class="mt-ico">💬</span>Support</button>
-    <button class="mob-tab" onclick="signOut()"><span class="mt-ico">🚪</span>Sign Out</button>
+    <button class="mob-tab on" onclick="cTab('bk')"><span class="mt-ico">📋</span><span id="cmMobBk"></span></button>
+    <button class="mob-tab" onclick="cTab('rev')"><span class="mt-ico">⭐</span><span id="cmMobRev"></span></button>
+    <button class="mob-tab" onclick="cTab('prof')"><span class="mt-ico">👤</span><span id="cmMobProf"></span></button>
+    <button class="mob-tab" onclick="cTab('sup')"><span class="mt-ico">💬</span><span id="cmMobSup"></span></button>
+    <button class="mob-tab" onclick="signOut()"><span class="mt-ico">🚪</span><span id="cmMobOut"></span></button>
   </div></div>
 </div>
 
@@ -634,11 +634,11 @@
     </div>
   </div>
   <div class="mob-nav" id="pMobNav"><div class="mob-nav-inner">
-    <button class="mob-tab on" onclick="pTab('bk')"><span class="mt-ico">📋</span>Bookings</button>
-    <button class="mob-tab" onclick="pTab('cal')"><span class="mt-ico">📅</span>Calendar</button>
-    <button class="mob-tab" onclick="pTab('svcs')"><span class="mt-ico">💆</span>Services</button>
-    <button class="mob-tab" onclick="pTab('port')"><span class="mt-ico">🖼</span>Portfolio</button>
-    <button class="mob-tab" onclick="pTab('edit')"><span class="mt-ico">✏️</span>Profile</button>
+    <button class="mob-tab on" onclick="pTab('bk')"><span class="mt-ico">📋</span><span id="pmMobBk"></span></button>
+    <button class="mob-tab" onclick="pTab('cal')"><span class="mt-ico">📅</span><span id="pmMobCal"></span></button>
+    <button class="mob-tab" onclick="pTab('svcs')"><span class="mt-ico">💆</span><span id="pmMobSvc"></span></button>
+    <button class="mob-tab" onclick="pTab('port')"><span class="mt-ico">🖼</span><span id="pmMobPort"></span></button>
+    <button class="mob-tab" onclick="pTab('edit')"><span class="mt-ico">✏️</span><span id="pmMobProf"></span></button>
   </div></div>
 </div>
 

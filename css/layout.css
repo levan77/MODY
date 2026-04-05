@@ -328,6 +328,13 @@ footer        { background: #1A1A1A; color: rgba(255,255,255,.4); padding: 38px 
   .card  { padding: 14px; }
   .c-hdr { flex-direction: column; align-items: flex-start; gap: 6px; }
 
+  /* Modals */
+  .mbox  { width: 95vw; max-width: 95vw; max-height: 90vh; margin: 16px; }
+
+  /* Prevent overflow */
+  body { overflow-x: hidden; }
+  .fi, input, select, textarea { max-width: 100%; box-sizing: border-box; }
+
   /* Chat */
   .chat-wrap { bottom: 80px; right: 12px; }
   .chat-win { width: calc(100vw - 24px); right: -8px; bottom: 54px; height: 380px; }

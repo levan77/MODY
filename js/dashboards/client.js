@@ -34,8 +34,8 @@ async function loadClientDash() {
   if (ge("cPPhone")) ge("cPPhone").value = profile ? (profile.phone || "") : "";
 
   // Show current email/phone in account settings
-  var ce = ge("cCurrentEmail"); if (ce) ce.textContent = "Current: " + (profile ? (profile.email || user.email) : user.email);
-  var cp = ge("cCurrentPhone"); if (cp) cp.textContent = "Current: " + (profile && profile.phone ? profile.phone : "Not set");
+  var ce = ge("cCurrentEmail"); if (ce) ce.textContent = t("currentLabel") + ": " + (profile ? (profile.email || user.email) : user.email);
+  var cp = ge("cCurrentPhone"); if (cp) cp.textContent = t("currentLabel") + ": " + (profile && profile.phone ? profile.phone : t("notSet"));
 
   // Avatar
   if (profile && profile.avatar_url) {
@@ -78,10 +78,10 @@ async function loadClientDash() {
         + "<div style=\"display:flex;align-items:center;gap:10px\">"
         + "<span style=\"font-size:22px\">🚗</span>"
         + "<div>"
-        + "<div style=\"font-weight:600;font-size:15px;color:#7e22ce\"><span class=\"track-pulse\"></span>Professional is on the way</div>"
+        + "<div style=\"font-weight:600;font-size:15px;color:#7e22ce\"><span class=\"track-pulse\"></span>" + t("cbOnWay") + "</div>"
         + "<div style=\"font-size:13px;color:var(--mu)\">" + (b.pro_name || "Your pro") + " — " + (b.service_name || "") + "</div>"
         + "</div></div>"
-        + "<span style=\"font-size:12px;color:var(--mu)\">Live tracking</span>"
+        + "<span style=\"font-size:12px;color:var(--mu)\">" + t("cbLiveTrack") + "</span>"
         + "</div>"
         + "<div class=\"track-map\" id=\"trackMap_otw_" + i + "\"></div>"
         + "</div>";
@@ -92,10 +92,10 @@ async function loadClientDash() {
         + "<div style=\"display:flex;align-items:center;gap:10px\">"
         + "<span style=\"font-size:26px\">📍</span>"
         + "<div>"
-        + "<div style=\"font-weight:600;font-size:15px;color:#15803d\">Professional Has Arrived!</div>"
+        + "<div style=\"font-weight:600;font-size:15px;color:#15803d\">" + t("cbArrived") + "</div>"
         + "<div style=\"font-size:13px;color:var(--mu)\">" + (b.pro_name || "Your pro") + " — " + (b.service_name || "") + " · " + (b.time_slot || "ASAP") + "</div>"
         + "</div></div>"
-        + "<button class=\"btn btn-g\" style=\"font-size:14px;padding:10px 22px\" onclick=\"confirmArrival('" + b.id + "')\">✓ Confirm Arrival</button>"
+        + "<button class=\"btn btn-g\" style=\"font-size:14px;padding:10px 22px\" onclick=\"confirmArrival('" + b.id + "')\">✓ " + t("cbConfirm") + "</button>"
         + "</div></div>";
     });
     bannerEl.innerHTML = bannerHtml;
@@ -115,16 +115,16 @@ async function loadClientDash() {
     var safe = JSON.stringify(b).replace(/\\/g,"\\\\").replace(/"/g,"&quot;");
     var actionBtn = "";
     if (b.status === "arrived") {
-      actionBtn = "<button class=\"btn-sm btn-ok\" style=\"font-size:11px;margin-right:4px\" onclick=\"event.stopPropagation();confirmArrival('" + b.id + "')\">✓ Confirm</button>";
+      actionBtn = "<button class=\"btn-sm btn-ok\" style=\"font-size:11px;margin-right:4px\" onclick=\"event.stopPropagation();confirmArrival('" + b.id + "')\">✓ " + t("cbConfirm") + "</button>";
     } else if (b.status === "on_the_way") {
-      actionBtn = "<span style=\"font-size:11px;color:#7e22ce\">🚗 En route</span> ";
+      actionBtn = "<span style=\"font-size:11px;color:#7e22ce\">🚗 " + t("cbEnRoute") + "</span> ";
     }
     return "<tr" + (b.status === "arrived" ? " style=\"background:rgba(34,197,94,.06)\"" : "") + ">"
          + "<td>" + (b.service_name || "—") + "</td>"
          + "<td>" + (b.pro_name || "—") + "</td>"
          + "<td>" + (b.time_slot || "ASAP") + "</td>"
          + "<td>" + sBadge(b.status) + "</td>"
-         + "<td style=\"white-space:nowrap\">" + actionBtn + "<button class=\"btn-sm btn-gh\" style=\"font-size:11px\" onclick=\"openBkDetail('" + safe + "','client')\">Details</button></td>"
+         + "<td style=\"white-space:nowrap\">" + actionBtn + "<button class=\"btn-sm btn-gh\" style=\"font-size:11px\" onclick=\"openBkDetail('" + safe + "','client')\">" + t("cbDetails") + "</button></td>"
          + "</tr>";
   }).join("");
 }

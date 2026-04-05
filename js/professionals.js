@@ -117,7 +117,7 @@ async function viewPro(proId) {
                      + "</div></div></div>";
               }).join("");
   } else {
-    revHtml += "<p style=\"color:var(--mu);font-size:14px\">No reviews yet. Be the first to book and review!</p>";
+    revHtml += "<p style=\"color:var(--mu);font-size:14px\">" + t("vpNoRevs") + "</p>";
   }
   revHtml += "</div>";
 
@@ -127,7 +127,7 @@ async function viewPro(proId) {
   var tariffPct = tariffOn ? (parseInt(settings.special_tariff_percent) || 20) : 0;
 
   var svcsHtml = svcs.length === 0
-    ? "<p style=\"color:var(--mu);font-size:14px\">No services listed yet.</p>"
+    ? "<p style=\"color:var(--mu);font-size:14px\">" + t("vpNoSvcs") + "</p>"
     : svcs.map(function(s) {
         var displayPrice = tariffOn ? Math.ceil(s.price * (1 + tariffPct / 100)) : s.price;
         var priceHtml = tariffOn
@@ -153,7 +153,7 @@ async function viewPro(proId) {
     + "<div class=\"card\" style=\"margin-bottom:11px\">"
     + "<div style=\"display:flex;align-items:flex-end;gap:11px;margin-bottom:10px\">"
     + "<div style=\"width:74px;height:74px;border-radius:50%;border:4px solid var(--cd);display:flex;align-items:center;justify-content:center;background:var(--bg2);margin-top:-38px;box-shadow:0 4px 12px rgba(0,0,0,.12);overflow:hidden;flex-shrink:0\">" + ava + "</div>"
-    + "<button class=\"btn btn-o\" onclick=\"show('list')\" style=\"font-size:12px;margin-bottom:1px\">← Back</button>"
+    + "<button class=\"btn btn-o\" onclick=\"show('list')\" style=\"font-size:12px;margin-bottom:1px\">← " + t("vpBack") + "</button>"
     + "</div>"
     + "<h1 style=\"font-size:22px;font-weight:300;margin-bottom:3px\">" + pro.name + "</h1>"
     + "<p style=\"color:var(--mu);margin-bottom:8px\">" + pro.specialty + " · " + pro.area + "</p>"
@@ -167,12 +167,12 @@ async function viewPro(proId) {
     + (pro.bio ? "<p style=\"margin-top:8px;font-size:14px;line-height:1.7;color:var(--mu)\">" + pro.bio + "</p>" : "")
     + "</div>"
     + portHtml + nailHtml
-    + "<div class=\"card\" style=\"margin-bottom:11px\"><h3 style=\"font-size:16px;font-weight:400;margin-bottom:11px\">Services & Pricing</h3>" + svcsHtml + "</div>"
+    + "<div class=\"card\" style=\"margin-bottom:11px\"><h3 style=\"font-size:16px;font-weight:400;margin-bottom:11px\">" + t("vpServPricing") + "</h3>" + svcsHtml + "</div>"
     + revHtml
     + "</div>"
     + "<div><div class=\"book-card\">"
-    + "<h3 style=\"font-size:16px;font-weight:400;margin-bottom:4px\">Book " + pro.name.split(" ")[0] + "</h3>"
-    + "<p style=\"font-size:12px;color:var(--mu);margin-bottom:12px\">Select one or more services, then choose a time.</p>"
+    + "<h3 style=\"font-size:16px;font-weight:400;margin-bottom:4px\">" + t("vpBook") + " " + pro.name.split(" ")[0] + "</h3>"
+    + "<p style=\"font-size:12px;color:var(--mu);margin-bottom:12px\">" + t("vpSelectSvc") + "</p>"
     // Service cart summary
     + "<div id=\"sbCartSummary\" class=\"hide\" style=\"background:var(--bg2);border-radius:var(--rs);padding:10px;margin-bottom:10px\">"
     + "<div style=\"font-size:11px;font-weight:600;color:var(--mu);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px\">Selected Services</div>"
@@ -191,9 +191,9 @@ async function viewPro(proId) {
     + "</div></div>"
     // Mobile sticky CTA (fixed at bottom on mobile, inline on desktop)
     + "<div class=\"mobile-sticky-cta\">"
-    + "<button class=\"btn btn-g\" id=\"sbContinueBtn\" style=\"width:100%;justify-content:center;padding:13px;font-size:13px;opacity:.45;pointer-events:none\" onclick=\"gotoBooking()\">Select a service</button>"
+    + "<button class=\"btn btn-g\" id=\"sbContinueBtn\" style=\"width:100%;justify-content:center;padding:13px;font-size:13px;opacity:.45;pointer-events:none\" onclick=\"gotoBooking()\">" + t("bkSelectSvc") + "</button>"
     + "</div>"
-    + "<p style=\"font-size:11px;color:var(--mu);text-align:center;margin-top:8px\">Free cancellation up to 2 hours before</p>"
+    + "<p style=\"font-size:11px;color:var(--mu);text-align:center;margin-top:8px\">" + t("vpFreeCancel") + "</p>"
     + "</div></div>";
 }
 

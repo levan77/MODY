@@ -74,7 +74,7 @@ function updateSvcCart() {
     sb.from("client_wallets").select("balance").eq("client_id", user.id).maybeSingle().then(function(wr) {
       if (wr.data && wr.data.balance > 0) {
         walletHint.style.display = "block";
-        walletHint.textContent = "Wallet: " + wr.data.balance + " GEL (auto-applied at checkout)";
+        walletHint.textContent = t("walletHint").replace("{0}", wr.data.balance);
       } else {
         walletHint.style.display = "none";
       }
@@ -342,19 +342,19 @@ function pickTs(el) {
 
 // ── SUBMIT BOOKING ────────────────────────────────────────────
 async function submitBooking() {
-  if (!user) { toast("Please sign in first", "err"); openM("auth"); return; }
+  if (!user) { toast(t("bkSignIn"), "err"); openM("auth"); return; }
   // Kill switch check
   if (settings.kill_switch === true || settings.kill_switch === "true") {
-    toast("Service is temporarily paused. Please try again later.", "err"); return;
+    toast(t("bkPaused"), "err"); return;
   }
   // Blocked client check
   if (profile && profile.blocked) {
-    toast("Your account has been restricted. Please contact support.", "err"); return;
+    toast(t("bkBlocked"), "err"); return;
   }
   var addr = ge("bkAddr").value.trim();
   var slot = document.querySelector("#pg-booking .ts.on");
-  if (!addr) { toast("Please enter your address", "err"); return; }
-  if (!slot) { toast("Please pick a time slot", "err"); return; }
+  if (!addr) { toast(t("bkEnterAddr"), "err"); return; }
+  if (!slot) { toast(t("bkPickTime"), "err"); return; }
 
   var timeSlot = bkSelDateStr + " " + slot.textContent;
   var pro = selSvcPro();
@@ -393,7 +393,7 @@ async function submitBooking() {
       });
 
       if (hasConflict) {
-        toast("This professional is already booked at this time (including travel buffer). Please choose another time.", "err");
+        toast(t("bkTimeConflict"), "err");
         return;
       }
     } catch(e) {}
@@ -417,7 +417,7 @@ async function submitBooking() {
   var designUrl = null;
   var dfi = ge("designFile");
   if (dfi && dfi.files && dfi.files[0]) {
-    toast("Uploading design...");
+    toast(t("bkUploading"));
     designUrl = await uploadDesignImage();
   }
 
@@ -510,16 +510,16 @@ async function submitBooking() {
   // Populate confirmation modal
   var pro = selSvcPro();
   ge("bkConfDets").innerHTML =
-    "<div style=\"display:flex;justify-content:space-between;padding:3px 0;font-size:13px\"><span>Service</span><span>" + selSvcNames() + "</span></div>"
-  + "<div style=\"display:flex;justify-content:space-between;padding:3px 0;font-size:13px\"><span>Professional</span><span>" + pro.proName + "</span></div>"
-  + "<div style=\"display:flex;justify-content:space-between;padding:3px 0;font-size:13px\"><span>Time</span><span>" + slot.textContent + "</span></div>"
-  + "<div style=\"display:flex;justify-content:space-between;padding:3px 0;font-size:13px\"><span>Address</span><span>" + addr + "</span></div>"
-  + (promoDisc > 0 ? "<div style=\"display:flex;justify-content:space-between;padding:3px 0;font-size:13px;color:#15803d\"><span>Discount</span><span>-" + promoDisc + "₾</span></div>" : "")
-  + (walletUsed > 0 ? "<div style=\"display:flex;justify-content:space-between;padding:3px 0;font-size:13px;color:#15803d\"><span>Wallet Credit</span><span>-" + walletUsed + "₾</span></div>" : "")
-  + "<div style=\"display:flex;justify-content:space-between;padding:7px 0 2px;font-size:14px;font-weight:500;border-top:1px solid var(--br);margin-top:4px\"><span>Total</span><span>" + total + "₾</span></div>";
+    "<div style=\"display:flex;justify-content:space-between;padding:3px 0;font-size:13px\"><span>" + t("bdService") + "</span><span>" + selSvcNames() + "</span></div>"
+  + "<div style=\"display:flex;justify-content:space-between;padding:3px 0;font-size:13px\"><span>" + t("bdProfessional") + "</span><span>" + pro.proName + "</span></div>"
+  + "<div style=\"display:flex;justify-content:space-between;padding:3px 0;font-size:13px\"><span>" + t("bdTime") + "</span><span>" + slot.textContent + "</span></div>"
+  + "<div style=\"display:flex;justify-content:space-between;padding:3px 0;font-size:13px\"><span>" + t("bdAddress") + "</span><span>" + addr + "</span></div>"
+  + (promoDisc > 0 ? "<div style=\"display:flex;justify-content:space-between;padding:3px 0;font-size:13px;color:#15803d\"><span>" + t("bdDiscount") + "</span><span>-" + promoDisc + "₾</span></div>" : "")
+  + (walletUsed > 0 ? "<div style=\"display:flex;justify-content:space-between;padding:3px 0;font-size:13px;color:#15803d\"><span>" + t("bdWalletCredit") + "</span><span>-" + walletUsed + "₾</span></div>" : "")
+  + "<div style=\"display:flex;justify-content:space-between;padding:7px 0 2px;font-size:14px;font-weight:500;border-top:1px solid var(--br);margin-top:4px\"><span>" + t("bdTotal") + "</span><span>" + total + "₾</span></div>";
 
   openM("bkconf");
-  toast(t("bookingOk"), "ok");
+  toast(t("bkSubmitted"), "ok");
 
   // Twilio notification for new booking
   twilioNotifyBooking(insertedBk, "new_booking");
@@ -571,7 +571,7 @@ function openBkDetail(bkJson, role) {
     if (bk.status === "on_the_way")
       acts += "<button class=\"btn\" style=\"display:block;width:100%;padding:14px;font-size:15px;justify-content:center;border-radius:var(--rs);margin-bottom:6px;font-weight:600;min-height:50px;background:#3b82f6;color:#fff;border:none;cursor:pointer\" onclick=\"chBkStatus('" + bk.id + "','arrived','pro')\">📍 " + t("iArrived") + "</button>";
     if (bk.status === "arrived")
-      acts += "<div style=\"background:rgba(234,184,183,.1);border:1px solid rgba(234,184,183,.25);border-radius:var(--rs);padding:10px 14px;font-size:13px;color:#a16207;display:flex;align-items:center;gap:8px\"><span style=\"font-size:18px\">⏳</span>Waiting for client to confirm your arrival…</div>";
+      acts += "<div style=\"background:rgba(234,184,183,.1);border:1px solid rgba(234,184,183,.25);border-radius:var(--rs);padding:10px 14px;font-size:13px;color:#a16207;display:flex;align-items:center;gap:8px\"><span style=\"font-size:18px\">⏳</span>" + t("paWaitClient") + "</div>";
     if (bk.status === "in_progress")
       acts += "<button class=\"btn btn-g\" style=\"display:block;width:100%;padding:14px;font-size:15px;justify-content:center;border-radius:var(--rs);margin-bottom:6px;font-weight:600;min-height:50px\" onclick=\"chBkStatus('" + bk.id + "','completed','pro')\">✓ " + t("markCompleted") + "</button>";
     if (bk.status === "pending") {
@@ -639,20 +639,20 @@ function openBkDetail(bkJson, role) {
   ge("bkdContent").innerHTML =
     buildFlowBar(bk.status)
   + "<div style=\"display:grid;grid-template-columns:1fr 1fr;gap:11px;margin:12px 0\">"
-  + "<div><div class=\"fl\">Status</div>" + sBadge(bk.status) + "</div>"
-  + "<div><div class=\"fl\">Total</div><div style=\"font-weight:500\">" + (bk.total || 0) + "₾"
+  + "<div><div class=\"fl\">" + t("bdStatus") + "</div>" + sBadge(bk.status) + "</div>"
+  + "<div><div class=\"fl\">" + t("bdTotal") + "</div><div style=\"font-weight:500\">" + (bk.total || 0) + "₾"
   + (bk.discount_amount > 0 ? "<span style=\"color:#15803d;font-size:12px\"> (-" + bk.discount_amount + "₾)</span>" : "") + "</div></div>"
-  + "<div><div class=\"fl\">Service</div><div style=\"font-size:14px\">" + (bk.service_name || "—") + "</div></div>"
-  + "<div><div class=\"fl\">Time</div><div style=\"font-size:14px\">" + (bk.time_slot || "ASAP") + "</div></div>"
-  + "<div><div class=\"fl\">District</div><div style=\"font-size:14px\">" + (bk.district || "—") + "</div></div>"
-  + "<div><div class=\"fl\">" + (isC ? "Professional" : "Client") + "</div><div style=\"font-size:14px\">" + (isC ? (bk.pro_name || "—") : (bk.client_name || "—")) + "</div></div>"
-  + (canSeePhone(bk) ? "<div><div class=\"fl\">📞 Phone</div><div style=\"font-size:14px;color:var(--g);font-weight:500\"><a href=\"tel:" + (isC ? (bk.pro_phone||"") : (bk.client_phone||"")) + "\" style=\"color:var(--g)\">" + (isC ? (bk.pro_phone||"Hidden") : (bk.client_phone||"Hidden")) + "</a></div></div>" : "")
-  + (bk.address ? "<div style=\"grid-column:1/-1\"><div class=\"fl\">Address</div><div style=\"font-size:14px\">" + bk.address + "</div></div><div style=\"grid-column:1/-1\"><div class=\"track-map\" id=\"bkdMap\"></div></div>" : "")
-  + (bk.notes   ? "<div style=\"grid-column:1/-1\"><div class=\"fl\">Notes</div><div style=\"font-size:13px;color:var(--mu)\">" + bk.notes + "</div></div>" : "")
+  + "<div><div class=\"fl\">" + t("bdService") + "</div><div style=\"font-size:14px\">" + (bk.service_name || "—") + "</div></div>"
+  + "<div><div class=\"fl\">" + t("bdTime") + "</div><div style=\"font-size:14px\">" + (bk.time_slot || "ASAP") + "</div></div>"
+  + "<div><div class=\"fl\">" + t("bdDistrict") + "</div><div style=\"font-size:14px\">" + (bk.district || "—") + "</div></div>"
+  + "<div><div class=\"fl\">" + (isC ? t("bdProfessional") : t("bdClient")) + "</div><div style=\"font-size:14px\">" + (isC ? (bk.pro_name || "—") : (bk.client_name || "—")) + "</div></div>"
+  + (canSeePhone(bk) ? "<div><div class=\"fl\">📞 " + t("bdPhone") + "</div><div style=\"font-size:14px;color:var(--g);font-weight:500\"><a href=\"tel:" + (isC ? (bk.pro_phone||"") : (bk.client_phone||"")) + "\" style=\"color:var(--g)\">" + (isC ? (bk.pro_phone||"—") : (bk.client_phone||"—")) + "</a></div></div>" : "")
+  + (bk.address ? "<div style=\"grid-column:1/-1\"><div class=\"fl\">" + t("bdAddress") + "</div><div style=\"font-size:14px\">" + bk.address + "</div></div><div style=\"grid-column:1/-1\"><div class=\"track-map\" id=\"bkdMap\"></div></div>" : "")
+  + (bk.notes   ? "<div style=\"grid-column:1/-1\"><div class=\"fl\">" + t("bdNotes") + "</div><div style=\"font-size:13px;color:var(--mu)\">" + bk.notes + "</div></div>" : "")
   + "</div>"
   + (bk.design_url ? "<div style=\"margin-top:11px\"><div class=\"fl\">🎨 Client Design Reference</div><div style=\"margin-top:6px\"><img src=\"" + bk.design_url + "\" style=\"max-width:100%;max-height:250px;border-radius:var(--rs);border:1.5px solid var(--br);cursor:pointer;object-fit:contain\" onclick=\"lbOpen(['" + bk.design_url + "'],0)\"></div></div>" : "")
   + nailHtml
-  + ((isC || isP) && bk.pro_id ? "<div style=\"margin-top:12px\"><button class=\"btn btn-gh\" style=\"display:flex;align-items:center;gap:6px;width:100%;justify-content:center;padding:12px;font-size:14px;border-radius:var(--rs)\" onclick=\"closeM('bkd');openChatFromBooking('" + bk.id + "','" + (isC ? (bk.pro_name || "Pro") : (bk.client_name || "Client")).replace(/'/g,"\\'") + "')\">💬 Chat with " + (isC ? (bk.pro_name || "Professional") : (bk.client_name || "Client")) + "</button></div>" : "")
+  + ((isC || isP) && bk.pro_id ? "<div style=\"margin-top:12px\"><button class=\"btn btn-gh\" style=\"display:flex;align-items:center;gap:6px;width:100%;justify-content:center;padding:12px;font-size:14px;border-radius:var(--rs)\" onclick=\"closeM('bkd');openChatFromBooking('" + bk.id + "','" + (isC ? (bk.pro_name || "Pro") : (bk.client_name || "Client")).replace(/'/g,"\\'") + "')\">💬 " + t("chatWith") + " " + (isC ? (bk.pro_name || t("bdProfessional")) : (bk.client_name || t("bdClient"))) + "</button></div>" : "")
   + (isA && bk.pro_id ? "<div style=\"margin-top:12px\"><button class=\"btn btn-gh\" style=\"display:flex;align-items:center;gap:6px;width:100%;justify-content:center;padding:12px;font-size:14px;border-radius:var(--rs)\" onclick=\"closeM('bkd');adminViewBookingChat('" + bk.id + "','" + (bk.client_name || "Client").replace(/'/g,"\\'") + "','" + (bk.pro_name || "Pro").replace(/'/g,"\\'") + "')\">💬 View Chat</button></div>" : "")
   + (acts ? "<div style=\"margin-top:16px;padding-top:14px;border-top:2px solid var(--br)\">"
     + "<div style=\"font-size:11px;font-weight:600;color:var(--mu);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px\">Actions</div>"
@@ -684,7 +684,7 @@ async function chBkStatus(id, status, actor) {
         var bkDate = (bkCheck.data.time_slot || "").substring(0, 10);
         var nowDate = new Date().getFullYear() + "-" + String(new Date().getMonth()+1).padStart(2,"0") + "-" + String(new Date().getDate()).padStart(2,"0");
         if (bkDate !== nowDate) {
-          toast("You can only go 'On the Way' on the booking day.", "err");
+          toast(t("paOnlyBkDay"), "err");
           return;
         }
       }
@@ -725,7 +725,7 @@ async function acceptBk(id) {
   try {
     var r = await sb.from("bookings").update({ status: "accepted" }).eq("id", id);
     if (r.error) throw r.error;
-    toast("Booking accepted!", "ok");
+    toast(t("paAccepted"), "ok");
     closeM("bkd");
     if (typeof loadProDash === "function") loadProDash();
     renderTracker();
@@ -752,14 +752,14 @@ async function submitTravelFeeRequest() {
   if (!bkId) return;
   var amount = parseInt(ge("tfAmount") ? ge("tfAmount").value : 0, 10);
   var reason = ge("tfReason") ? ge("tfReason").value.trim() : "";
-  if (!amount || amount < 1) { toast("Enter a valid amount", "err"); return; }
+  if (!amount || amount < 1) { toast(t("tfEnterAmt"), "err"); return; }
 
   try {
     var r = await sb.from("bookings")
       .update({ travel_fee_requested: amount, travel_fee_status: "pending", travel_fee_reason: reason })
       .eq("id", bkId);
     if (r.error) throw r.error;
-    toast("Travel fee request sent to client", "ok");
+    toast(t("tfRequested"), "ok");
     closeM("travelFee");
     closeM("bkd");
     if (typeof loadProDash === "function") loadProDash();
@@ -788,7 +788,7 @@ async function respondTravelFee(bkId, approve) {
     }
     var r = await sb.from("bookings").update(updates).eq("id", bkId);
     if (r.error) throw r.error;
-    toast(approve ? "Travel fee approved!" : "Travel fee declined", approve ? "ok" : "");
+    toast(approve ? t("tfApproved") : t("tfDeclined"), approve ? "ok" : "");
     closeM("bkd");
     if (typeof loadClientDash === "function") loadClientDash();
     renderTracker();
@@ -808,7 +808,7 @@ async function confirmArrival(id) {
   try {
     var r = await sb.from("bookings").update({ status: "in_progress" }).eq("id", id);
     if (r.error) throw r.error;
-    toast("Arrival confirmed! Service is now in progress.", "ok");
+    toast(t("paConfirmed"), "ok");
     closeM("bkd");
     cleanupClientMaps();
     sb.from("pro_locations").delete().eq("booking_id", id).then(function(){}).catch(function(){});
@@ -826,12 +826,12 @@ function openRevModal(bkId, targetId, role) {
   ge("revTargetId").value  = targetId;
   ge("revRole").value      = role;
   ge("revComment").value   = "";
-  ge("revSubjectTxt").textContent = role === "client" ? "Rate your professional" : "Rate the client";
+  ge("revSubjectTxt").textContent = role === "client" ? t("rvRatePro") : t("rvRateClient");
   openM("rev");
 }
 
 async function submitReview() {
-  if (!starRating) { toast("Please select a rating", "err"); return; }
+  if (!starRating) { toast(t("rvSelectRating"), "err"); return; }
   var bkId     = ge("revBkId").value;
   var targetId = ge("revTargetId").value;
   var role     = ge("revRole").value;
@@ -859,7 +859,7 @@ async function submitReview() {
       } catch(e) {}
     }
     closeM("rev");
-    toast("Review submitted!", "ok");
+    toast(t("rvSubmitted"), "ok");
     if (role === "client") loadClientDash();
     else if (typeof loadProDash === "function") loadProDash();
   } catch(e) { toast("Error: " + e.message, "err"); }
