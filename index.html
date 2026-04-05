@@ -4025,13 +4025,9 @@ async function routeByRole() {
     await loadScript("js/dashboards/admin.js");
     show("admin");
     loadAdminData();
-  } else if (profile.role === "pro") {
-    await loadScript("js/dashboards/professional.js");
-    show("dash-pro");
-    loadProDash();
   } else {
-    show("dash-client");
-    loadClientDash();
+    // All signed-in users (client & pro) land on homepage
+    show("home");
   }
 }
 
@@ -8005,7 +8001,19 @@ async function exportAnalyticsExcel() {
       ["Female Clients", clients.filter(function(p) { return p.gender === "female"; }).length],
       ["Male Clients", clients.filter(function(p) { return p.gender === "male"; }).length],
       ["Total Professionals", pros.length],
-      ["Total Services Listed", svcs.length]
+      ["Total Services Listed", svcs.length],
+      [""],
+      ["STATUS BREAKDOWN",""],
+      ["Pending", bks.filter(function(b) { return b.status === "pending"; }).length],
+      ["Accepted", bks.filter(function(b) { return b.status === "accepted"; }).length],
+      ["On the Way", bks.filter(function(b) { return b.status === "on_the_way"; }).length],
+      ["Arrived", bks.filter(function(b) { return b.status === "arrived"; }).length],
+      ["In Progress", bks.filter(function(b) { return b.status === "in_progress"; }).length],
+      ["Completed", completed.length],
+      ["Cancelled", cancelled.length],
+      ["No Show", bks.filter(function(b) { return b.status === "no_show"; }).length],
+      ["Late", bks.filter(function(b) { return b.status === "late"; }).length],
+      ["Refunded", bks.filter(function(b) { return b.status === "refunded"; }).length]
     ];
 
     // ══ SHEET 2: ALL BOOKINGS ══
@@ -8132,6 +8140,25 @@ async function exportAnalyticsExcel() {
       ]);
     });
 
+    // ══ SHEET 7: MOST POPULAR SERVICES ══
+    var allSvcCount = {};
+    bks.forEach(function(b) {
+      var sn = b.service_name || "Unknown";
+      allSvcCount[sn] = (allSvcCount[sn] || 0) + 1;
+    });
+    var sortedSvcs = Object.keys(allSvcCount).map(function(k) { return { name: k, count: allSvcCount[k] }; })
+      .sort(function(a, b) { return b.count - a.count; });
+    var popRows = [["Rank","Service","Bookings","% of All Bookings"]];
+    sortedSvcs.slice(0, 10).forEach(function(s, i) {
+      popRows.push([i + 1, s.name, s.count, bks.length ? Math.round(s.count / bks.length * 100) : 0]);
+    });
+
+    // ══ SHEET 8: LEAST POPULAR SERVICES ══
+    var leastRows = [["Rank","Service","Bookings","% of All Bookings"]];
+    sortedSvcs.slice(-10).reverse().forEach(function(s, i) {
+      leastRows.push([i + 1, s.name, s.count, bks.length ? Math.round(s.count / bks.length * 100) : 0]);
+    });
+
     // ══ BUILD MULTI-SHEET XLS ══
     var esc = function(v) { return String(v).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); };
     var buildSheet = function(name, rows) {
@@ -8157,6 +8184,8 @@ async function exportAnalyticsExcel() {
       + buildSheet("Revenue by Professional", proRows)
       + buildSheet("Monthly Breakdown", monthRows)
       + buildSheet("Client List", cliRows)
+      + buildSheet("Most Popular Services", popRows)
+      + buildSheet("Least Popular Services", leastRows)
       + '</Workbook>';
 
     var blob = new Blob([xls], { type: "application/vnd.ms-excel" });

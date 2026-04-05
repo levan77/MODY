@@ -81,13 +81,9 @@ async function routeByRole() {
     await loadScript("js/dashboards/admin.js");
     show("admin");
     loadAdminData();
-  } else if (profile.role === "pro") {
-    await loadScript("js/dashboards/professional.js");
-    show("dash-pro");
-    loadProDash();
   } else {
-    show("dash-client");
-    loadClientDash();
+    // All signed-in users (client & pro) land on homepage
+    show("home");
   }
 }
 
