@@ -70,7 +70,7 @@ async function viewPro(proId) {
   var portHtml = "";
   if (portfolio.length > 0) {
     portHtml = "<div class=\"card\" style=\"margin-bottom:12px\">"
-             + "<h3 style=\"font-size:16px;font-weight:400;margin-bottom:11px\">Portfolio</h3>"
+             + "<h3 style=\"font-size:16px;font-weight:400;margin-bottom:11px\">" + t("pcPortfolio") + "</h3>"
              + "<div class=\"port-grid\">"
              + portfolio.slice(0, 9).map(function(url, i) {
                  return "<div class=\"port-thumb\" onclick=\"lbOpen(lbImgs," + i + ")\">"
@@ -83,8 +83,8 @@ async function viewPro(proId) {
   var nailHtml = "";
   if (nailColors.length > 0 && settings.nail_colors_enabled !== false) {
     nailHtml = "<div class=\"card\" style=\"margin-bottom:12px\">"
-             + "<h3 style=\"font-size:16px;font-weight:400;margin-bottom:6px\">🌈 Nail Color Catalog</h3>"
-             + "<p style=\"font-size:13px;color:var(--mu);margin-bottom:10px\">Select colors during booking.</p>"
+             + "<h3 style=\"font-size:16px;font-weight:400;margin-bottom:6px\">🌈 " + t("pcNailColors") + "</h3>"
+             + "<p style=\"font-size:13px;color:var(--mu);margin-bottom:10px\">" + t("pcNailSub") + "</p>"
              + "<div class=\"swatch-row\">"
              + nailColors.map(function(c) {
                  return "<div class=\"swatch\" style=\"background:" + c.hex_code + "\" title=\"" + c.name + "\"></div>";
@@ -94,7 +94,7 @@ async function viewPro(proId) {
 
   // Reviews section - always show
   var revHtml = "<div class=\"card\" style=\"margin-bottom:12px\">"
-    + "<h3 style=\"font-size:16px;font-weight:400;margin-bottom:11px\">⭐ Reviews" + (reviews.length ? " (" + reviews.length + ")" : "") + "</h3>";
+    + "<h3 style=\"font-size:16px;font-weight:400;margin-bottom:11px\">⭐ " + t("pcReviewsTitle") + (reviews.length ? " (" + reviews.length + ")" : "") + "</h3>";
   if (reviews.length > 0) {
     revHtml += reviews.map(function(rv) {
                 var stars = Array(5).fill(0).map(function(_, i) {
@@ -135,12 +135,12 @@ async function viewPro(proId) {
           : s.price + "₾";
         return "<div class=\"svc-item\">"
              + "<div>"
-             + "<div style=\"font-size:14px;font-weight:500\">" + s.name + "</div>"
-             + "<div style=\"font-size:12px;color:var(--mu)\">" + (s.description || "") + (s.duration ? " · " + s.duration + " min" : "") + "</div>"
+             + "<div style=\"font-size:14px;font-weight:500\">" + svcName(s) + "</div>"
+             + "<div style=\"font-size:12px;color:var(--mu)\">" + svcDesc(s) + (s.duration ? " · " + s.duration + " min" : "") + "</div>"
              + "</div>"
              + "<div style=\"text-align:right\">"
              + "<div style=\"font-family:'Cormorant Garamond',serif;font-size:19px;font-weight:600\">" + priceHtml + "</div>"
-             + "<button class=\"svc-btn\" onclick=\"selectService('" + s.id + "','" + s.name.replace(/'/g,"\\'") + "'," + displayPrice + ",'" + pro.id + "','" + pro.name.replace(/'/g,"\\'") + "','" + (pro.specialty || "") + "'," + (s.duration || 60) + ")\">Add</button>"
+             + "<button class=\"svc-btn\" onclick=\"selectService('" + s.id + "','" + svcName(s).replace(/'/g,"\\'") + "'," + displayPrice + ",'" + pro.id + "','" + proName(pro).replace(/'/g,"\\'") + "','" + (proSpec(pro) || "") + "'," + (s.duration || 60) + ")\">Add</button>"
              + "</div></div>";
       }).join("");
 
@@ -155,23 +155,23 @@ async function viewPro(proId) {
     + "<div style=\"width:74px;height:74px;border-radius:50%;border:4px solid var(--cd);display:flex;align-items:center;justify-content:center;background:var(--bg2);margin-top:-38px;box-shadow:0 4px 12px rgba(0,0,0,.12);overflow:hidden;flex-shrink:0\">" + ava + "</div>"
     + "<button class=\"btn btn-o\" onclick=\"show('list')\" style=\"font-size:12px;margin-bottom:1px\">← " + t("vpBack") + "</button>"
     + "</div>"
-    + "<h1 style=\"font-size:22px;font-weight:300;margin-bottom:3px\">" + pro.name + "</h1>"
-    + "<p style=\"color:var(--mu);margin-bottom:8px\">" + pro.specialty + " · " + pro.area + "</p>"
+    + "<h1 style=\"font-size:22px;font-weight:300;margin-bottom:3px\">" + proName(pro) + "</h1>"
+    + "<p style=\"color:var(--mu);margin-bottom:8px\">" + proSpec(pro) + " · " + proArea(pro) + "</p>"
     + "<div style=\"display:flex;gap:8px;flex-wrap:wrap;align-items:center\">"
-    + "<span style=\"color:var(--g);font-size:13px\">★ " + pro.rating + " <span style=\"color:var(--mu)\">(" + pro.review_count + " reviews)</span></span>"
-    + (pro.rating >= 4.9 ? "<span class=\"bdg bdg-g\">Top Rated</span>" : "")
-    + (pro.verified ? "<span class=\"vbadge\">Verified</span>" : "")
-    + (pro.years_experience ? "<span style=\"display:inline-flex;align-items:center;gap:3px;background:rgba(168,85,247,.1);color:#7e22ce;border:1px solid rgba(168,85,247,.25);padding:2px 8px;border-radius:50px;font-size:11px;font-weight:600\">" + pro.years_experience + " yr exp</span>" : "")
-    + "<span class=\"bdg bdg-gr\">Available</span>"
+    + "<span style=\"color:var(--g);font-size:13px\">★ " + pro.rating + " <span style=\"color:var(--mu)\">(" + pro.review_count + " " + t("pcReviews") + ")</span></span>"
+    + (pro.rating >= 4.9 ? "<span class=\"bdg bdg-g\">" + t("pcTopRated") + "</span>" : "")
+    + (pro.verified ? "<span class=\"vbadge\">" + t("pcVerified") + "</span>" : "")
+    + (pro.years_experience ? "<span style=\"display:inline-flex;align-items:center;gap:3px;background:rgba(168,85,247,.1);color:#7e22ce;border:1px solid rgba(168,85,247,.25);padding:2px 8px;border-radius:50px;font-size:11px;font-weight:600\">" + pro.years_experience + " " + t("pcYrExp") + "</span>" : "")
+    + "<span class=\"bdg bdg-gr\">" + t("pcAvailable") + "</span>"
     + "</div>"
-    + (pro.bio ? "<p style=\"margin-top:8px;font-size:14px;line-height:1.7;color:var(--mu)\">" + pro.bio + "</p>" : "")
+    + (pro.bio ? "<p style=\"margin-top:8px;font-size:14px;line-height:1.7;color:var(--mu)\">" + proBio(pro) + "</p>" : "")
     + "</div>"
     + portHtml + nailHtml
     + "<div class=\"card\" style=\"margin-bottom:11px\"><h3 style=\"font-size:16px;font-weight:400;margin-bottom:11px\">" + t("vpServPricing") + "</h3>" + svcsHtml + "</div>"
     + revHtml
     + "</div>"
     + "<div><div class=\"book-card\">"
-    + "<h3 style=\"font-size:16px;font-weight:400;margin-bottom:4px\">" + t("vpBook") + " " + pro.name.split(" ")[0] + "</h3>"
+    + "<h3 style=\"font-size:16px;font-weight:400;margin-bottom:4px\">" + t("vpBook") + " " + proName(pro).split(" ")[0] + "</h3>"
     + "<p style=\"font-size:12px;color:var(--mu);margin-bottom:12px\">" + t("vpSelectSvc") + "</p>"
     // Service cart summary
     + "<div id=\"sbCartSummary\" class=\"hide\" style=\"background:var(--bg2);border-radius:var(--rs);padding:10px;margin-bottom:10px\">"

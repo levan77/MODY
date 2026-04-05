@@ -269,18 +269,18 @@ function proCard(p) {
   var img = p.avatar_url ? "<img src=\"" + p.avatar_url + "\" style=\"width:100%;height:100%;object-fit:cover\">" : "";
   var emo = p.avatar_url ? "" : p.emoji || "💅";
   var vBadge = p.verified
-    ? "<div style=\"position:absolute;top:10px;left:10px;background:rgba(59,130,246,.9);color:#fff;padding:3px 10px;border-radius:50px;font-size:11px;font-weight:600;display:flex;align-items:center;gap:3px;backdrop-filter:blur(4px)\">✓ Verified</div>"
-    : "<div style=\"position:absolute;top:10px;left:10px;background:rgba(0,0,0,.5);color:rgba(255,255,255,.7);padding:3px 10px;border-radius:50px;font-size:11px;font-weight:500;backdrop-filter:blur(4px)\">Unverified</div>";
+    ? "<div style=\"position:absolute;top:10px;left:10px;background:rgba(59,130,246,.9);color:#fff;padding:3px 10px;border-radius:50px;font-size:11px;font-weight:600;display:flex;align-items:center;gap:3px;backdrop-filter:blur(4px)\">✓ " + t("pcVerified") + "</div>"
+    : "<div style=\"position:absolute;top:10px;left:10px;background:rgba(0,0,0,.5);color:rgba(255,255,255,.7);padding:3px 10px;border-radius:50px;font-size:11px;font-weight:500;backdrop-filter:blur(4px)\">" + t("pcUnverified") + "</div>";
   return "<div class=\"pro-card\" onclick=\"viewPro('" + p.id + "')\">"
        + "<div class=\"pro-img\" style=\"position:relative\">" + img + emo + vBadge + "</div>"
        + "<div style=\"padding:16px\">"
        + "<div style=\"display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px\">"
-       + "<div style=\"font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:700;line-height:1.15\">" + p.name + "</div>"
+       + "<div style=\"font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:700;line-height:1.15\">" + proName(p) + "</div>"
        + "<span class=\"bdg bdg-g\" style=\"font-size:15px;padding:4px 10px\">★ " + p.rating + "</span></div>"
-       + "<div style=\"font-size:18px;color:var(--mu);margin-bottom:10px;font-weight:500\">" + p.specialty + " · " + p.area + "</div>"
+       + "<div style=\"font-size:18px;color:var(--mu);margin-bottom:10px;font-weight:500\">" + proSpec(p) + " · " + proArea(p) + "</div>"
        + "<div style=\"display:flex;justify-content:space-between;font-size:17px\">"
-       + "<span style=\"color:var(--mu)\">" + p.review_count + " reviews</span>"
-       + "<span style=\"font-size:20px\">from <strong>" + p.price_from + "₾</strong></span></div>"
+       + "<span style=\"color:var(--mu)\">" + p.review_count + " " + t("pcReviews") + "</span>"
+       + "<span style=\"font-size:20px\">" + t("pcFrom") + " <strong>" + p.price_from + "₾</strong></span></div>"
        + "</div></div>";
 }
 
@@ -288,8 +288,8 @@ function proListCard(p) {
   var img = p.avatar_url ? "<img src=\"" + p.avatar_url + "\" style=\"width:100%;height:100%;object-fit:cover\">" : "";
   var emo = p.avatar_url ? "" : p.emoji || "💅";
   var vTag = p.verified
-    ? "<span class=\"vbadge\" style=\"font-size:12px;padding:3px 9px\">Verified</span>"
-    : "<span style=\"display:inline-flex;align-items:center;gap:3px;background:rgba(150,150,150,.1);color:var(--mu);border:1px solid rgba(150,150,150,.25);padding:2px 8px;border-radius:50px;font-size:11px\">Unverified</span>";
+    ? "<span class=\"vbadge\" style=\"font-size:12px;padding:3px 9px\">" + t("pcVerified") + "</span>"
+    : "<span style=\"display:inline-flex;align-items:center;gap:3px;background:rgba(150,150,150,.1);color:var(--mu);border:1px solid rgba(150,150,150,.25);padding:2px 8px;border-radius:50px;font-size:11px\">" + t("pcUnverified") + "</span>";
   return "<div style=\"background:var(--cd);border-radius:var(--r);padding:16px;display:grid;grid-template-columns:80px 1fr auto;gap:11px;align-items:center;box-shadow:var(--sh);cursor:pointer;transition:all .25s;border:1.5px solid transparent\""
        + " onclick=\"viewPro('" + p.id + "')\""
        + " onmouseover=\"this.style.borderColor='rgba(234,184,183,.4)'\""
@@ -297,15 +297,15 @@ function proListCard(p) {
        + "<div style=\"width:80px;height:80px;background:var(--bg2);border-radius:var(--rs);display:flex;align-items:center;justify-content:center;font-size:36px;overflow:hidden;position:relative\">" + img + emo + "</div>"
        + "<div>"
        + "<div style=\"display:flex;align-items:center;gap:8px;margin-bottom:3px\">"
-       + "<div style=\"font-family:'Cormorant Garamond',serif;font-size:21px;font-weight:700;line-height:1.2\">" + p.name + "</div>"
+       + "<div style=\"font-family:'Cormorant Garamond',serif;font-size:21px;font-weight:700;line-height:1.2\">" + proName(p) + "</div>"
        + vTag + "</div>"
-       + "<div style=\"font-size:14px;color:var(--mu);margin-bottom:5px;font-weight:500\">" + p.specialty + " · " + p.area + "</div>"
+       + "<div style=\"font-size:14px;color:var(--mu);margin-bottom:5px;font-weight:500\">" + proSpec(p) + " · " + proArea(p) + "</div>"
        + "<span style=\"color:#facc15;font-size:14px;font-weight:600\">★ " + p.rating + "</span>"
-       + (p.rating >= 4.9 ? "<span class=\"bdg bdg-g\" style=\"margin-left:4px\">Top Rated</span>" : "")
+       + (p.rating >= 4.9 ? "<span class=\"bdg bdg-g\" style=\"margin-left:4px\">" + t("pcTopRated") + "</span>" : "")
        + "</div>"
        + "<div style=\"text-align:right\">"
        + "<div style=\"font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:700\">" + p.price_from + "₾</div>"
-       + "<button class=\"btn btn-g\" style=\"margin-top:8px;font-size:16px;padding:10px 22px\" onclick=\"event.stopPropagation();viewPro('" + p.id + "')\">Book</button>"
+       + "<button class=\"btn btn-g\" style=\"margin-top:8px;font-size:16px;padding:10px 22px\" onclick=\"event.stopPropagation();viewPro('" + p.id + "')\">" + t("pcBook") + "</button>"
        + "</div></div>";
 }
 

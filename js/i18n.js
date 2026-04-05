@@ -149,7 +149,19 @@ en: {
   vpNoSvcs: "No services listed yet.",
   vpNoRevs: "No reviews yet. Be the first to book and review!",
   vpServPricing: "Services & Pricing",
-  vpBack: "Back"
+  vpBack: "Back",
+  pcVerified: "Verified",
+  pcUnverified: "Unverified",
+  pcReviews: "reviews",
+  pcFrom: "from",
+  pcTopRated: "Top Rated",
+  pcAvailable: "Available",
+  pcYrExp: "yr exp",
+  pcPortfolio: "Portfolio",
+  pcNailColors: "Nail Color Catalog",
+  pcNailSub: "Select colors during booking.",
+  pcReviewsTitle: "Reviews",
+  pcBook: "Book"
 },
 ka: {
   heroBadge: "\u2726 \u10d7\u10d1\u10d8\u10da\u10d8\u10e1\u10d8\u10e1 \u10de\u10e0\u10d4\u10db\u10d8\u10e3\u10db\u10d8 \u10e1\u10d8\u10da\u10d0\u10db\u10d0\u10d6\u10d8\u10e1 \u10de\u10da\u10d0\u10e2\u10e4\u10dd\u10e0\u10db\u10d0",
@@ -312,7 +324,19 @@ ka: {
   vpNoSvcs: "სერვისები ჯერ არ არის.",
   vpNoRevs: "შეფასებები ჯერ არ არის. იყავით პირველი!",
   vpServPricing: "სერვისები და ფასები",
-  vpBack: "უკან"
+  vpBack: "უკან",
+  pcVerified: "ვერიფიცირებული",
+  pcUnverified: "არავერიფიცირებული",
+  pcReviews: "შეფასება",
+  pcFrom: "დან",
+  pcTopRated: "საუკეთესო",
+  pcAvailable: "ხელმისაწვდომი",
+  pcYrExp: "წ. გამოცდ.",
+  pcPortfolio: "პორტფოლიო",
+  pcNailColors: "ფრჩხილის ფერების კატალოგი",
+  pcNailSub: "აირჩიეთ ფერები დაჯავშნისას.",
+  pcReviewsTitle: "შეფასებები",
+  pcBook: "დაჯავშნა"
 },
 ru: {
   heroBadge: "\u2726 \u041f\u0440\u0435\u043c\u0438\u0443\u043c \u043f\u043b\u0430\u0442\u0444\u043e\u0440\u043c\u0430 \u043a\u0440\u0430\u0441\u043e\u0442\u044b \u0432 \u0422\u0431\u0438\u043b\u0438\u0441\u0438",
@@ -470,7 +494,19 @@ ru: {
   vpNoSvcs: "Услуг пока нет.",
   vpNoRevs: "Отзывов пока нет. Будьте первым!",
   vpServPricing: "Услуги и цены",
-  vpBack: "Назад"
+  vpBack: "Назад",
+  pcVerified: "Верифицирован",
+  pcUnverified: "Не верифицирован",
+  pcReviews: "отзывов",
+  pcFrom: "от",
+  pcTopRated: "Лучший",
+  pcAvailable: "Доступен",
+  pcYrExp: "лет опыта",
+  pcPortfolio: "Портфолио",
+  pcNailColors: "Каталог цветов ногтей",
+  pcNailSub: "Выберите цвета при бронировании.",
+  pcReviewsTitle: "Отзывы",
+  pcBook: "Записаться"
 }
 };
 

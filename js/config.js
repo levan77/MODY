@@ -14,15 +14,19 @@ var sb = window.supabase.createClient(SB_URL, SB_KEY);
 // ── DEMO PROFESSIONALS ────────────────────────────────────────
 var DEMOS = [
   {
-    id:"d1", name:"Nino Beridze", specialty:"Nails", area:"Vake",
+    id:"d1", name:"Nino Beridze", name_ka:"ნინო ბერიძე", name_ru:"Нино Беридзе",
+    specialty:"Nails", specialty_ka:"ფრჩხილები", specialty_ru:"Ногти",
+    area:"Vake", area_ka:"ვაკე", area_ru:"Ваке",
     rating:4.9, review_count:128, price_from:45, emoji:"\uD83D\uDC85", status:"approved",
     bio:"5+ years in gel and acrylic nail art. Certified by Georgian Beauty Academy.",
+    bio_ka:"5+ წლიანი გამოცდილება გელ და აკრილის ფრჩხილის ხელოვნებაში.",
+    bio_ru:"5+ лет опыта в гелевом и акриловом нейл-арте.",
     nail_colors_enabled:true,
     services:[
-      {id:"ds1",name:"Classic Gel Manicure",price:55,duration:60,description:"Soak-off gel, long lasting"},
-      {id:"ds2",name:"Nail Art Design",price:75,duration:90,description:"Custom patterns and designs"},
-      {id:"ds3",name:"Acrylic Full Set",price:90,duration:120,description:"Full acrylic extensions"},
-      {id:"ds4",name:"Pedicure Deluxe",price:65,duration:75,description:"Relaxing spa pedicure"}
+      {id:"ds1",name:"Classic Gel Manicure",name_ka:"კლასიკური გელ მანიკური",name_ru:"Классический гель маникюр",price:55,duration:60,description:"Soak-off gel, long lasting",description_ka:"გელ-ლაქი, დიდხანს ძლებს",description_ru:"Гель-лак, долговечный"},
+      {id:"ds2",name:"Nail Art Design",name_ka:"ფრჩხილის დიზაინი",name_ru:"Дизайн ногтей",price:75,duration:90,description:"Custom patterns and designs",description_ka:"ინდივიდუალური ნიმუშები და დიზაინი",description_ru:"Индивидуальные узоры и дизайн"},
+      {id:"ds3",name:"Acrylic Full Set",name_ka:"აკრილის სრული ნაკრები",name_ru:"Полный набор акрила",price:90,duration:120,description:"Full acrylic extensions",description_ka:"სრული აკრილის გაფართოება",description_ru:"Полное акриловое наращивание"},
+      {id:"ds4",name:"Pedicure Deluxe",name_ka:"პედიკური დელუქსი",name_ru:"Педикюр Делюкс",price:65,duration:75,description:"Relaxing spa pedicure",description_ka:"რელაქსის სპა პედიკური",description_ru:"Расслабляющий спа педикюр"}
     ],
     nail_colors:[
       {id:"nc1",name:"Cherry Red",hex_code:"#DC143C"},
@@ -40,13 +44,17 @@ var DEMOS = [
     ]
   },
   {
-    id:"d2", name:"Mariam Kiknadze", specialty:"Makeup", area:"Saburtalo",
+    id:"d2", name:"Mariam Kiknadze", name_ka:"მარიამ კიკნაძე", name_ru:"Мариам Кикнадзе",
+    specialty:"Makeup", specialty_ka:"მაკიაჟი", specialty_ru:"Макияж",
+    area:"Saburtalo", area_ka:"საბურთალო", area_ru:"Сабуртало",
     rating:4.8, review_count:94, price_from:60, emoji:"\uD83D\uDC84", status:"approved",
     bio:"Bridal and editorial makeup specialist. 200+ brides served across Georgia.",
+    bio_ka:"საქორწილო და სარედაქციო მაკიაჟის სპეციალისტი. 200+ პატარძალი მთელ საქართველოში.",
+    bio_ru:"Специалист по свадебному и редакционному макияжу. 200+ невест по всей Грузии.",
     services:[
-      {id:"ds5",name:"Bridal Makeup",price:180,duration:120,description:"Full glam bridal look"},
-      {id:"ds6",name:"Evening Glam",price:90,duration:60,description:"Party-ready glamour"},
-      {id:"ds7",name:"Natural Day Look",price:65,duration:45,description:"Fresh everyday makeup"}
+      {id:"ds5",name:"Bridal Makeup",name_ka:"საქორწილო მაკიაჟი",name_ru:"Свадебный макияж",price:180,duration:120,description:"Full glam bridal look",description_ka:"სრული გლამურული საქორწილო იერი",description_ru:"Полный гламурный свадебный образ"},
+      {id:"ds6",name:"Evening Glam",name_ka:"საღამოს გლამური",name_ru:"Вечерний гламур",price:90,duration:60,description:"Party-ready glamour",description_ka:"წვეულებისთვის მზა გლამური",description_ru:"Гламур для вечеринки"},
+      {id:"ds7",name:"Natural Day Look",name_ka:"ბუნებრივი დღის მაკიაჟი",name_ru:"Натуральный дневной макияж",price:65,duration:45,description:"Fresh everyday makeup",description_ka:"ყოველდღიური ნატურალური მაკიაჟი",description_ru:"Свежий повседневный макияж"}
     ],
     portfolio:[
       "https://images.unsplash.com/photo-1487412947147-5cebf100ffc2?w=400",
@@ -55,13 +63,17 @@ var DEMOS = [
     ]
   },
   {
-    id:"d3", name:"Tamar Jibladze", specialty:"Hair", area:"Isani",
+    id:"d3", name:"Tamar Jibladze", name_ka:"თამარ ჯიბლაძე", name_ru:"Тамар Джибладзе",
+    specialty:"Hair", specialty_ka:"თმა", specialty_ru:"Волосы",
+    area:"Isani", area_ka:"ისანი", area_ru:"Исани",
     rating:4.7, review_count:67, price_from:40, emoji:"\uD83D\uDC87", status:"approved",
     bio:"Hair styling expert — blowouts, braids, and color treatments.",
+    bio_ka:"თმის სტილისტი — უტყუარი, წნული და ფერის მკურნალობა.",
+    bio_ru:"Эксперт по укладке волос — укладки, косы и окрашивание.",
     services:[
-      {id:"ds8",name:"Blowout & Style",price:55,duration:60,description:"Professional blowout"},
-      {id:"ds9",name:"Hair Braiding",price:70,duration:90,description:"All types of braids"},
-      {id:"ds10",name:"Color Treatment",price:120,duration:150,description:"Full color or highlights"}
+      {id:"ds8",name:"Blowout & Style",name_ka:"უტყუარი და სტილი",name_ru:"Укладка и стиль",price:55,duration:60,description:"Professional blowout",description_ka:"პროფესიონალური უტყუარი",description_ru:"Профессиональная укладка"},
+      {id:"ds9",name:"Hair Braiding",name_ka:"თმის წნულები",name_ru:"Плетение волос",price:70,duration:90,description:"All types of braids",description_ka:"ყველა ტიპის წნული",description_ru:"Все виды кос"},
+      {id:"ds10",name:"Color Treatment",name_ka:"ფერის მკურნალობა",name_ru:"Окрашивание",price:120,duration:150,description:"Full color or highlights",description_ka:"სრული ფერი ან ჰაილაითები",description_ru:"Полное окрашивание или мелирование"}
     ],
     portfolio:[
       "https://images.unsplash.com/photo-1560066984-138dadb4c035?w=400",
@@ -69,36 +81,48 @@ var DEMOS = [
     ]
   },
   {
-    id:"d4", name:"Keti Lomidze", specialty:"Lashes", area:"Didi Dighomi",
+    id:"d4", name:"Keti Lomidze", name_ka:"ქეთი ლომიძე", name_ru:"Кети Ломидзе",
+    specialty:"Lashes", specialty_ka:"წამწამები", specialty_ru:"Ресницы",
+    area:"Didi Dighomi", area_ka:"დიდი დიღომი", area_ru:"Диди Дигоми",
     rating:5.0, review_count:210, price_from:70, emoji:"\uD83D\uDC41", status:"approved",
     bio:"Master lash technician. 5-star rating maintained for 3 years.",
+    bio_ka:"მაღალი კლასის წამწამების ტექნიკოსი. 5-ვარსკვლავიანი რეიტინგი 3 წელია.",
+    bio_ru:"Мастер-технолог по ресницам. 5-звёздочный рейтинг 3 года подряд.",
     services:[
-      {id:"ds11",name:"Classic Lash Set",price:80,duration:90,description:"Natural-looking lashes"},
-      {id:"ds12",name:"Volume Lash Set",price:110,duration:120,description:"Full dramatic volume"},
-      {id:"ds13",name:"Lash Lift & Tint",price:75,duration:60,description:"Lift natural lashes"}
+      {id:"ds11",name:"Classic Lash Set",name_ka:"კლასიკური წამწამები",name_ru:"Классические ресницы",price:80,duration:90,description:"Natural-looking lashes",description_ka:"ბუნებრივი იერის წამწამები",description_ru:"Натуральные ресницы"},
+      {id:"ds12",name:"Volume Lash Set",name_ka:"მოცულობითი წამწამები",name_ru:"Объёмные ресницы",price:110,duration:120,description:"Full dramatic volume",description_ka:"სრული დრამატული მოცულობა",description_ru:"Полный драматический объём"},
+      {id:"ds13",name:"Lash Lift & Tint",name_ka:"წამწამის აწევა და შეღებვა",name_ru:"Ламинирование и окрашивание ресниц",price:75,duration:60,description:"Lift natural lashes",description_ka:"ბუნებრივი წამწამების აწევა",description_ru:"Подъём натуральных ресниц"}
     ],
     portfolio:[
       "https://images.unsplash.com/photo-1616394584738-fc6e612e71b9?w=400"
     ]
   },
   {
-    id:"d5", name:"Lika Mgeladze", specialty:"Brows", area:"Vera",
+    id:"d5", name:"Lika Mgeladze", name_ka:"ლიკა მგელაძე", name_ru:"Лика Мгеладзе",
+    specialty:"Brows", specialty_ka:"წარბები", specialty_ru:"Брови",
+    area:"Vera", area_ka:"ვერა", area_ru:"Вера",
     rating:4.9, review_count:51, price_from:35, emoji:"\u2728", status:"approved",
     bio:"Brow design: threading, waxing, lamination, microblading.",
+    bio_ka:"წარბების დიზაინი: თრედინგი, ვაქსი, ლამინირება, მიკრობლეიდინგი.",
+    bio_ru:"Дизайн бровей: тридинг, воск, ламинирование, микроблейдинг.",
     services:[
-      {id:"ds14",name:"Brow Lamination",price:65,duration:60,description:"Fluffy brushed-up brows"},
-      {id:"ds15",name:"Microblading",price:250,duration:180,description:"Semi-permanent tattooing"},
-      {id:"ds16",name:"Threading & Tint",price:40,duration:30,description:"Shape + color"}
+      {id:"ds14",name:"Brow Lamination",name_ka:"წარბების ლამინირება",name_ru:"Ламинирование бровей",price:65,duration:60,description:"Fluffy brushed-up brows",description_ka:"პუფიანი აწეული წარბები",description_ru:"Пушистые приподнятые брови"},
+      {id:"ds15",name:"Microblading",name_ka:"მიკრობლეიდინგი",name_ru:"Микроблейдинг",price:250,duration:180,description:"Semi-permanent tattooing",description_ka:"ნახევრად მუდმივი ტატუირება",description_ru:"Полуперманентная татуировка"},
+      {id:"ds16",name:"Threading & Tint",name_ka:"თრედინგი და შეღებვა",name_ru:"Тридинг и окрашивание",price:40,duration:30,description:"Shape + color",description_ka:"ფორმა + ფერი",description_ru:"Форма + цвет"}
     ],
     portfolio:[]
   },
   {
-    id:"d6", name:"Ana Kvariani", specialty:"Makeup", area:"Mtatsminda",
+    id:"d6", name:"Ana Kvariani", name_ka:"ანა კვარიანი", name_ru:"Ана Квариани",
+    specialty:"Makeup", specialty_ka:"მაკიაჟი", specialty_ru:"Макияж",
+    area:"Mtatsminda", area_ka:"მთაწმინდა", area_ru:"Мтацминда",
     rating:4.9, review_count:88, price_from:70, emoji:"\uD83C\uDF1F", status:"approved",
     bio:"Film and TV makeup artist available for private bookings.",
+    bio_ka:"კინო და ტელე მაკიაჟის არტისტი, ხელმისაწვდომია პირადი ჯავშნისთვის.",
+    bio_ru:"Визажист кино и ТВ, доступен для частных бронирований.",
     services:[
-      {id:"ds17",name:"Special FX Makeup",price:200,duration:120,description:"Film-grade effects"},
-      {id:"ds18",name:"Airbrush Makeup",price:120,duration:75,description:"Flawless airbrush application"}
+      {id:"ds17",name:"Special FX Makeup",name_ka:"სპეციალური ეფექტების მაკიაჟი",name_ru:"Спецэффекты макияж",price:200,duration:120,description:"Film-grade effects",description_ka:"კინო დონის ეფექტები",description_ru:"Эффекты киноуровня"},
+      {id:"ds18",name:"Airbrush Makeup",name_ka:"ეარბრაშ მაკიაჟი",name_ru:"Аэрограф макияж",price:120,duration:75,description:"Flawless airbrush application",description_ka:"უნაკლო ეარბრაშ აპლიკაცია",description_ru:"Безупречное нанесение аэрографом"}
     ],
     portfolio:[
       "https://images.unsplash.com/photo-1487412947147-5cebf100ffc2?w=400"
@@ -155,6 +179,44 @@ function buildFlowBar(s) {
     }
   });
   return h + "</div>";
+}
+
+// ── MULTILINGUAL HELPERS (pro/service names) ─────────────────
+function proName(p) {
+  if (lang === "ka" && p.name_ka) return p.name_ka;
+  if (lang === "ru" && p.name_ru) return p.name_ru;
+  return p.name;
+}
+function proSpec(p) {
+  if (lang === "ka" && p.specialty_ka) return p.specialty_ka;
+  if (lang === "ru" && p.specialty_ru) return p.specialty_ru;
+  // fallback: try matching category translation
+  var cat = categories.find(function(c) { return c.name_en === p.specialty; });
+  if (cat) {
+    if (lang === "ka" && cat.name_ka) return cat.name_ka;
+    if (lang === "ru" && cat.name_ru) return cat.name_ru;
+  }
+  return p.specialty || "";
+}
+function proArea(p) {
+  if (lang === "ka" && p.area_ka) return p.area_ka;
+  if (lang === "ru" && p.area_ru) return p.area_ru;
+  return p.area || "";
+}
+function proBio(p) {
+  if (lang === "ka" && p.bio_ka) return p.bio_ka;
+  if (lang === "ru" && p.bio_ru) return p.bio_ru;
+  return p.bio || "";
+}
+function svcName(s) {
+  if (lang === "ka" && s.name_ka) return s.name_ka;
+  if (lang === "ru" && s.name_ru) return s.name_ru;
+  return s.name;
+}
+function svcDesc(s) {
+  if (lang === "ka" && s.description_ka) return s.description_ka;
+  if (lang === "ru" && s.description_ru) return s.description_ru;
+  return s.description || "";
 }
 
 
@@ -301,6 +363,18 @@ var SETUP_SQL = [
   "create table if not exists public.retention_queue (id uuid default gen_random_uuid() primary key, booking_id uuid references public.bookings(id) on delete set null, client_id uuid, client_phone text, client_name text, service_name text, pro_name text, send_at timestamptz not null, status text default 'pending', sent_at timestamptz, created_at timestamptz default now());",
   "alter table public.retention_queue enable row level security;",
   "grant all on public.retention_queue to anon, authenticated;",
+  "alter table public.professionals add column if not exists name_ka text;",
+  "alter table public.professionals add column if not exists name_ru text;",
+  "alter table public.professionals add column if not exists specialty_ka text;",
+  "alter table public.professionals add column if not exists specialty_ru text;",
+  "alter table public.professionals add column if not exists bio_ka text;",
+  "alter table public.professionals add column if not exists bio_ru text;",
+  "alter table public.professionals add column if not exists area_ka text;",
+  "alter table public.professionals add column if not exists area_ru text;",
+  "alter table public.services add column if not exists name_ka text;",
+  "alter table public.services add column if not exists name_ru text;",
+  "alter table public.services add column if not exists description_ka text;",
+  "alter table public.services add column if not exists description_ru text;",
   "",
   "alter table public.profiles enable row level security;",
   "alter table public.categories enable row level security;",
