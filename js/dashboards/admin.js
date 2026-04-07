@@ -1057,7 +1057,7 @@ async function exportAnalyticsExcel() {
     var clients = profs.filter(function(p) { return !p.role || p.role === "client"; });
 
     var sumRows = [
-      ["MODY Platform Analytics Report"],
+      ["Le' mody Platform Analytics Report"],
       ["Generated", new Date().toLocaleString()],
       [""],
       ["KEY METRICS",""],
@@ -1272,7 +1272,7 @@ async function exportAnalyticsExcel() {
     var url = URL.createObjectURL(blob);
     var a = document.createElement("a");
     a.href = url;
-    a.download = "MODY_Analytics_" + new Date().toISOString().slice(0,10) + ".xls";
+    a.download = "LeMody_Analytics_" + new Date().toISOString().slice(0,10) + ".xls";
     a.click();
     URL.revokeObjectURL(url);
     toast("Full report exported!", "ok");
@@ -2194,7 +2194,7 @@ async function processRetentionQueue() {
       try {
         var msg = "Hi " + (item.client_name || "there") + "! It's been a while since your last "
           + (item.service_name || "appointment") + " with " + (item.pro_name || "us")
-          + ". Time to treat yourself again? Book at MODY 💅";
+          + ". Time to treat yourself again? Book at Le' mody 💅";
         await sendTwilioNotification(item.client_phone, "custom", item.client_name, msg);
         await sb.from("retention_queue").update({ status: "sent", sent_at: new Date().toISOString() }).eq("id", item.id);
         sent++;

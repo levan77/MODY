@@ -221,7 +221,7 @@ function svcDesc(s) {
 
 
 // ── PLATFORM SETTINGS ─────────────────────────────────────────
-var settings = { promo_enabled: true, nail_colors_enabled: true, commission: 5, platform_fee: 5, chat_enabled: true, pro_registration_enabled: true, reviews_enabled: true, auto_accept: false, min_order: 0, cancel_hours: 2, brand_name: "MODY", open_time: "10:00", close_time: "20:00", advance_days: 30, email_notifications: true, sms_notifications: false };
+var settings = { promo_enabled: true, nail_colors_enabled: true, commission: 5, platform_fee: 5, chat_enabled: true, pro_registration_enabled: true, reviews_enabled: true, auto_accept: false, min_order: 0, cancel_hours: 2, brand_name: "Le' mody", open_time: "10:00", close_time: "20:00", advance_days: 30, email_notifications: true, sms_notifications: false };
 
 // District management
 var districts = ["Vake","Saburtalo","Isani","Didi Dighomi","Vera","Mtatsminda","Gldani"];
@@ -251,7 +251,7 @@ async function loadSettings() {
   var saa = ge("setAutoAccept"); if (saa) saa.checked = settings.auto_accept === true || settings.auto_accept === "true";
   var smo = ge("setMinOrder");   if (smo) smo.value = settings.min_order || 0;
   var sch = ge("setCancelHrs");  if (sch) sch.value = settings.cancel_hours || 2;
-  var sbn = ge("setBrandName");  if (sbn) sbn.value = settings.brand_name || "MODY";
+  var sbn = ge("setBrandName");  if (sbn) sbn.value = settings.brand_name || "Le' mody";
   var sot = ge("setOpenTime");   if (sot) sot.value = settings.open_time || "10:00";
   var sct = ge("setCloseTime");  if (sct) sct.value = settings.close_time || "20:00";
   var sad = ge("setAdvDays");    if (sad) sad.value = settings.advance_days || 30;

@@ -64,7 +64,7 @@ function subscribeRealtime() {
         // Notify via browser notification if permitted
         if (typeof Notification !== "undefined" && Notification.permission === "granted") {
           try {
-            new Notification("MODY — " + senderName, { body: preview, icon: "/favicon.ico" });
+            new Notification("Le' mody — " + senderName, { body: preview, icon: "/favicon.ico" });
           } catch(e) {}
         }
       })
