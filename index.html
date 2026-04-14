@@ -958,7 +958,8 @@ footer        { background: #1A1A1A; color: rgba(255,255,255,.4); padding: 38px 
   /* Nav: prevent overflow, shrink language code text */
   .nav-w { overflow: visible; }
   #lCode { display: none; }
-  .ltrig { padding: 4px 6px; gap: 2px; }
+  .lsw { flex-shrink: 0; }
+  .ltrig { padding: 4px 6px; gap: 2px; min-height: 40px; min-width: 40px; touch-action: manipulation; }
   #navBtns { gap: 4px !important; flex-wrap: nowrap !important; }
 
   /* Section headings — prevent overflow */
@@ -3673,9 +3674,9 @@ function toggleLdrop(e) {
   document.getElementById("lsw").classList.toggle("open");
 }
 
-document.addEventListener("click", function() {
+document.addEventListener("click", function(e) {
   var s = document.getElementById("lsw");
-  if (s) s.classList.remove("open");
+  if (s && !s.contains(e.target)) s.classList.remove("open");
 });
 
 // ── LOAD SAVED TRANSLATIONS FROM DB ─────────────────────────
