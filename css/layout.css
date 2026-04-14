@@ -331,13 +331,13 @@ footer        { background: #1A1A1A; color: rgba(255,255,255,.4); padding: 38px 
   /* Modals */
   .mbox  { width: 95vw; max-width: 95vw; max-height: 90vh; margin: 16px; }
 
-  /* Prevent overflow */
-  body { overflow-x: hidden; }
+  /* Prevent overflow — use clip (not hidden) so iOS position:fixed still works */
+  body { overflow-x: clip; }
   .fi, input, select, textarea { max-width: 100%; box-sizing: border-box; }
 
   /* Chat */
   .chat-wrap { bottom: 80px; right: 12px; }
-  .chat-win { width: calc(100vw - 24px); right: 0; bottom: 54px; height: 60vh; max-height: 420px; left: auto; position: fixed; right: 12px; bottom: 140px; z-index: 401; }
+  .chat-win { position: fixed; width: calc(100vw - 24px); right: 12px; bottom: 140px; height: calc(100vh - 200px); max-height: 420px; left: auto; z-index: 401; }
 
   /* Booking flow */
   .bk-flow     { gap: 0; }
@@ -366,7 +366,8 @@ footer        { background: #1A1A1A; color: rgba(255,255,255,.4); padding: 38px 
   /* Nav: prevent overflow, shrink language code text */
   .nav-w { overflow: visible; }
   #lCode { display: none; }
-  .ltrig { padding: 4px 6px; gap: 2px; }
+  .lsw { flex-shrink: 0; }
+  .ltrig { padding: 4px 6px; gap: 2px; min-height: 40px; min-width: 40px; }
   #navBtns { gap: 4px !important; flex-wrap: nowrap !important; }
 
   /* Section headings — prevent overflow */
@@ -397,7 +398,6 @@ footer        { background: #1A1A1A; color: rgba(255,255,255,.4); padding: 38px 
   .ni  { min-height: 42px; }
   .mx  { min-width: 40px; min-height: 40px; display: flex; align-items: center; justify-content: center; }
 
-  /* Prevent horizontal scroll */
-  body { overflow-x: hidden; }
-  .sec-w, .nav-w, .dash-w { overflow-x: hidden; }
+  /* Prevent horizontal scroll on content containers */
+  .sec-w, .dash-w { overflow-x: hidden; }
 }

@@ -149,9 +149,12 @@ function openBookingChat(bookingId, otherName) {
 function openChatFromBooking(bookingId, otherName) {
   var win = ge("chatWin");
   if (win && !win.classList.contains("on")) win.classList.add("on");
-  buildChatThreads().then(function() {
+  var p = buildChatThreads();
+  if (p && typeof p.then === "function") {
+    p.then(function() { openBookingChat(bookingId, otherName); });
+  } else {
     openBookingChat(bookingId, otherName);
-  });
+  }
 }
 
 // ── LOAD MESSAGES ───────────────────────────────────────────
