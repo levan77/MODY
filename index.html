@@ -1188,6 +1188,9 @@ footer        { background: #1A1A1A; color: rgba(255,255,255,.4); padding: 38px 
     <div style="max-width:1200px;margin:0 auto">
       <div style="display:flex;gap:10px;flex-wrap:wrap;padding:6px 0" id="filterChips"></div>
       <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:6px">
+        <select class="fi" id="clientRegionSel" style="width:140px;padding:6px 10px;font-size:13px" onchange="setClientRegion(this.value)">
+          <option value="">All regions</option>
+        </select>
         <input type="date" class="fi" id="availDate" style="width:150px;padding:6px 10px;font-size:13px" onchange="filterByAvailability()">
         <select class="fi" id="availTime" style="width:100px;padding:6px 10px;font-size:13px" onchange="filterByAvailability()">
           <option value="">Any time</option>
@@ -1313,7 +1316,8 @@ footer        { background: #1A1A1A; color: rgba(255,255,255,.4); padding: 38px 
     <div class="card" style="margin-bottom:11px">
       <div style="display:flex;justify-content:space-between;padding:4px 0;font-size:14px"><span id="bkSumSvcLbl"></span><span id="bkSumSvcAmt"></span></div>
       <div id="bkDiscRow" style="display:none;justify-content:space-between;padding:4px 0;font-size:14px;color:#15803d"><span id="bkDiscLbl">Discount</span><span id="bkDiscAmt"></span></div>
-      <div style="display:flex;justify-content:space-between;padding:4px 0;font-size:14px"><span id="bkFeeLbl"></span><span>5₾</span></div>
+      <div style="display:flex;justify-content:space-between;padding:4px 0;font-size:14px"><span id="bkFeeLbl"></span><span id="bkFeeAmt">5₾</span></div>
+      <div id="bkCrossRegRow" style="display:none;justify-content:space-between;padding:4px 0;font-size:14px;color:#b45309"><span>🗺 Cross-region travel fee</span><span id="bkCrossRegAmt"></span></div>
       <div style="display:flex;justify-content:space-between;padding:7px 0 3px;font-size:15px;font-weight:500;border-top:1px solid var(--br);margin-top:5px">
         <span id="bkTotalLbl"></span>
         <span id="bkTotal" style="font-family:'Cormorant Garamond',serif;font-size:21px"></span>
@@ -1583,6 +1587,16 @@ footer        { background: #1A1A1A; color: rgba(255,255,255,.4); padding: 38px 
           </div>
           <button class="btn btn-g" onclick="saveProProfile()">Submit for Approval</button>
         </div>
+        <div class="card" style="margin-top:12px">
+          <div class="c-hdr"><h3>Cross-Region Travel Fee</h3></div>
+          <p style="font-size:13px;color:var(--mu);margin-bottom:12px">Set the extra fee you charge when clients book you from outside your district. Changes require admin approval before going live.</p>
+          <div id="proFeeStatus" style="margin-bottom:10px;font-size:13px"></div>
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+            <input class="fi" id="pCrossRegFeeInp" type="number" min="0" max="200" placeholder="e.g. 15" style="width:100px">
+            <span style="font-size:13px;color:var(--mu)">₾</span>
+            <button class="btn btn-g" onclick="submitCrossRegionFeeRequest()">Request Change</button>
+          </div>
+        </div>
         <div class="card">
           <div class="c-hdr"><h3>Account Settings</h3></div>
           <div style="padding:12px 0;border-bottom:1px solid var(--br)">
@@ -1649,6 +1663,7 @@ footer        { background: #1A1A1A; color: rgba(255,255,255,.4); padding: 38px 
       <button class="ni" id="aN-notifs" onclick="aTab('notifs')">🔔 Notifications <span id="adminNotifBadge" style="background:rgba(234,184,183,.2);color:#C9918F;padding:1px 6px;border-radius:50px;font-size:11px;margin-left:2px;display:none">0</span></button>
       <button class="ni" id="aN-crm" onclick="aTab('crm')">👥 Client CRM</button>
       <button class="ni" id="aN-incidents" onclick="aTab('incidents')">🚨 Disputes</button>
+      <button class="ni" id="aN-fees" onclick="aTab('fees')">💸 Fee Requests <span id="feeBadge" style="background:rgba(234,184,183,.2);color:#C9918F;padding:1px 6px;border-radius:50px;font-size:11px;margin-left:2px;display:none">0</span></button>
       <button class="ni" id="aN-analytics" onclick="aTab('analytics')">📈 Analytics</button>
       <button class="ni" id="aN-blog" onclick="aTab('blog')">📝 Blog / Pages</button>
     </div>
@@ -1820,6 +1835,12 @@ footer        { background: #1A1A1A; color: rgba(255,255,255,.4); padding: 38px 
             <div style="flex:1;min-width:120px"><div style="font-weight:500;font-size:14px">Platform Fee (₾)</div><div style="font-size:12px;color:var(--mu)">Fixed fee added to each booking</div></div>
             <input class="fi" id="setPlatformFee" type="number" style="width:80px" min="0" max="100" value="5">
             <button class="btn btn-g" style="font-size:13px" onclick="saveSetting('platform_fee',document.getElementById('setPlatformFee').value)">Save</button>
+          </div>
+          <div style="padding:10px 0;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--br);flex-wrap:wrap">
+            <div style="flex:1;min-width:120px"><div style="font-weight:500;font-size:14px">Cross-Region Fee (₾)</div><div style="font-size:12px;color:var(--mu)">Default fee when client books a pro from another district</div></div>
+            <input class="fi" id="setDefaultCrossRegionFee" type="number" style="width:80px" min="0" max="200" value="10">
+            <button class="btn btn-g" style="font-size:13px" onclick="saveSetting('default_cross_region_fee',document.getElementById('setDefaultCrossRegionFee').value)">Save</button>
+            <label class="sw" style="margin-left:4px"><input type="checkbox" id="setCrossRegionFeeEnabled" onchange="saveSetting('cross_region_fee_enabled',this.checked)"><span class="sw-t"></span></label>
           </div>
           <div style="padding:10px 0;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--br);flex-wrap:wrap">
             <div style="flex:1;min-width:120px"><div style="font-weight:500;font-size:14px">Min Booking Price (₾)</div><div style="font-size:12px;color:var(--mu)">Minimum order value for bookings</div></div>
@@ -2093,6 +2114,16 @@ footer        { background: #1A1A1A; color: rgba(255,255,255,.4); padding: 38px 
             <button class="btn btn-g" style="font-size:13px" onclick="openIncidentModal()">+ New Incident</button>
           </div>
           <div class="tw"><table class="tbl"><thead><tr><th>Date</th><th>Subject</th><th>Booking</th><th>Client</th><th>Status</th><th>Credit</th><th>Actions</th></tr></thead><tbody id="incidentBody"></tbody></table></div>
+        </div>
+      </div>
+      <div id="aTab-fees" class="hide">
+        <div class="card" style="margin-bottom:12px">
+          <div class="c-hdr">
+            <h3>💸 Pending Cross-Region Fee Requests</h3>
+            <button class="btn btn-g" style="font-size:13px" onclick="loadPendingFees()">↻ Refresh</button>
+          </div>
+          <p style="font-size:13px;color:var(--mu);margin-bottom:12px">Professionals can request a custom cross-region travel fee. Admin approvals go live immediately; rejections revert to the default.</p>
+          <div id="pendingFeesList"><p style="color:var(--mu);font-size:13px;padding:16px 0">Loading...</p></div>
         </div>
       </div>
     </div>
@@ -2818,7 +2849,7 @@ function svcDesc(s) {
 
 
 // ── PLATFORM SETTINGS ─────────────────────────────────────────
-var settings = { promo_enabled: true, nail_colors_enabled: true, commission: 5, platform_fee: 5, chat_enabled: true, pro_registration_enabled: true, reviews_enabled: true, auto_accept: false, min_order: 0, cancel_hours: 2, brand_name: "Le' mody", open_time: "10:00", close_time: "20:00", advance_days: 30, email_notifications: true, sms_notifications: false };
+var settings = { promo_enabled: true, nail_colors_enabled: true, commission: 5, platform_fee: 5, chat_enabled: true, pro_registration_enabled: true, reviews_enabled: true, auto_accept: false, min_order: 0, cancel_hours: 2, brand_name: "Le' mody", open_time: "10:00", close_time: "20:00", advance_days: 30, email_notifications: true, sms_notifications: false, cross_region_fee_enabled: false, default_cross_region_fee: 10 };
 
 // District management
 var districts = ["Vake","Saburtalo","Isani","Didi Dighomi","Vera","Mtatsminda","Gldani"];
@@ -2871,6 +2902,7 @@ async function loadSettings() {
   }
   // Render districts
   renderDistricts();
+  populateClientRegionSelect();
   // Toggle chat widget visibility
   var cw = document.querySelector(".chat-wrap");
   if (cw) cw.style.display = settings.chat_enabled === false ? "none" : "";
@@ -2886,6 +2918,9 @@ async function loadSettings() {
   // Retention
   var sret = ge("setRetentionEnabled"); if (sret) sret.checked = settings.retention_enabled === true || settings.retention_enabled === "true";
   var sretd = ge("setRetentionDays"); if (sretd) sretd.value = settings.retention_days || 21;
+  // Cross-region fee
+  var scrf = ge("setCrossRegionFeeEnabled"); if (scrf) scrf.checked = settings.cross_region_fee_enabled === true || settings.cross_region_fee_enabled === "true";
+  var sdc = ge("setDefaultCrossRegionFee"); if (sdc) sdc.value = settings.default_cross_region_fee || 10;
   // Show/hide kill switch banner on client side
   var ksb = ge("killSwitchBanner");
   if (ksb) ksb.style.display = (settings.kill_switch === true || settings.kill_switch === "true") ? "block" : "none";
@@ -2951,6 +2986,12 @@ var SETUP_SQL = [
   "alter table public.bookings add column if not exists travel_fee_requested int default 0;",
   "alter table public.bookings add column if not exists travel_fee_status text;",
   "alter table public.bookings add column if not exists travel_fee_reason text;",
+  "alter table public.bookings add column if not exists cross_region_fee int default 0;",
+  "alter table public.bookings add column if not exists client_region text;",
+  "alter table public.bookings add column if not exists pro_region text;",
+  "alter table public.professionals add column if not exists cross_region_fee int default 0;",
+  "alter table public.professionals add column if not exists cross_region_fee_pending int;",
+  "alter table public.professionals add column if not exists cross_region_fee_status text default 'approved';",
   "create table if not exists public.client_wallets (client_id uuid primary key references auth.users(id) on delete cascade, balance int default 0, updated_at timestamptz default now());",
   "alter table public.client_wallets enable row level security;",
   "grant all on public.client_wallets to anon, authenticated;",
@@ -3913,6 +3954,7 @@ function renderDistricts() {
   }).join("");
   // Update all district dropdowns
   updateDistrictSelects();
+  populateClientRegionSelect();
 }
 
 function addDistrict() {
@@ -4955,6 +4997,7 @@ function filterGoSub(cat, sub) { activeFilter = cat; document.body.classList.tog
 
 var unavailableProIds = [];
 var availFilterActive = false;
+var clientRegion = "";
 
 async function filterByAvailability() {
   var dateEl = ge("availDate");
@@ -5046,6 +5089,19 @@ function clearAvailFilter() {
   renderPros();
 }
 
+function setClientRegion(val) {
+  clientRegion = val;
+  renderPros();
+}
+
+function populateClientRegionSelect() {
+  var sel = ge("clientRegionSel");
+  if (!sel) return;
+  var cur = sel.value;
+  sel.innerHTML = "<option value=\"\">All regions</option>"
+    + districts.map(function(d) { return "<option value=\"" + d + "\"" + (cur === d ? " selected" : "") + ">" + d + "</option>"; }).join("");
+}
+
 function renderPros() {
   var filtered = activeFilter === "All"
     ? allPros
@@ -5070,8 +5126,29 @@ function renderPros() {
     if (!filtered.length) {
       le.innerHTML = "<p style=\"color:var(--mu);padding:20px\">" + (availFilterActive ? "No professionals available at this time. Try a different date/time." : "No professionals found.") + "</p>";
     } else {
-      le.innerHTML = "<div style=\"display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:11px\">"
-                   + filtered.map(proListCard).join("") + "</div>";
+      var sorted = filtered;
+      if (clientRegion) {
+        var inRegion  = filtered.filter(function(p) { return p.area === clientRegion; });
+        var outRegion = filtered.filter(function(p) { return p.area !== clientRegion; });
+        sorted = inRegion.concat(outRegion);
+      }
+      var html = "<div style=\"display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:11px\">";
+      if (clientRegion) {
+        var inR = sorted.filter(function(p) { return p.area === clientRegion; });
+        var outR = sorted.filter(function(p) { return p.area !== clientRegion; });
+        if (inR.length) {
+          html += "<div style=\"grid-column:1/-1;font-size:12px;font-weight:600;color:var(--g);padding:4px 0 2px\">📍 In your region (" + clientRegion + ")</div>";
+          html += inR.map(proListCard).join("");
+        }
+        if (outR.length) {
+          html += "<div style=\"grid-column:1/-1;font-size:12px;font-weight:600;color:var(--mu);padding:8px 0 2px;border-top:1px solid var(--br);margin-top:4px\">🗺 Other regions" + (settings.cross_region_fee_enabled !== false ? " · cross-region fee applies" : "") + "</div>";
+          html += outR.map(proListCard).join("");
+        }
+      } else {
+        html += sorted.map(proListCard).join("");
+      }
+      html += "</div>";
+      le.innerHTML = html;
     }
   }
   renderCatGrid();
@@ -5102,15 +5179,20 @@ function proListCard(p) {
   var vTag = p.verified
     ? "<span class=\"vbadge\" style=\"font-size:12px;padding:3px 9px\">" + t("pcVerified") + "</span>"
     : "<span style=\"display:inline-flex;align-items:center;gap:3px;background:rgba(150,150,150,.1);color:var(--mu);border:1px solid rgba(150,150,150,.25);padding:2px 8px;border-radius:50px;font-size:11px\">" + t("pcUnverified") + "</span>";
-  return "<div style=\"background:var(--cd);border-radius:var(--r);padding:16px;display:grid;grid-template-columns:80px 1fr auto;gap:11px;align-items:center;box-shadow:var(--sh);cursor:pointer;transition:all .25s;border:1.5px solid transparent\""
+  var isOutRegion = clientRegion && p.area && p.area !== clientRegion;
+  var crossFeeAmt = isOutRegion ? (parseInt(p.cross_region_fee) || parseInt(settings.default_cross_region_fee) || 0) : 0;
+  var crossBadge = (isOutRegion && settings.cross_region_fee_enabled !== false && crossFeeAmt > 0)
+    ? "<span style=\"display:inline-flex;align-items:center;gap:3px;background:rgba(245,158,11,.12);color:#b45309;border:1px solid rgba(245,158,11,.3);padding:2px 7px;border-radius:50px;font-size:11px\">🗺 +"+crossFeeAmt+"₾ travel</span>"
+    : "";
+  return "<div style=\"background:var(--cd);border-radius:var(--r);padding:16px;display:grid;grid-template-columns:80px 1fr auto;gap:11px;align-items:center;box-shadow:var(--sh);cursor:pointer;transition:all .25s;border:1.5px solid " + (isOutRegion ? "rgba(245,158,11,.2)" : "transparent") + "\""
        + " onclick=\"viewPro('" + p.id + "')\""
-       + " onmouseover=\"this.style.borderColor='rgba(234,184,183,.4)'\""
-       + " onmouseout=\"this.style.borderColor='transparent'\">"
+       + " onmouseover=\"this.style.borderColor='" + (isOutRegion ? "rgba(245,158,11,.5)" : "rgba(234,184,183,.4)") + "'\""
+       + " onmouseout=\"this.style.borderColor='" + (isOutRegion ? "rgba(245,158,11,.2)" : "transparent") + "'\">"
        + "<div style=\"width:80px;height:80px;background:var(--bg2);border-radius:var(--rs);display:flex;align-items:center;justify-content:center;font-size:36px;overflow:hidden;position:relative\">" + img + emo + "</div>"
        + "<div>"
-       + "<div style=\"display:flex;align-items:center;gap:8px;margin-bottom:3px\">"
+       + "<div style=\"display:flex;align-items:center;gap:8px;margin-bottom:3px;flex-wrap:wrap\">"
        + "<div style=\"font-family:'Cormorant Garamond',serif;font-size:21px;font-weight:700;line-height:1.2\">" + proName(p) + "</div>"
-       + vTag + "</div>"
+       + vTag + crossBadge + "</div>"
        + "<div style=\"font-size:14px;color:var(--mu);margin-bottom:5px;font-weight:500\">" + proSpec(p) + " · " + proArea(p) + "</div>"
        + "<span style=\"color:#facc15;font-size:14px;font-weight:600\">★ " + p.rating + "</span>"
        + (p.rating >= 4.9 ? "<span class=\"bdg bdg-g\" style=\"margin-left:4px\">" + t("pcTopRated") + "</span>" : "")
@@ -5544,7 +5626,19 @@ function clearPromo() {
 }
 
 function updateBkTotal() {
-  var total = selSvcTotal() - promoDisc + 5;
+  var platformFee = parseInt(settings.platform_fee) || 5;
+  var bkFeeAmt = ge("bkFeeAmt"); if (bkFeeAmt) bkFeeAmt.textContent = platformFee + "₾";
+  var crossFee = 0;
+  if (settings.cross_region_fee_enabled !== false && clientRegion) {
+    var pro = selSvcPro();
+    var proData = pro && pro.proId ? allPros.find(function(p) { return p.id === pro.proId; }) : null;
+    if (proData && proData.area && proData.area !== clientRegion) {
+      crossFee = parseInt(proData.cross_region_fee) || parseInt(settings.default_cross_region_fee) || 0;
+    }
+  }
+  var crRow = ge("bkCrossRegRow"); if (crRow) crRow.style.display = crossFee > 0 ? "flex" : "none";
+  var crAmt = ge("bkCrossRegAmt"); if (crAmt) crAmt.textContent = "+" + crossFee + "₾";
+  var total = selSvcTotal() - promoDisc + platformFee + crossFee;
   var bt = ge("bkTotal"); if (bt) bt.textContent = total + "₾";
   var cb = ge("confirmBtn"); if (cb) cb.textContent = t("confirmBtnTxt") + " — " + total + "₾";
 }
@@ -5739,8 +5833,14 @@ async function submitBooking() {
     } catch(e) {}
   }
 
-  var total = selSvcTotal() - promoDisc + 5;
+  var platformFee = parseInt(settings.platform_fee) || 5;
   var pro = selSvcPro();
+  var proDataBk = (pro && pro.proId) ? allPros.find(function(p) { return p.id === pro.proId; }) : null;
+  var crossRegionFeeBk = 0;
+  if (settings.cross_region_fee_enabled !== false && clientRegion && proDataBk && proDataBk.area && proDataBk.area !== clientRegion) {
+    crossRegionFeeBk = parseInt(proDataBk.cross_region_fee) || parseInt(settings.default_cross_region_fee) || 0;
+  }
+  var total = selSvcTotal() - promoDisc + platformFee + crossRegionFeeBk;
 
   // Check wallet balance and auto-apply
   var walletUsed = 0;
@@ -5779,6 +5879,9 @@ async function submitBooking() {
     selected_nail_colors:  selNailColors.length ? JSON.stringify(selNailColors) : null,
     design_url:            designUrl,
     service_duration:      selSvcDuration(),
+    cross_region_fee:      crossRegionFeeBk,
+    client_region:         clientRegion || null,
+    pro_region:            proDataBk ? (proDataBk.area || null) : null,
     status:                "pending"
   };
 
@@ -7043,7 +7146,7 @@ var adminAllBks = [];
 
 // ── TAB SWITCHER ──────────────────────────────────────────────
 function aTab(tab) {
-  ["ov","app","bks","pros","usr","cats","promo","rev","sup","set","tr","analytics","blog","mcal","notifs","crm","incidents"].forEach(function(x) {
+  ["ov","app","bks","pros","usr","cats","promo","rev","sup","set","tr","analytics","blog","mcal","notifs","crm","incidents","fees"].forEach(function(x) {
     var el = ge("aTab-" + x), ni = ge("aN-" + x);
     if (el) el.classList.toggle("hide", x !== tab);
     if (ni) ni.classList.toggle("on",   x === tab);
@@ -7087,6 +7190,9 @@ function aTab(tab) {
   }
   if (tab === "incidents") {
     loadIncidents();
+  }
+  if (tab === "fees") {
+    loadPendingFees();
   }
 }
 
@@ -9099,6 +9205,58 @@ function renderIncidents() {
   }).join("");
 }
 
+async function loadPendingFees() {
+  var el = ge("pendingFeesList"); if (!el) return;
+  el.innerHTML = "<p style=\"color:var(--mu);font-size:13px;padding:16px 0\">Loading...</p>";
+  try {
+    var r = await sb.from("professionals").select("id,display_name,name,area,cross_region_fee,cross_region_fee_pending,cross_region_fee_status").eq("cross_region_fee_status","pending");
+    var rows = r.data || [];
+    // Update badge
+    var badge = ge("feeBadge");
+    if (badge) { badge.textContent = rows.length; badge.style.display = rows.length ? "inline" : "none"; }
+    if (!rows.length) { el.innerHTML = "<p style=\"color:var(--mu);font-size:13px;padding:16px 0\">No pending fee requests.</p>"; return; }
+    el.innerHTML = "<div class=\"tw\"><table class=\"tbl\"><thead><tr><th>Professional</th><th>Region</th><th>Current Fee</th><th>Requested Fee</th><th>Actions</th></tr></thead><tbody>"
+      + rows.map(function(p) {
+        var nm = p.display_name || p.name || p.id.substring(0,8);
+        return "<tr>"
+          + "<td>" + nm + "</td>"
+          + "<td>" + (p.area || "–") + "</td>"
+          + "<td>" + (p.cross_region_fee || 0) + "₾</td>"
+          + "<td style=\"font-weight:600;color:#b45309\">" + (p.cross_region_fee_pending || 0) + "₾</td>"
+          + "<td style=\"display:flex;gap:5px\">"
+          + "<button class=\"btn-sm btn-gh\" onclick=\"approvePendingFee('" + p.id + "',true)\">✓ Approve</button>"
+          + "<button class=\"btn-sm btn-no\" onclick=\"approvePendingFee('" + p.id + "',false)\">✕ Reject</button>"
+          + "</td></tr>";
+      }).join("") + "</tbody></table></div>";
+  } catch(e) {
+    el.innerHTML = "<p style=\"color:#ef4444;font-size:13px;padding:16px 0\">Error: " + e.message + ". Run setup SQL first.</p>";
+  }
+}
+
+async function approvePendingFee(proId, approve) {
+  try {
+    var upd = approve
+      ? { cross_region_fee_status: "approved", cross_region_fee: null }
+      : { cross_region_fee_status: "rejected", cross_region_fee_pending: null };
+    if (approve) {
+      // First read pending value then copy to live
+      var cur = await sb.from("professionals").select("cross_region_fee_pending").eq("id", proId).single();
+      upd.cross_region_fee = cur.data ? cur.data.cross_region_fee_pending : 0;
+    }
+    await sb.from("professionals").update(upd).eq("id", proId);
+    // Refresh allPros cache
+    var idx = allPros.findIndex(function(p) { return p.id === proId; });
+    if (idx > -1) {
+      allPros[idx].cross_region_fee_status = upd.cross_region_fee_status;
+      if (approve) allPros[idx].cross_region_fee = upd.cross_region_fee;
+    }
+    toast(approve ? "Fee approved and now live!" : "Fee request rejected.", approve ? "ok" : "err");
+    loadPendingFees();
+  } catch(e) {
+    toast("Error: " + e.message, "err");
+  }
+}
+
 function openIncidentModal() {
   ge("incBkId").value = "";
   ge("incSubject").value = "";
@@ -9315,6 +9473,7 @@ async function loadProDash() {
     if (ge("pEditBuffer")) { ge("pEditBuffer").value = pro.travel_buffer || 60; var bv = ge("pBufferVal"); if (bv) bv.textContent = (pro.travel_buffer || 60) + " min"; }
     if (ge("pWorkStart")) ge("pWorkStart").value = pro.work_start || "09:00";
     if (ge("pWorkEnd")) ge("pWorkEnd").value = pro.work_end || "19:00";
+    renderProFeeStatus(pro);
     var pe = ge("pEditStatus");
     if (pe) pe.textContent = pro.status === "approved"
       ? "✅ Profile is live. Changes need re-approval."
@@ -9568,6 +9727,33 @@ async function saveProProfile() {
     toast("Submitted for approval!", "ok");
     loadProDash();
   } catch(e) { toast("Error: " + e.message, "err"); }
+}
+
+async function submitCrossRegionFeeRequest() {
+  var proId = profile ? profile.pro_id : null;
+  if (!proId) { toast("Pro profile not found", "err"); return; }
+  var val = parseInt(ge("pCrossRegFeeInp").value);
+  if (isNaN(val) || val < 0) { toast("Enter a valid fee amount", "err"); return; }
+  try {
+    await sb.from("professionals").update({ cross_region_fee_pending: val, cross_region_fee_status: "pending" }).eq("id", proId);
+    toast("Fee change request submitted for admin approval.", "ok");
+    renderProFeeStatus({ cross_region_fee_pending: val, cross_region_fee_status: "pending", cross_region_fee: null });
+  } catch(e) { toast("Error: " + e.message, "err"); }
+}
+
+function renderProFeeStatus(pro) {
+  var el = ge("proFeeStatus"); if (!el) return;
+  var status = pro.cross_region_fee_status;
+  var cur = pro.cross_region_fee || 0;
+  var pending = pro.cross_region_fee_pending;
+  if (status === "pending" && pending != null) {
+    el.innerHTML = "<span style=\"background:rgba(245,158,11,.12);color:#b45309;border:1px solid rgba(245,158,11,.3);padding:3px 10px;border-radius:50px;font-size:12px\">⏳ Pending approval: <strong>"+pending+"₾</strong> (current: "+cur+"₾)</span>";
+  } else if (status === "rejected") {
+    el.innerHTML = "<span style=\"background:rgba(239,68,68,.1);color:#ef4444;border:1px solid rgba(239,68,68,.25);padding:3px 10px;border-radius:50px;font-size:12px\">✕ Last request rejected. Current fee: <strong>"+cur+"₾</strong></span>";
+  } else {
+    el.innerHTML = "<span style=\"background:rgba(16,185,129,.1);color:#10b981;border:1px solid rgba(16,185,129,.25);padding:3px 10px;border-radius:50px;font-size:12px\">✓ Active fee: <strong>"+cur+"₾</strong></span>";
+  }
+  var inp = ge("pCrossRegFeeInp"); if (inp) inp.value = cur || "";
 }
 
 async function uploadProAvatar(input) {
