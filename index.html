@@ -440,6 +440,32 @@ a { text-decoration: none; }
   border-radius: var(--rs); padding: 8px 12px; font-size: 13px; color: #15803d;
   display: flex; justify-content: space-between; align-items: center; margin-top: 8px;
 }
+.promo-clear { cursor: pointer; opacity: .6; margin-left: 8px; }
+.promo-clear:hover { opacity: 1; }
+.promo-error { color: #ef4444; font-size: 13px; margin-top: 6px; }
+
+/* ── BOOKING CART ── */
+.cart-row {
+  display: flex; justify-content: space-between; align-items: center;
+  font-size: 13px; padding: 3px 0; gap: 8px;
+}
+.cart-row-price { font-weight: 500; flex-shrink: 0; }
+
+/* ── BOOKING CONFIRMATION ── */
+.bk-conf-row {
+  display: flex; justify-content: space-between; align-items: baseline;
+  padding: 3px 0; font-size: 13px; gap: 8px;
+}
+.bk-conf-row-label { color: var(--mu); }
+.bk-conf-row-value { font-weight: 400; text-align: right; word-break: break-word; max-width: 60%; }
+.bk-conf-row--discount { color: #15803d; }
+.bk-conf-row--total {
+  padding: 7px 0 2px; font-size: 14px; font-weight: 500;
+  border-top: 1px solid var(--br); margin-top: 4px;
+}
+.bk-conf-row--total .bk-conf-row-value {
+  font-family: 'Cormorant Garamond', serif; font-size: 18px; font-weight: 700;
+}
 
 /* ── TOGGLE SWITCH ── */
 .sw   { position: relative; display: inline-block; width: 40px; height: 22px; flex-shrink: 0; }
@@ -5430,198 +5456,225 @@ function pickSbTs(el) {
 // ═══════════════════════════════════════════════════════════════
 
 // ── STATE ─────────────────────────────────────────────────────
-var selSvcs      = [];   // array of selected services (multi-service booking)
-var selNailColors = [];
-var promoApplied  = null;
-var promoDisc     = 0;
+let selSvcs      = [];
+let selNailColors = [];
+let promoApplied  = null;
+let promoDisc     = 0;
 
 // ── MULTI-SERVICE HELPERS ─────────────────────────────────────
-function selSvcPro()      { return selSvcs[0] || { proId: null, proName: "", proSpec: "" }; }
-function selSvcTotal()    { return selSvcs.reduce(function(s, x) { return s + x.price; }, 0); }
-function selSvcDuration() { return selSvcs.reduce(function(s, x) { return s + (x.duration || 60); }, 0); }
-function selSvcNames()    { return selSvcs.map(function(s) { return s.name; }).join(" + "); }
+const selSvcPro      = () => selSvcs[0] ?? { proId: null, proName: '', proSpec: '' };
+const selSvcTotal    = () => selSvcs.reduce((s, x) => s + x.price, 0);
+const selSvcDuration = () => selSvcs.reduce((s, x) => s + (x.duration || 60), 0);
+const selSvcNames    = () => selSvcs.map(s => s.name).join(' + ');
 
 // ── SELECT SERVICE (toggle add/remove) ───────────────────────
 function selectService(id, name, price, proId, proName, proSpec, duration) {
-  var idx = selSvcs.findIndex(function(s) { return s.id === id; });
+  const idx = selSvcs.findIndex(s => s.id === id);
+  const btn = event?.target;
 
   if (idx > -1) {
-    // Deselect
     selSvcs.splice(idx, 1);
-    if (event && event.target) {
-      event.target.classList.remove("on");
-      event.target.textContent = "Add";
-    }
+    if (btn) { btn.classList.remove('on'); btn.textContent = 'Add'; }
   } else {
-    // If switching to a different professional, clear the cart first
     if (selSvcs.length > 0 && selSvcs[0].proId !== proId) {
       selSvcs = [];
-      document.querySelectorAll(".svc-btn").forEach(function(b) {
-        b.classList.remove("on"); b.textContent = "Add";
+      document.querySelectorAll('.svc-btn').forEach(b => {
+        b.classList.remove('on'); b.textContent = 'Add';
       });
     }
-    selSvcs.push({ id: id, name: name, price: price, duration: duration || 60, proId: proId, proName: proName, proSpec: proSpec || "" });
-    if (event && event.target) {
-      event.target.classList.add("on");
-      event.target.textContent = "✓ Added";
-    }
+    selSvcs.push({ id, name, price, duration: duration || 60, proId, proName, proSpec: proSpec || '' });
+    if (btn) { btn.classList.add('on'); btn.textContent = '✓ Added'; }
   }
   updateSvcCart();
 }
 
 // ── UPDATE SIDEBAR CART ────────────────────────────────────────
 function updateSvcCart() {
-  var summary = ge("sbCartSummary");
-  var btn     = ge("sbContinueBtn");
+  const summary = ge('sbCartSummary');
+  const btn     = ge('sbContinueBtn');
   if (!summary) return;
 
-  if (selSvcs.length === 0) {
-    summary.classList.add("hide");
-    if (btn) { btn.textContent = "Select a service"; btn.style.opacity = ".45"; btn.style.pointerEvents = "none"; }
+  if (!selSvcs.length) {
+    summary.classList.add('hide');
+    if (btn) { btn.textContent = 'Select a service'; btn.style.opacity = '.45'; btn.style.pointerEvents = 'none'; }
     return;
   }
 
-  summary.classList.remove("hide");
-  var rows = ge("sbCartRows");
+  summary.classList.remove('hide');
+  const rows = ge('sbCartRows');
   if (rows) {
-    rows.innerHTML = selSvcs.map(function(s) {
-      return "<div style=\"display:flex;justify-content:space-between;font-size:13px;padding:3px 0\">"
-        + "<span>" + s.name + "</span><span style=\"font-weight:500\">" + s.price + "₾</span></div>";
-    }).join("");
+    rows.innerHTML = '';
+    selSvcs.forEach(s => {
+      const row      = document.createElement('div');
+      row.className  = 'cart-row';
+      const lbl      = document.createElement('span');
+      lbl.textContent = s.name;
+      const prc      = document.createElement('span');
+      prc.className  = 'cart-row-price';
+      prc.textContent = `${s.price}₾`;
+      row.append(lbl, prc);
+      rows.appendChild(row);
+    });
   }
-  var total = selSvcTotal() + 5;
-  // Show wallet balance hint
-  var walletHint = ge("sbWalletHint");
+
+  const platformFee = parseInt(settings.platform_fee) || 5;
+  const total = selSvcTotal() + platformFee;
+
+  const walletHint = ge('sbWalletHint');
   if (user && walletHint) {
-    sb.from("client_wallets").select("balance").eq("client_id", user.id).maybeSingle().then(function(wr) {
-      if (wr.data && wr.data.balance > 0) {
-        walletHint.style.display = "block";
-        walletHint.textContent = t("walletHint").replace("{0}", wr.data.balance);
-      } else {
-        walletHint.style.display = "none";
-      }
-    }).catch(function() { if (walletHint) walletHint.style.display = "none"; });
+    sb.from('client_wallets').select('balance').eq('client_id', user.id).maybeSingle()
+      .then(({ data }) => {
+        walletHint.style.display = data?.balance > 0 ? 'block' : 'none';
+        if (data?.balance > 0) walletHint.textContent = t('walletHint').replace('{0}', data.balance);
+      })
+      .catch(err => {
+        console.error('[updateSvcCart] wallet hint:', err);
+        if (walletHint) walletHint.style.display = 'none';
+      });
   }
-  var st = ge("sbT"); if (st) st.textContent = total + "₾";
+
+  const st = ge('sbT');
+  if (st) st.textContent = `${total}₾`;
   if (btn) {
-    btn.textContent = "Book " + selSvcs.length + " service" + (selSvcs.length > 1 ? "s" : "") + " — " + total + "₾";
-    btn.style.opacity = "1";
-    btn.style.pointerEvents = "";
+    btn.textContent = `Book ${selSvcs.length} service${selSvcs.length > 1 ? 's' : ''} — ${total}₾`;
+    btn.style.opacity = '1';
+    btn.style.pointerEvents = '';
   }
 }
 
 // ── GO TO BOOKING PAGE ────────────────────────────────────────
 async function gotoBooking() {
-  if (!user)           { toast("Please sign in to book", "err"); openM("auth"); return; }
-  if (!selSvcs.length) { toast("Please select at least one service", "err"); return; }
+  if (!user)           { toast('Please sign in to book', 'err'); openM('auth'); return; }
+  if (!selSvcs.length) { toast('Please select at least one service', 'err'); return; }
 
-  var pro = selSvcPro();
+  const pro = selSvcPro();
 
-  // reset promo
   promoApplied = null; promoDisc = 0; selNailColors = [];
-  var pi = ge("promoInp"); if (pi) pi.value = "";
-  var pr = ge("promoResult"); if (pr) pr.innerHTML = "";
-  var dr = ge("bkDiscRow"); if (dr) dr.style.display = "none";
+  const pi = ge('promoInp'); if (pi) pi.value = '';
+  const pr = ge('promoResult'); if (pr) pr.textContent = '';
+  const dr = ge('bkDiscRow'); if (dr) dr.style.display = 'none';
 
-  // fill in service info
-  ge("bkSvcName").textContent   = selSvcNames();
-  ge("bkProName").textContent   = pro.proName;
-  ge("bkSvcPrice").textContent  = selSvcTotal() + "₾";
-  ge("bkSumSvcLbl").textContent = selSvcNames();
-  var bsa = ge("bkSumSvcAmt"); if (bsa) bsa.textContent = selSvcTotal() + "₾";
+  ge('bkSvcName').textContent   = selSvcNames();
+  ge('bkProName').textContent   = pro.proName;
+  ge('bkSvcPrice').textContent  = `${selSvcTotal()}₾`;
+  ge('bkSumSvcLbl').textContent = selSvcNames();
+  const bsa = ge('bkSumSvcAmt'); if (bsa) bsa.textContent = `${selSvcTotal()}₾`;
   updateBkTotal();
 
-  // show/hide promo card
-  var pc = ge("promoCard");
-  if (pc) pc.style.display = settings.promo_enabled === false ? "none" : "block";
+  const pc = ge('promoCard');
+  if (pc) pc.style.display = settings.promo_enabled === false ? 'none' : 'block';
 
-  // setup nail color card
   await setupNailCard();
-
   buildCal();
-  show("booking");
+  show('booking');
 }
 
 // ── NAIL COLORS IN BOOKING ────────────────────────────────────
 async function setupNailCard() {
-  var nc = ge("nailCard"); if (!nc) return;
-  var pro = selSvcPro();
-  var hasNails = selSvcs.some(function(s) { return s.proSpec === "Nails"; });
-  if (settings.nail_colors_enabled === false || !hasNails) {
-    nc.style.display = "none"; return;
-  }
-  var colors = [];
-  var demo = DEMOS.find(function(p) { return p.id === pro.proId; });
-  if (demo && demo.nail_colors) {
+  const nc = ge('nailCard'); if (!nc) return;
+  const pro = selSvcPro();
+  const hasNails = selSvcs.some(s => s.proSpec === 'Nails');
+  if (settings.nail_colors_enabled === false || !hasNails) { nc.style.display = 'none'; return; }
+
+  let colors = [];
+  const demo = DEMOS.find(p => p.id === pro.proId);
+  if (demo?.nail_colors) {
     colors = demo.nail_colors;
   } else {
     try {
-      var r = await sb.from("nail_colors").select("*").eq("pro_id", pro.proId).order("created_at");
-      colors = r.data || [];
-    } catch(e) {}
+      const { data, error } = await sb.from('nail_colors').select('*').eq('pro_id', pro.proId).order('created_at');
+      if (error) throw error;
+      colors = data || [];
+    } catch (err) {
+      console.error('[setupNailCard]', err);
+      toast('Could not load nail colors.', 'err');
+    }
   }
-  if (!colors.length) { nc.style.display = "none"; return; }
-  nc.style.display = "block";
-  var ctr = ge("bkNailColors"); if (!ctr) return;
-  ctr.innerHTML = colors.map(function(c) {
-    return "<div class=\"swatch\" style=\"background:" + c.hex_code + "\""
-         + " title=\"" + c.name + "\""
-         + " data-id=\"" + c.id + "\" data-name=\"" + c.name + "\""
-         + " onclick=\"toggleNailColor(this)\"></div>";
-  }).join("");
+
+  if (!colors.length) { nc.style.display = 'none'; return; }
+  nc.style.display = 'block';
+  const ctr = ge('bkNailColors'); if (!ctr) return;
+  ctr.innerHTML = '';
+  colors.forEach(c => {
+    const el = document.createElement('div');
+    el.className = 'swatch';
+    el.style.background = c.hex_code;
+    el.title = c.name;
+    el.dataset.id   = c.id;
+    el.dataset.name = c.name;
+    el.addEventListener('click', () => toggleNailColor(el));
+    ctr.appendChild(el);
+  });
 }
 
 function toggleNailColor(el) {
-  var id   = el.getAttribute("data-id");
-  var name = el.getAttribute("data-name");
-  var idx  = selNailColors.findIndex(function(c) { return c.id === id; });
-  if (idx > -1) { selNailColors.splice(idx, 1); el.classList.remove("on"); }
-  else          { selNailColors.push({ id: id, name: name }); el.classList.add("on"); }
-  var txt = ge("nailSelTxt");
+  const id   = el.dataset.id;
+  const name = el.dataset.name;
+  const idx  = selNailColors.findIndex(c => c.id === id);
+  if (idx > -1) { selNailColors.splice(idx, 1); el.classList.remove('on'); }
+  else          { selNailColors.push({ id, name }); el.classList.add('on'); }
+  const txt = ge('nailSelTxt');
   if (txt) txt.textContent = selNailColors.length
-    ? "Selected: " + selNailColors.map(function(c) { return c.name; }).join(", ")
-    : "";
+    ? `Selected: ${selNailColors.map(c => c.name).join(', ')}`
+    : '';
 }
 
 // ── PROMO CODE ────────────────────────────────────────────────
+function _promoErr(res, msg) {
+  res.textContent = '';
+  const p = document.createElement('p');
+  p.className = 'promo-error';
+  p.textContent = msg;
+  res.appendChild(p);
+}
+
 async function applyPromo() {
-  var code = (ge("promoInp").value || "").trim().toUpperCase();
-  var res  = ge("promoResult"); res.innerHTML = "";
-  if (!code) { res.innerHTML = "<p style=\"color:#ef4444;font-size:13px;margin-top:6px\">Enter a code.</p>"; return; }
-  if (settings.promo_enabled === false) {
-    res.innerHTML = "<p style=\"color:#ef4444;font-size:13px;margin-top:6px\">Promo codes are currently disabled.</p>"; return;
-  }
+  const code = (ge('promoInp').value || '').trim().toUpperCase();
+  const res  = ge('promoResult');
+  res.textContent = '';
+
+  if (!code)                         { _promoErr(res, 'Enter a promo code.'); return; }
+  if (settings.promo_enabled === false) { _promoErr(res, 'Promo codes are currently disabled.'); return; }
+
   try {
-    var r = await sb.from("promo_codes").select("*").eq("code", code).eq("active", true).single();
-    if (r.error || !r.data) { res.innerHTML = "<p style=\"color:#ef4444;font-size:13px;margin-top:6px\">Invalid or inactive code.</p>"; return; }
-    var p = r.data;
-    if (p.expires_at && new Date(p.expires_at) < new Date()) {
-      res.innerHTML = "<p style=\"color:#ef4444;font-size:13px;margin-top:6px\">Code has expired.</p>"; return;
-    }
-    if (p.max_uses && p.used_count >= p.max_uses) {
-      res.innerHTML = "<p style=\"color:#ef4444;font-size:13px;margin-top:6px\">Usage limit reached.</p>"; return;
-    }
-    if (selSvcTotal() < (p.min_order || 0)) {
-      res.innerHTML = "<p style=\"color:#ef4444;font-size:13px;margin-top:6px\">Min order " + p.min_order + "₾ required.</p>"; return;
-    }
-    promoDisc = p.discount_type === "percent"
+    const { data: p, error } = await sb.from('promo_codes').select('*').eq('code', code).eq('active', true).single();
+    if (error || !p)                            { _promoErr(res, 'Invalid or inactive code.'); return; }
+    if (p.expires_at && new Date(p.expires_at) < new Date()) { _promoErr(res, 'This code has expired.'); return; }
+    if (p.max_uses && p.used_count >= p.max_uses)            { _promoErr(res, 'Usage limit reached.'); return; }
+    if (selSvcTotal() < (p.min_order || 0))     { _promoErr(res, `Min order ${p.min_order}₾ required.`); return; }
+
+    promoDisc    = p.discount_type === 'percent'
       ? Math.round(selSvcTotal() * p.discount_value / 100)
       : Math.min(Number(p.discount_value), selSvcTotal());
     promoApplied = p;
     updateBkTotal();
-    res.innerHTML = "<div class=\"promo-ok\">✓ " + p.code + " applied — <strong>-" + promoDisc + "₾</strong>"
-      + "<span style=\"cursor:pointer;opacity:.6;margin-left:8px\" onclick=\"clearPromo()\">✕</span></div>";
-    var dr = ge("bkDiscRow"), da = ge("bkDiscAmt");
-    if (dr) dr.style.display = "flex";
-    if (da) da.textContent = "-" + promoDisc + "₾";
-  } catch(e) { res.innerHTML = "<p style=\"color:#ef4444;font-size:13px;margin-top:6px\">Could not verify code.</p>"; }
+
+    // Build promo-ok banner safely
+    const banner = document.createElement('div');
+    banner.className = 'promo-ok';
+    const msg = document.createElement('span');
+    msg.textContent = `✓ ${p.code} applied — -${promoDisc}₾`;
+    const clr = document.createElement('span');
+    clr.textContent = '✕';
+    clr.className = 'promo-clear';
+    clr.addEventListener('click', clearPromo);
+    banner.append(msg, clr);
+    res.appendChild(banner);
+
+    const dr = ge('bkDiscRow'), da = ge('bkDiscAmt');
+    if (dr) dr.style.display = 'flex';
+    if (da) da.textContent = `-${promoDisc}₾`;
+  } catch (err) {
+    console.error('[applyPromo]', err);
+    _promoErr(res, 'Could not verify code. Please try again.');
+  }
 }
 
 function clearPromo() {
   promoApplied = null; promoDisc = 0;
-  var pi = ge("promoInp"); if (pi) pi.value = "";
-  var pr = ge("promoResult"); if (pr) pr.innerHTML = "";
-  var dr = ge("bkDiscRow"); if (dr) dr.style.display = "none";
+  const pi = ge('promoInp'); if (pi) pi.value = '';
+  const pr = ge('promoResult'); if (pr) pr.textContent = '';
+  const dr = ge('bkDiscRow'); if (dr) dr.style.display = 'none';
   updateBkTotal();
 }
 
@@ -5774,198 +5827,164 @@ function pickTs(el) {
   el.classList.add("on");
 }
 
+// ── BOOKING CONFIRMATION MODAL BUILDER ───────────────────────
+function _buildConfRow(label, value, extraClass = '') {
+  const row  = document.createElement('div');
+  row.className = `bk-conf-row${extraClass ? ' ' + extraClass : ''}`;
+  const lbl  = document.createElement('span');
+  lbl.className   = 'bk-conf-row-label';
+  lbl.textContent = label;
+  const val  = document.createElement('span');
+  val.className   = 'bk-conf-row-value';
+  val.textContent = value;
+  row.append(lbl, val);
+  return row;
+}
+
 // ── SUBMIT BOOKING ────────────────────────────────────────────
 async function submitBooking() {
-  if (!user) { toast(t("bkSignIn"), "err"); openM("auth"); return; }
-  // Kill switch check
-  if (settings.kill_switch === true || settings.kill_switch === "true") {
-    toast(t("bkPaused"), "err"); return;
-  }
-  // Blocked client check
-  if (profile && profile.blocked) {
-    toast(t("bkBlocked"), "err"); return;
-  }
-  var addr = ge("bkAddr").value.trim();
-  var slot = document.querySelector("#pg-booking .ts.on");
-  if (!addr) { toast(t("bkEnterAddr"), "err"); return; }
-  if (!slot) { toast(t("bkPickTime"), "err"); return; }
+  if (!user) { toast(t('bkSignIn'), 'err'); openM('auth'); return; }
 
-  var timeSlot = bkSelDateStr + " " + slot.textContent;
-  var pro = selSvcPro();
-  var proId = (pro.proId && ["d1","d2","d3","d4","d5","d6"].indexOf(pro.proId) === -1) ? pro.proId : null;
+  const addr = ge('bkAddr').value.trim();
+  const slot = document.querySelector('#pg-booking .ts.on');
+  if (!addr) { toast(t('bkEnterAddr'), 'err'); return; }
+  if (!slot) { toast(t('bkPickTime'),  'err'); return; }
 
-  // Double-booking prevention with buffer logic
-  if (proId) {
+  const pro        = selSvcPro();
+  const DEMO_IDS   = ['d1','d2','d3','d4','d5','d6'];
+  const proId      = (pro.proId && !DEMO_IDS.includes(pro.proId)) ? pro.proId : null;
+  const proDataBk  = proId ? allPros.find(p => p.id === proId) : null;
+  const platformFee = parseInt(settings.platform_fee) || 5;
+
+  const crossRegionFeeBk = (
+    settings.cross_region_fee_enabled !== false &&
+    clientRegion && proDataBk?.area && proDataBk.area !== clientRegion
+  ) ? (parseInt(proDataBk.cross_region_fee) || parseInt(settings.default_cross_region_fee) || 0) : 0;
+
+  // Upload design file before the atomic transaction (storage is outside the DB tx)
+  let designUrl = null;
+  const dfi = ge('designFile');
+  if (dfi?.files?.[0]) {
+    toast(t('bkUploading'));
     try {
-      var activeStatuses = ["pending","accepted","on_the_way","arrived","in_progress"];
-      var pRes2 = await sb.from("professionals").select("travel_buffer").eq("id", proId).single();
-      var travelBuf = (pRes2.data && pRes2.data.travel_buffer) ? pRes2.data.travel_buffer : 60;
-      var arrBuf = 60; // arrival buffer
-      var svcDur = selSvcDuration();
-
-      var bkCheck = await sb.from("bookings").select("time_slot,service_name,service_duration")
-        .eq("pro_id", proId).in("status", activeStatuses)
-        .like("time_slot", bkSelDateStr + "%");
-
-      var svcCheck = await sb.from("services").select("name,duration").eq("pro_id", proId);
-      var durMap = {};
-      (svcCheck.data || []).forEach(function(s) { durMap[s.name] = s.duration || 60; });
-
-      var tp2 = slot.textContent.split(":");
-      var newStart = parseInt(tp2[0]) * 60 + parseInt(tp2[1]);
-      var newEnd = newStart + svcDur;
-
-      var hasConflict = (bkCheck.data || []).some(function(bk) {
-        var parts = bk.time_slot.split(" ");
-        if (parts.length < 2) return false;
-        var bt = parts[1].split(":");
-        var exStart = parseInt(bt[0]) * 60 + parseInt(bt[1]);
-        var exDur = bk.service_duration || durMap[bk.service_name] || 60;
-        var exEnd = exStart + exDur;
-        // Check overlap with buffers
-        return (newEnd + travelBuf > exStart - arrBuf) && (newStart - arrBuf < exEnd + travelBuf);
-      });
-
-      if (hasConflict) {
-        toast(t("bkTimeConflict"), "err");
-        return;
-      }
-    } catch(e) {}
-  }
-
-  var platformFee = parseInt(settings.platform_fee) || 5;
-  var pro = selSvcPro();
-  var proDataBk = (pro && pro.proId) ? allPros.find(function(p) { return p.id === pro.proId; }) : null;
-  var crossRegionFeeBk = 0;
-  if (settings.cross_region_fee_enabled !== false && clientRegion && proDataBk && proDataBk.area && proDataBk.area !== clientRegion) {
-    crossRegionFeeBk = parseInt(proDataBk.cross_region_fee) || parseInt(settings.default_cross_region_fee) || 0;
-  }
-  var total = selSvcTotal() - promoDisc + platformFee + crossRegionFeeBk;
-
-  // Check wallet balance and auto-apply
-  var walletUsed = 0;
-  try {
-    var wRes = await sb.from("client_wallets").select("balance").eq("client_id", user.id).maybeSingle();
-    if (wRes.data && wRes.data.balance > 0) {
-      walletUsed = Math.min(wRes.data.balance, total);
-      total = total - walletUsed;
-      if (total < 0) total = 0;
+      designUrl = await uploadDesignImage();
+    } catch (err) {
+      console.error('[submitBooking] design upload:', err);
+      toast('Design upload failed — continuing without image.', 'err');
     }
-  } catch(e) {}
-
-  // Upload design if present
-  var designUrl = null;
-  var dfi = ge("designFile");
-  if (dfi && dfi.files && dfi.files[0]) {
-    toast(t("bkUploading"));
-    designUrl = await uploadDesignImage();
   }
 
-  var bk = {
-    client_id:             user.id,
-    pro_id:                proId,
-    client_name:           profile ? profile.full_name : user.email,
-    client_phone:          profile ? (profile.phone || "") : "",
-    pro_name:              pro.proName,
-    service_name:          selSvcNames(),
-    service_price:         selSvcTotal(),
-    promo_code:            promoApplied ? promoApplied.code : null,
-    discount_amount:       promoDisc,
-    total:                 total,
-    address:               addr,
-    district:              ge("bkDist").value,
-    time_slot:             bkSelDateStr + " " + slot.textContent,
-    notes:                 ge("bkNotes").value,
-    selected_nail_colors:  selNailColors.length ? JSON.stringify(selNailColors) : null,
-    design_url:            designUrl,
-    service_duration:      selSvcDuration(),
-    cross_region_fee:      crossRegionFeeBk,
-    client_region:         clientRegion || null,
-    pro_region:            proDataBk ? (proDataBk.area || null) : null,
-    status:                "pending"
-  };
-
-  var r = await sb.from("bookings").insert(bk).select().single();
-  if (r.error) { toast("Booking failed: " + r.error.message, "err"); return; }
-  var insertedBk = r.data || bk;
-
-  // Deduct wallet balance if used
-  if (walletUsed > 0) {
-    try {
-      var curWallet = await sb.from("client_wallets").select("balance").eq("client_id", user.id).maybeSingle();
-      var newBal = (curWallet.data ? curWallet.data.balance : 0) - walletUsed;
-      await sb.from("client_wallets").update({ balance: Math.max(0, newBal), updated_at: new Date().toISOString() }).eq("client_id", user.id);
-      await sb.from("wallet_transactions").insert({
-        client_id: user.id, amount: -walletUsed, type: "booking_payment",
-        description: "Applied to booking " + (insertedBk.id || "").substring(0, 8)
-      });
-    } catch(e) {}
+  // ── Atomic RPC: conflict check + wallet deduction + insert ──
+  let rpcResult;
+  try {
+    const { data, error } = await sb.rpc('create_booking', {
+      p_client_id:            user.id,
+      p_pro_id:               proId,
+      p_time_slot:            `${bkSelDateStr} ${slot.textContent}`,
+      p_service_duration:     selSvcDuration(),
+      p_client_name:          profile?.full_name ?? user.email,
+      p_client_phone:         profile?.phone ?? '',
+      p_pro_name:             pro.proName,
+      p_service_name:         selSvcNames(),
+      p_service_price:        selSvcTotal(),
+      p_promo_code:           promoApplied?.code ?? null,
+      p_discount_amount:      promoDisc,
+      p_platform_fee:         platformFee,
+      p_cross_region_fee:     crossRegionFeeBk,
+      p_address:              addr,
+      p_district:             ge('bkDist').value,
+      p_notes:                ge('bkNotes').value,
+      p_selected_nail_colors: selNailColors.length ? JSON.stringify(selNailColors) : null,
+      p_design_url:           designUrl,
+      p_client_region:        clientRegion || null,
+      p_pro_region:           proDataBk?.area ?? null,
+    });
+    if (error) throw error;
+    rpcResult = data;
+  } catch (err) {
+    console.error('[submitBooking] RPC error:', err);
+    toast(`Booking failed: ${err.message}`, 'err');
+    return;
   }
+
+  // Handle domain errors returned by the function
+  if (rpcResult?.error) {
+    console.warn('[submitBooking] domain error:', rpcResult.error, rpcResult.message);
+    toast(rpcResult.message, 'err');
+    return;
+  }
+
+  const { booking_id, wallet_used: walletUsed, final_total: finalTotal } = rpcResult;
+  const insertedBk = { id: booking_id, time_slot: `${bkSelDateStr} ${slot.textContent}` };
+
+  // ── Post-booking side effects (best-effort, non-critical) ──
 
   // Queue retention reminder
-  if (insertedBk && insertedBk.id && (settings.retention_enabled === true || settings.retention_enabled === "true")) {
-    try {
-      var retDays = parseInt(settings.retention_days) || 21;
-      var sendAt = new Date();
-      sendAt.setDate(sendAt.getDate() + retDays);
-      await sb.from("retention_queue").insert({
-        booking_id: insertedBk.id,
-        client_id: user.id,
-        client_phone: profile ? (profile.phone || "") : "",
-        client_name: profile ? profile.full_name : "",
-        service_name: selSvcNames(),
-        pro_name: pro.proName,
-        send_at: sendAt.toISOString(),
-        status: "pending"
-      });
-    } catch(e) {}
+  if (booking_id && (settings.retention_enabled === true || settings.retention_enabled === 'true')) {
+    const retDays = parseInt(settings.retention_days) || 21;
+    const sendAt  = new Date();
+    sendAt.setDate(sendAt.getDate() + retDays);
+    sb.from('retention_queue').insert({
+      booking_id,
+      client_id:    user.id,
+      client_phone: profile?.phone ?? '',
+      client_name:  profile?.full_name ?? '',
+      service_name: selSvcNames(),
+      pro_name:     pro.proName,
+      send_at:      sendAt.toISOString(),
+      status:       'pending',
+    }).then(({ error }) => {
+      if (error) console.error('[submitBooking] retention queue:', error);
+    });
   }
 
   // Increment promo usage counter
   if (promoApplied) {
-    try {
-      await sb.from("promo_codes")
-        .update({ used_count: (promoApplied.used_count || 0) + 1 })
-        .eq("id", promoApplied.id);
-    } catch(e) {}
+    sb.from('promo_codes')
+      .update({ used_count: (promoApplied.used_count || 0) + 1 })
+      .eq('id', promoApplied.id)
+      .then(({ error }) => {
+        if (error) console.error('[submitBooking] promo increment:', error);
+      });
   }
 
-  // Check for simultaneous multi-pro bookings (same client, same day, different pro)
-  if (user && proId) {
-    try {
-      var sameDay = bk.time_slot.split(" ")[0];
-      var simCheck = await sb.from("bookings")
-        .select("id,pro_name,service_name,time_slot")
-        .eq("client_id", user.id)
-        .neq("pro_id", proId)
-        .like("time_slot", sameDay + "%")
-        .in("status", ["pending","accepted"]);
-      if (simCheck.data && simCheck.data.length) {
-        notifyAdminSimultaneous(insertedBk, simCheck.data);
-      }
-    } catch(e) {}
+  // Flag simultaneous multi-pro bookings for admin
+  if (proId) {
+    const sameDay = insertedBk.time_slot.split(' ')[0];
+    sb.from('bookings')
+      .select('id,pro_name,service_name,time_slot')
+      .eq('client_id', user.id)
+      .neq('pro_id', proId)
+      .like('time_slot', `${sameDay}%`)
+      .in('status', ['pending','accepted'])
+      .then(({ data, error }) => {
+        if (error) { console.error('[submitBooking] sim-check:', error); return; }
+        if (data?.length) notifyAdminSimultaneous(insertedBk, data);
+      });
   }
 
-  // Reset state
+  // Reset transient state
   selNailColors = [];
   clearDesign();
 
-  // Populate confirmation modal
-  var pro = selSvcPro();
-  ge("bkConfDets").innerHTML =
-    "<div style=\"display:flex;justify-content:space-between;padding:3px 0;font-size:13px\"><span>" + t("bdService") + "</span><span>" + selSvcNames() + "</span></div>"
-  + "<div style=\"display:flex;justify-content:space-between;padding:3px 0;font-size:13px\"><span>" + t("bdProfessional") + "</span><span>" + pro.proName + "</span></div>"
-  + "<div style=\"display:flex;justify-content:space-between;padding:3px 0;font-size:13px\"><span>" + t("bdTime") + "</span><span>" + slot.textContent + "</span></div>"
-  + "<div style=\"display:flex;justify-content:space-between;padding:3px 0;font-size:13px\"><span>" + t("bdAddress") + "</span><span>" + addr + "</span></div>"
-  + (promoDisc > 0 ? "<div style=\"display:flex;justify-content:space-between;padding:3px 0;font-size:13px;color:#15803d\"><span>" + t("bdDiscount") + "</span><span>-" + promoDisc + "₾</span></div>" : "")
-  + (walletUsed > 0 ? "<div style=\"display:flex;justify-content:space-between;padding:3px 0;font-size:13px;color:#15803d\"><span>" + t("bdWalletCredit") + "</span><span>-" + walletUsed + "₾</span></div>" : "")
-  + "<div style=\"display:flex;justify-content:space-between;padding:7px 0 2px;font-size:14px;font-weight:500;border-top:1px solid var(--br);margin-top:4px\"><span>" + t("bdTotal") + "</span><span>" + total + "₾</span></div>";
+  // ── Build confirmation modal safely (no innerHTML for user data) ──
+  const dets = ge('bkConfDets');
+  if (dets) {
+    dets.innerHTML = '';
+    dets.append(
+      _buildConfRow(t('bdService'),      selSvcNames()),
+      _buildConfRow(t('bdProfessional'), pro.proName),
+      _buildConfRow(t('bdTime'),         slot.textContent),
+      _buildConfRow(t('bdAddress'),      addr),
+      ...(promoDisc  > 0 ? [_buildConfRow(t('bdDiscount'),    `-${promoDisc}₾`,  'bk-conf-row--discount')] : []),
+      ...(walletUsed > 0 ? [_buildConfRow(t('bdWalletCredit'),`-${walletUsed}₾`, 'bk-conf-row--discount')] : []),
+      _buildConfRow(t('bdTotal'),        `${finalTotal}₾`, 'bk-conf-row--total'),
+    );
+  }
 
-  openM("bkconf");
-  toast(t("bkSubmitted"), "ok");
-
-  // Twilio notification for new booking
-  twilioNotifyBooking(insertedBk, "new_booking");
+  openM('bkconf');
+  toast(t('bkSubmitted'), 'ok');
+  twilioNotifyBooking(insertedBk, 'new_booking');
 }
 
 // ── BOOKING DETAIL MODAL ──────────────────────────────────────
