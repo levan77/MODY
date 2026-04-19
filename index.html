@@ -4076,7 +4076,7 @@ async function viewUserReviews(userId, userName) {
         if (prof.data.full_name) displayName = fmtReviewerName(prof.data.full_name);
         if (prof.data.avatar_url) avatarUrl = prof.data.avatar_url;
       }
-    } catch(e) { console.warn('[openUserReviews] profile fetch:', e); }
+    } catch(e) { console.warn('[viewUserReviews] profile fetch:', e); }
     var ava = avatarUrl
       ? "<img src=\"" + avatarUrl + "\" style=\"width:100%;height:100%;object-fit:cover;border-radius:50%\">"
       : "<span style=\"font-size:18px\">👤</span>";
@@ -4644,9 +4644,12 @@ async function loadChatMessages(threadId) {
 }
 
 function escapeHtml(str) {
-  var div = document.createElement("div");
-  div.textContent = str;
-  return div.innerHTML;
+  var m = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
+  return String(str == null ? '' : str).replace(/[&<>"']/g, function(c) { return m[c]; });
+}
+
+function safeCssHex(hex) {
+  return /^#[0-9a-fA-F]{3,8}$/.test(hex) ? hex : '#ccc';
 }
 
 // ── MARK AS READ ────────────────────────────────────────────
@@ -4741,7 +4744,7 @@ async function loadTicketMessages(id) {
            + "</div>";
     }).join("");
     el.scrollTop = el.scrollHeight;
-  } catch(e) { console.error('[renderTicketMessages]', e); }
+  } catch(e) { console.error('[loadTicketMessages]', e); }
 }
 
 async function sendTicketReply() {
@@ -5013,7 +5016,7 @@ async function loadPros() {
         if (!allPros.find(function(d) { return d.id === p.id; })) allPros.push(p);
       });
     }
-  } catch(e) { console.error('[loadAllPros]', e); }
+  } catch(e) { console.error('[loadPros]', e); }
   renderPros();
 }
 
@@ -5294,7 +5297,7 @@ async function viewPro(proId) {
           if (p) { rv._name = p.full_name; rv._avatar = p.avatar_url; }
         });
       }
-    } catch(e) { console.warn('[openProCard] reviewer profiles:', e); }
+    } catch(e) { console.warn('[viewPro] reviewer profiles:', e); }
   }
 
   // store images for lightbox
@@ -5321,7 +5324,7 @@ async function viewPro(proId) {
              + "<p style=\"font-size:13px;color:var(--mu);margin-bottom:10px\">" + t("pcNailSub") + "</p>"
              + "<div class=\"swatch-row\">"
              + nailColors.map(function(c) {
-                 return "<div class=\"swatch\" style=\"background:" + c.hex_code + "\" title=\"" + c.name + "\"></div>";
+                 return "<div class=\"swatch\" style=\"background:" + safeCssHex(c.hex_code) + "\" title=\"" + escapeHtml(c.name || "") + "\"></div>";
                }).join("")
              + "</div></div>";
   }
@@ -6109,8 +6112,7 @@ function openBkDetail(bkJson, role) {
       if (nc && nc.length) {
         nailHtml = "<div style=\"margin-top:11px\"><div class=\"fl\">Nail Colors</div><div class=\"swatch-row\">"
           + nc.map(function(col) {
-              var safeHex = /^#[0-9a-fA-F]{3,8}$/.test(col.hex_code) ? col.hex_code : "#ccc";
-              return "<div class=\"swatch\" style=\"background:" + safeHex + "\" title=\"" + escapeHtml(col.name || "") + "\"></div>"
+              return "<div class=\"swatch\" style=\"background:" + safeCssHex(col.hex_code) + "\" title=\"" + escapeHtml(col.name || "") + "\"></div>"
                    + "<span style=\"font-size:12px;color:var(--mu);margin-left:3px\">" + escapeHtml(col.name || "") + "</span>";
             }).join("")
           + "</div></div>";
@@ -6129,7 +6131,7 @@ function openBkDetail(bkJson, role) {
   + "<div><div class=\"fl\">" + t("bdTime") + "</div><div style=\"font-size:14px\">" + escapeHtml(bk.time_slot || "ASAP") + "</div></div>"
   + "<div><div class=\"fl\">" + t("bdDistrict") + "</div><div style=\"font-size:14px\">" + escapeHtml(bk.district || "—") + "</div></div>"
   + "<div><div class=\"fl\">" + (isC ? t("bdProfessional") : t("bdClient")) + "</div><div style=\"font-size:14px\">" + escapeHtml(isC ? (bk.pro_name || "—") : (bk.client_name || "—")) + "</div></div>"
-  + (canSeePhone(bk) ? "<div><div class=\"fl\">📞 " + t("bdPhone") + "</div><div style=\"font-size:14px;color:var(--g);font-weight:500\"><a href=\"tel:" + encodeURIComponent(isC ? (bk.pro_phone||"") : (bk.client_phone||"")) + "\" style=\"color:var(--g)\">" + escapeHtml(isC ? (bk.pro_phone||"—") : (bk.client_phone||"—")) + "</a></div></div>" : "")
+  + (canSeePhone(bk) ? "<div><div class=\"fl\">📞 " + t("bdPhone") + "</div><div style=\"font-size:14px;color:var(--g);font-weight:500\"><a href=\"tel:" + escapeHtml(isC ? (bk.pro_phone||"") : (bk.client_phone||"")) + "\" style=\"color:var(--g)\">" + escapeHtml(isC ? (bk.pro_phone||"—") : (bk.client_phone||"—")) + "</a></div></div>" : "")
   + (bk.address ? "<div style=\"grid-column:1/-1\"><div class=\"fl\">" + t("bdAddress") + "</div><div style=\"font-size:14px\">" + escapeHtml(bk.address) + "</div></div><div style=\"grid-column:1/-1\"><div class=\"track-map\" id=\"bkdMap\"></div></div>" : "")
   + (bk.notes   ? "<div style=\"grid-column:1/-1\"><div class=\"fl\">" + t("bdNotes") + "</div><div style=\"font-size:13px;color:var(--mu)\">" + escapeHtml(bk.notes) + "</div></div>" : "")
   + "</div>"
@@ -7867,7 +7869,7 @@ async function loadAdminRevs() {
       try {
         var pp = await sb.from("profiles").select("id,full_name").in("id", rids);
         (pp.data||[]).forEach(function(p) { profMap[p.id] = p.full_name; });
-      } catch(e) { console.warn('[loadAdminProReviews] profiles fetch:', e); }
+      } catch(e) { console.warn('[loadAdminRevs] profiles fetch:', e); }
     }
     el.innerHTML = revs.map(function(rv) {
       var stars = "★".repeat(rv.rating) + "☆".repeat(5 - rv.rating);
@@ -9667,7 +9669,7 @@ async function loadProDash() {
           try {
             var c = typeof b.selected_nail_colors === "string" ? JSON.parse(b.selected_nail_colors) : b.selected_nail_colors;
             if (c && c.length) nc = "<div class=\"swatch-row\" style=\"margin-top:4px\">"
-              + c.map(function(x) { var sh = /^#[0-9a-fA-F]{3,8}$/.test(x.hex_code) ? x.hex_code : "#ccc"; return "<div class=\"swatch\" style=\"background:" + sh + "\" title=\"" + escapeHtml(x.name || "") + "\"></div>"; }).join("") + "</div>";
+              + c.map(function(x) { return "<div class=\"swatch\" style=\"background:" + safeCssHex(x.hex_code) + "\" title=\"" + escapeHtml(x.name || "") + "\"></div>"; }).join("") + "</div>";
           } catch(e) { console.warn('[loadProDash] nail colors parse:', e); }
         }
 
@@ -10006,16 +10008,16 @@ async function loadProColors() {
     }
     el.innerHTML = "<div class=\"swatch-row\" style=\"margin-bottom:14px\">"
       + colors.map(function(c) {
-          return "<div class=\"swatch\" style=\"background:" + c.hex_code + "\" title=\"" + c.name + "\"></div>";
+          return "<div class=\"swatch\" style=\"background:" + safeCssHex(c.hex_code) + "\" title=\"" + escapeHtml(c.name || "") + "\"></div>";
         }).join("")
       + "</div>"
       + "<div class=\"tw\"><table class=\"tbl\"><thead><tr><th>Swatch</th><th>Name</th><th>Brand</th><th>Code</th><th></th></tr></thead><tbody>"
       + colors.map(function(c) {
           return "<tr>"
-               + "<td><div class=\"swatch\" style=\"background:" + c.hex_code + ";cursor:default\"></div></td>"
-               + "<td>" + c.name + "</td>"
-               + "<td>" + (c.brand || "—") + "</td>"
-               + "<td>" + (c.code || "—") + "</td>"
+               + "<td><div class=\"swatch\" style=\"background:" + safeCssHex(c.hex_code) + ";cursor:default\"></div></td>"
+               + "<td>" + escapeHtml(c.name || "") + "</td>"
+               + "<td>" + escapeHtml(c.brand || "—") + "</td>"
+               + "<td>" + escapeHtml(c.code || "—") + "</td>"
                + "<td style=\"display:flex;gap:5px\">"
                + "<button class=\"btn-sm btn-gh\" onclick=\"openColorModal('" + c.id + "')\">Edit</button>"
                + "<button class=\"btn-sm btn-no\" onclick=\"deleteColor('" + c.id + "')\">Del</button>"
