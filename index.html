@@ -2888,10 +2888,10 @@ async function loadSettings() {
         settings[row.key] = row.value === "true" ? true : row.value === "false" ? false : row.value;
       });
     }
-  } catch(e) {}
+  } catch(e) { console.error('[loadSettings] DB fetch:', e); }
   // Load districts
   if (settings.districts) {
-    try { districts = JSON.parse(settings.districts); } catch(e) {}
+    try { districts = JSON.parse(settings.districts); } catch(e) { console.warn('[loadSettings] districts parse:', e); }
   }
   // Sync all settings UI elements
   var pg = ge("promoGlobal"); if (pg) pg.checked = settings.promo_enabled !== false;
@@ -3757,11 +3757,11 @@ async function loadSavedTranslations() {
           try {
             var saved = JSON.parse(row.value);
             for (var k in saved) { TR[lg][k] = saved[k]; }
-          } catch(e) {}
+          } catch(e) { console.warn('[loadTranslations] parse failed for', row.key, e); }
         }
       });
     }
-  } catch(e) {}
+  } catch(e) { console.error('[loadTranslations] DB fetch:', e); }
 }
 
 // ── ui.js ──
@@ -3825,7 +3825,7 @@ function show(p) {
   if (el) { el.classList.add("on"); window.scrollTo({ top: 0, behavior: "smooth" }); }
   // Push to browser history so back button works
   if (currentId !== p) {
-    try { history.pushState({ page: p }, "", "#" + p); } catch(e) {}
+    try { history.pushState({ page: p }, "", "#" + p); } catch(e) { console.warn('[show] pushState:', e); }
   }
   // Show/hide correct mobile bottom nav
   ["cMobNav","pMobNav","aMobNav"].forEach(function(id) {
@@ -4076,7 +4076,7 @@ async function viewUserReviews(userId, userName) {
         if (prof.data.full_name) displayName = fmtReviewerName(prof.data.full_name);
         if (prof.data.avatar_url) avatarUrl = prof.data.avatar_url;
       }
-    } catch(e) {}
+    } catch(e) { console.warn('[openUserReviews] profile fetch:', e); }
     var ava = avatarUrl
       ? "<img src=\"" + avatarUrl + "\" style=\"width:100%;height:100%;object-fit:cover;border-radius:50%\">"
       : "<span style=\"font-size:18px\">👤</span>";
@@ -4146,11 +4146,11 @@ async function loadProfile(u) {
             profile.pro_id = pr.data.id;
             await sb.from("profiles").update({ pro_id: pr.data.id }).eq("id", u.id);
           }
-        } catch(e2) {}
+        } catch(e2) { console.warn('[loadProfile] pro_id recovery:', e2); }
       }
       return;
     }
-  } catch(e) {}
+  } catch(e) { console.error('[loadProfile] profiles fetch:', e); }
   // Fallback: build from auth metadata
   var m = u.user_metadata || {};
   var role = m.role || "client";
@@ -4165,11 +4165,11 @@ async function loadProfile(u) {
     try {
       var pr2 = await sb.from("professionals").select("id").eq("user_id", u.id).single();
       if (pr2.data) profile.pro_id = pr2.data.id;
-    } catch(e3) {}
+    } catch(e3) { console.warn('[loadProfile] fallback pro_id lookup:', e3); }
   }
   try {
     await sb.from("profiles").upsert(profile, { onConflict: "id" });
-  } catch(e) {}
+  } catch(e) { console.warn('[loadProfile] profile upsert:', e); }
 }
 
 // ── DYNAMIC SCRIPT LOADER ─────────────────────────────────────
@@ -4282,7 +4282,7 @@ async function doSignUpClient() {
       { id: uid, full_name: fn, email: email, phone: phone, gender: gender, role: "client" },
       { onConflict: "id" }
     );
-  } catch(e) {}
+  } catch(e) { console.warn('[doSignUpClient] profile upsert:', e); }
   user    = r.data.user;
   profile = { id: uid, full_name: fn, email: email, phone: phone, gender: gender, role: "client" };
   closeM("auth");
@@ -4506,7 +4506,7 @@ async function updateChatBadge() {
         floatBtn.appendChild(badge);
       }
     }
-  } catch(e) {}
+  } catch(e) { console.warn('[updateChatBadge]', e); }
 }
 
 // ── TOGGLE CHAT WINDOW ──────────────────────────────────────
@@ -4735,13 +4735,13 @@ async function loadTicketMessages(id) {
       var isMe = user && m.sender_id === user.id;
       var time = m.created_at ? new Date(m.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "";
       return "<div class=\"msg " + (isMe ? "msg-out" : "msg-in") + "\">"
-           + (isMe ? "" : "<div style=\"font-size:10px;opacity:.6;margin-bottom:2px\">" + (m.sender_name || "Support") + " · " + (m.sender_role || "") + "</div>")
+           + (isMe ? "" : "<div style=\"font-size:10px;opacity:.6;margin-bottom:2px\">" + escapeHtml(m.sender_name || "Support") + " · " + escapeHtml(m.sender_role || "") + "</div>")
            + "<div>" + escapeHtml(m.content) + "</div>"
            + "<div style=\"font-size:9px;opacity:.5;margin-top:2px\">" + time + "</div>"
            + "</div>";
     }).join("");
     el.scrollTop = el.scrollHeight;
-  } catch(e) {}
+  } catch(e) { console.error('[renderTicketMessages]', e); }
 }
 
 async function sendTicketReply() {
@@ -4924,7 +4924,7 @@ async function loadCategories() {
       r = await sb.from("categories").select("*");
     }
     if (r.data && r.data.length > 0) categories = r.data;
-  } catch(e) {}
+  } catch(e) { console.warn('[loadCategories] DB fetch:', e); }
   // Fallback hardcoded categories
   if (!categories.length) {
     categories = [
@@ -5013,7 +5013,7 @@ async function loadPros() {
         if (!allPros.find(function(d) { return d.id === p.id; })) allPros.push(p);
       });
     }
-  } catch(e) {}
+  } catch(e) { console.error('[loadAllPros]', e); }
   renderPros();
 }
 
@@ -5294,7 +5294,7 @@ async function viewPro(proId) {
           if (p) { rv._name = p.full_name; rv._avatar = p.avatar_url; }
         });
       }
-    } catch(e) {}
+    } catch(e) { console.warn('[openProCard] reviewer profiles:', e); }
   }
 
   // store images for lightbox
@@ -6092,8 +6092,8 @@ function openBkDetail(bkJson, role) {
           + "<button class=\"btn btn-warn\" style=\"flex:1;justify-content:center;padding:10px;font-size:13px\" onclick=\"chBkStatus('" + bk.id + "','refunded','admin')\">↩ Refund</button>"
           + "</div>"
           + "<div style=\"margin-top:8px;padding:8px;background:var(--bg2);border-radius:var(--rs);font-size:12px;color:var(--mu)\">"
-          + "📞 Client: " + (bk.client_phone || bk.client_name || "—") + "<br>"
-          + "📞 Pro: " + (bk.pro_phone || bk.pro_name || "—") + "<br>"
+          + "📞 Client: " + escapeHtml(bk.client_phone || bk.client_name || "—") + "<br>"
+          + "📞 Pro: " + escapeHtml(bk.pro_phone || bk.pro_name || "—") + "<br>"
           + "🆔 Booking: " + bk.id + "<br>"
           + "📅 Created: " + (bk.created_at ? new Date(bk.created_at).toLocaleString() : "—")
           + "</div></div>";
@@ -6109,12 +6109,13 @@ function openBkDetail(bkJson, role) {
       if (nc && nc.length) {
         nailHtml = "<div style=\"margin-top:11px\"><div class=\"fl\">Nail Colors</div><div class=\"swatch-row\">"
           + nc.map(function(col) {
-              return "<div class=\"swatch\" style=\"background:" + (col.hex_code || "#ccc") + "\" title=\"" + col.name + "\"></div>"
-                   + "<span style=\"font-size:12px;color:var(--mu);margin-left:3px\">" + col.name + "</span>";
+              var safeHex = /^#[0-9a-fA-F]{3,8}$/.test(col.hex_code) ? col.hex_code : "#ccc";
+              return "<div class=\"swatch\" style=\"background:" + safeHex + "\" title=\"" + escapeHtml(col.name || "") + "\"></div>"
+                   + "<span style=\"font-size:12px;color:var(--mu);margin-left:3px\">" + escapeHtml(col.name || "") + "</span>";
             }).join("")
           + "</div></div>";
       }
-    } catch(e) {}
+    } catch(e) { console.warn('[openBkDetail] nail colors parse:', e); }
   }
 
   ge("bkdTitle").textContent = "Booking #" + bk.id.substring(0, 8);
@@ -6124,13 +6125,13 @@ function openBkDetail(bkJson, role) {
   + "<div><div class=\"fl\">" + t("bdStatus") + "</div>" + sBadge(bk.status) + "</div>"
   + "<div><div class=\"fl\">" + t("bdTotal") + "</div><div style=\"font-weight:500\">" + (bk.total || 0) + "₾"
   + (bk.discount_amount > 0 ? "<span style=\"color:#15803d;font-size:12px\"> (-" + bk.discount_amount + "₾)</span>" : "") + "</div></div>"
-  + "<div><div class=\"fl\">" + t("bdService") + "</div><div style=\"font-size:14px\">" + (bk.service_name || "—") + "</div></div>"
-  + "<div><div class=\"fl\">" + t("bdTime") + "</div><div style=\"font-size:14px\">" + (bk.time_slot || "ASAP") + "</div></div>"
-  + "<div><div class=\"fl\">" + t("bdDistrict") + "</div><div style=\"font-size:14px\">" + (bk.district || "—") + "</div></div>"
-  + "<div><div class=\"fl\">" + (isC ? t("bdProfessional") : t("bdClient")) + "</div><div style=\"font-size:14px\">" + (isC ? (bk.pro_name || "—") : (bk.client_name || "—")) + "</div></div>"
-  + (canSeePhone(bk) ? "<div><div class=\"fl\">📞 " + t("bdPhone") + "</div><div style=\"font-size:14px;color:var(--g);font-weight:500\"><a href=\"tel:" + (isC ? (bk.pro_phone||"") : (bk.client_phone||"")) + "\" style=\"color:var(--g)\">" + (isC ? (bk.pro_phone||"—") : (bk.client_phone||"—")) + "</a></div></div>" : "")
-  + (bk.address ? "<div style=\"grid-column:1/-1\"><div class=\"fl\">" + t("bdAddress") + "</div><div style=\"font-size:14px\">" + bk.address + "</div></div><div style=\"grid-column:1/-1\"><div class=\"track-map\" id=\"bkdMap\"></div></div>" : "")
-  + (bk.notes   ? "<div style=\"grid-column:1/-1\"><div class=\"fl\">" + t("bdNotes") + "</div><div style=\"font-size:13px;color:var(--mu)\">" + bk.notes + "</div></div>" : "")
+  + "<div><div class=\"fl\">" + t("bdService") + "</div><div style=\"font-size:14px\">" + escapeHtml(bk.service_name || "—") + "</div></div>"
+  + "<div><div class=\"fl\">" + t("bdTime") + "</div><div style=\"font-size:14px\">" + escapeHtml(bk.time_slot || "ASAP") + "</div></div>"
+  + "<div><div class=\"fl\">" + t("bdDistrict") + "</div><div style=\"font-size:14px\">" + escapeHtml(bk.district || "—") + "</div></div>"
+  + "<div><div class=\"fl\">" + (isC ? t("bdProfessional") : t("bdClient")) + "</div><div style=\"font-size:14px\">" + escapeHtml(isC ? (bk.pro_name || "—") : (bk.client_name || "—")) + "</div></div>"
+  + (canSeePhone(bk) ? "<div><div class=\"fl\">📞 " + t("bdPhone") + "</div><div style=\"font-size:14px;color:var(--g);font-weight:500\"><a href=\"tel:" + encodeURIComponent(isC ? (bk.pro_phone||"") : (bk.client_phone||"")) + "\" style=\"color:var(--g)\">" + escapeHtml(isC ? (bk.pro_phone||"—") : (bk.client_phone||"—")) + "</a></div></div>" : "")
+  + (bk.address ? "<div style=\"grid-column:1/-1\"><div class=\"fl\">" + t("bdAddress") + "</div><div style=\"font-size:14px\">" + escapeHtml(bk.address) + "</div></div><div style=\"grid-column:1/-1\"><div class=\"track-map\" id=\"bkdMap\"></div></div>" : "")
+  + (bk.notes   ? "<div style=\"grid-column:1/-1\"><div class=\"fl\">" + t("bdNotes") + "</div><div style=\"font-size:13px;color:var(--mu)\">" + escapeHtml(bk.notes) + "</div></div>" : "")
   + "</div>"
   + (bk.design_url ? "<div style=\"margin-top:11px\"><div class=\"fl\">🎨 Client Design Reference</div><div style=\"margin-top:6px\"><img src=\"" + bk.design_url + "\" style=\"max-width:100%;max-height:250px;border-radius:var(--rs);border:1.5px solid var(--br);cursor:pointer;object-fit:contain\" onclick=\"lbOpen(['" + bk.design_url + "'],0)\"></div></div>" : "")
   + nailHtml
@@ -6151,7 +6152,7 @@ function openBkDetail(bkJson, role) {
         fetch("https://nominatim.openstreetmap.org/search?format=json&q="+encodeURIComponent((bk.address||"")+", "+(bk.district||"")+", Tbilisi, Georgia")+"&limit=1")
           .then(function(r){return r.json()}).then(function(d){if(d&&d[0]){mp.setView([+d[0].lat,+d[0].lon],16);mk.setLatLng([+d[0].lat,+d[0].lon])}}).catch(function(){});
         setTimeout(function(){mp.invalidateSize()},300);
-      } catch(e){}
+      } catch(e) { console.warn('[openBkDetail] map init:', e); }
     }, 200);
   }
 }
@@ -6282,7 +6283,7 @@ async function respondTravelFee(bkId, approve) {
         var msgType = approve ? "travel_fee_approved" : "travel_fee_declined";
         sendTwilioNotification(b.pro_phone, msgType, b.pro_name, b.client_name + " · " + b.service_name + (approve ? " (+" + b.travel_fee_requested + "₾)" : ""));
       }
-    } catch(e) {}
+    } catch(e) { console.warn('[respondTravelFee] Twilio notify:', e); }
   } catch(e) { toast("Error: " + e.message, "err"); }
 }
 
@@ -6338,7 +6339,7 @@ async function submitReview() {
           var avg = (rr.data.reduce(function(s, x) { return s + x.rating; }, 0) / rr.data.length).toFixed(1);
           await sb.from("professionals").update({ rating: parseFloat(avg), review_count: rr.data.length }).eq("id", targetId);
         }
-      } catch(e) {}
+      } catch(e) { console.warn('[submitReview] rating update:', e); }
     }
     closeM("rev");
     toast(t("rvSubmitted"), "ok");
@@ -6741,7 +6742,7 @@ async function notifyAdminSimultaneous(newBk, otherBks) {
         headers: { "Content-Type": "application/x-www-form-urlencoded", "Authorization": "Basic " + btoa(sid + ":" + token) },
         body: "To=" + encodeURIComponent(to) + "&From=" + encodeURIComponent(fromNum) + "&Body=" + encodeURIComponent(msg)
       });
-    } catch(e) {}
+    } catch(e) { console.warn('[sendSimultaneousBookingAlert] Twilio send:', e); }
   }
 
   // Save to notifications table for admin panel
@@ -6751,7 +6752,7 @@ async function notifyAdminSimultaneous(newBk, otherBks) {
       message: msg,
       data: { new_booking: newBk, other_bookings: otherBks }
     });
-  } catch(e) {}
+  } catch(e) { console.warn('[sendSimultaneousBookingAlert] notification insert:', e); }
 }
 
 // ── tracking.js ──
@@ -7082,7 +7083,7 @@ function subscribeRealtime() {
         if (typeof Notification !== "undefined" && Notification.permission === "granted") {
           try {
             new Notification("Le' mody — " + senderName, { body: preview, icon: "/favicon.ico" });
-          } catch(e) {}
+          } catch(e) { console.warn('[startTracker] Notification API:', e); }
         }
       })
     .subscribe();
@@ -7322,7 +7323,7 @@ async function loadAdminBks() {
     var r = await sb.from("bookings").select("*").order("created_at", { ascending: false });
     adminAllBks = r.data || [];
     renderAdminBks();
-  } catch(e) {}
+  } catch(e) { console.error('[loadAdminBks]', e); }
 }
 
 function renderAdminBks() {
@@ -7479,14 +7480,14 @@ async function markNotifRead(id) {
   try {
     await sb.from("notifications").update({ read: true }).eq("id", id);
     loadAdminNotifs();
-  } catch(e) {}
+  } catch(e) { console.warn('[markNotifRead]', e); }
 }
 
 async function markAllNotifsRead() {
   try {
     await sb.from("notifications").update({ read: true }).eq("read", false);
     loadAdminNotifs();
-  } catch(e) {}
+  } catch(e) { console.warn('[markAllNotifsRead]', e); }
 }
 
 // ── ALL PROFESSIONALS ─────────────────────────────────────────
@@ -7866,7 +7867,7 @@ async function loadAdminRevs() {
       try {
         var pp = await sb.from("profiles").select("id,full_name").in("id", rids);
         (pp.data||[]).forEach(function(p) { profMap[p.id] = p.full_name; });
-      } catch(e) {}
+      } catch(e) { console.warn('[loadAdminProReviews] profiles fetch:', e); }
     }
     el.innerHTML = revs.map(function(rv) {
       var stars = "★".repeat(rv.rating) + "☆".repeat(5 - rv.rating);
@@ -8503,7 +8504,7 @@ async function doLookup() {
     try {
       var rr = await sb.from("reviews").select("*").eq("reviewer_id", foundProfile.id).order("created_at", { ascending: false });
       userRevs = rr.data || [];
-    } catch(e) {}
+    } catch(e) { console.warn('[adminSearchUser] reviews fetch:', e); }
 
     el.innerHTML = "<div style='background:var(--bg2);border-radius:var(--rs);padding:14px;margin-top:8px'>"
       + "<div style='display:flex;justify-content:space-between;align-items:center;margin-bottom:10px'>"
@@ -9116,8 +9117,8 @@ async function loadCrm() {
 
     // These tables may not exist yet — tolerate errors
     var notes = [], wallets = [];
-    try { var nRes = await sb.from("client_notes").select("*"); notes = nRes.data || []; } catch(e) {}
-    try { var wRes = await sb.from("client_wallets").select("client_id,balance"); wallets = wRes.data || []; } catch(e) {}
+    try { var nRes = await sb.from("client_notes").select("*"); notes = nRes.data || []; } catch(e) { console.warn('[loadAdminUsers] client_notes fetch:', e); }
+    try { var wRes = await sb.from("client_wallets").select("client_id,balance"); wallets = wRes.data || []; } catch(e) { console.warn('[loadAdminUsers] wallets fetch:', e); }
 
     var noteMap = {}, walletMap = {};
     notes.forEach(function(n) { noteMap[n.client_id] = n; });
@@ -9317,7 +9318,7 @@ async function submitIncident() {
     try {
       var bk = await sb.from("bookings").select("client_id,pro_id").eq("id", bookingId).single();
       if (bk.data) { clientId = bk.data.client_id; proId = bk.data.pro_id; }
-    } catch(e) {}
+    } catch(e) { console.warn('[createIncident] booking lookup:', e); }
   }
   try {
     var r = await sb.from("incidents").insert({
@@ -9478,12 +9479,12 @@ async function loadProDash() {
         if (profile) profile.pro_id = proId;
         await sb.from("profiles").update({ pro_id: proId }).eq("id", user.id);
       }
-    } catch(e) {}
+    } catch(e) { console.warn('[loadProDash] pro_id recovery:', e); }
   }
 
   var pro = null;
   if (proId) {
-    try { var r = await sb.from("professionals").select("*").eq("id", proId).single(); pro = r.data; } catch(e) {}
+    try { var r = await sb.from("professionals").select("*").eq("id", proId).single(); pro = r.data; } catch(e) { console.error('[loadProDash] pro fetch:', e); }
   }
 
   var name = pro ? pro.name : (profile ? profile.full_name : user.email);
@@ -9599,7 +9600,7 @@ async function loadProDash() {
           if (cProfiles.data) cProfiles.data.forEach(function(p) {
             clientData[p.id] = { name: p.full_name, avatar: p.avatar_url, completedCount: 0, avgRating: 0, revCount: 0 };
           });
-        } catch(e) {}
+        } catch(e) { console.warn('[loadProDash] client profiles:', e); }
 
         // 2. Count completed bookings per client
         try {
@@ -9607,7 +9608,7 @@ async function loadProDash() {
           if (cBks.data) cBks.data.forEach(function(b) {
             if (clientData[b.client_id]) clientData[b.client_id].completedCount++;
           });
-        } catch(e) {}
+        } catch(e) { console.warn('[loadProDash] client completed bookings:', e); }
 
         // 3. Get reviews given BY pros about these clients (reviewer_role=pro, booking links to client)
         try {
@@ -9635,7 +9636,7 @@ async function loadProDash() {
               }
             }
           }
-        } catch(e) {}
+        } catch(e) { console.warn('[loadProDash] client reviews:', e); }
       }
 
       inc.innerHTML = pend.map(function(b) {
@@ -9666,15 +9667,15 @@ async function loadProDash() {
           try {
             var c = typeof b.selected_nail_colors === "string" ? JSON.parse(b.selected_nail_colors) : b.selected_nail_colors;
             if (c && c.length) nc = "<div class=\"swatch-row\" style=\"margin-top:4px\">"
-              + c.map(function(x) { return "<div class=\"swatch\" style=\"background:" + (x.hex_code || "#ccc") + "\" title=\"" + x.name + "\"></div>"; }).join("") + "</div>";
-          } catch(e) {}
+              + c.map(function(x) { var sh = /^#[0-9a-fA-F]{3,8}$/.test(x.hex_code) ? x.hex_code : "#ccc"; return "<div class=\"swatch\" style=\"background:" + sh + "\" title=\"" + escapeHtml(x.name || "") + "\"></div>"; }).join("") + "</div>";
+          } catch(e) { console.warn('[loadProDash] nail colors parse:', e); }
         }
 
         return "<div style=\"background:var(--bg2);border-radius:var(--r);padding:14px;margin-bottom:8px;border:1px solid var(--br)\">"
              + "<div style=\"display:flex;gap:12px;margin-bottom:10px\">"
              + "<div style=\"width:44px;height:44px;border-radius:50%;background:var(--bg);display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0;border:1.5px solid var(--br)\">" + cAva + "</div>"
              + "<div style=\"flex:1\">"
-             + "<div style=\"font-weight:600;font-size:15px\">" + (b.client_name || "Client") + "</div>"
+             + "<div style=\"font-weight:600;font-size:15px\">" + escapeHtml(b.client_name || "Client") + "</div>"
              + "<div style=\"margin-top:2px\">" + ratingHtml + "</div>"
              + "</div>"
              + "</div>"
@@ -9740,7 +9741,7 @@ async function saveProProfile() {
         if (profile) profile.pro_id = proId;
         await sb.from("profiles").update({ pro_id: proId }).eq("id", user.id);
       }
-    } catch(e) {}
+    } catch(e) { console.warn('[saveProProfile] pro_id recovery:', e); }
   }
 
   try {
@@ -9799,7 +9800,7 @@ async function uploadProAvatar(input) {
   if (!input.files || !input.files[0] || !user) return;
   var url = await uploadAvatar(input.files[0], user.id, "pAvaEdit", "pAvaEditEmoji", "pAvaDisp");
   if (url && profile && profile.pro_id) {
-    try { await sb.from("professionals").update({ avatar_url: url }).eq("id", profile.pro_id); } catch(e) {}
+    try { await sb.from("professionals").update({ avatar_url: url }).eq("id", profile.pro_id); } catch(e) { console.warn('[uploadProAvatar] professionals update:', e); }
   }
 }
 
@@ -9867,7 +9868,7 @@ async function loadProSvcs() {
         if (profile) profile.pro_id = proId;
         await sb.from("profiles").update({ pro_id: proId }).eq("id", user.id);
       }
-    } catch(e) {}
+    } catch(e) { console.warn('[loadProServices] pro_id recovery:', e); }
   }
 
   if (!proId) {
@@ -9944,7 +9945,7 @@ async function saveSvc() {
         // Fix the profiles table too
         await sb.from("profiles").update({ pro_id: proId }).eq("id", user.id);
       }
-    } catch(e) {}
+    } catch(e) { console.warn('[saveService] pro_id recovery:', e); }
   }
   if (!proId) {
     toast("No professional profile found. Go to Edit Profile and save first.", "err");
@@ -10057,7 +10058,7 @@ async function saveColor() {
     try {
       var pr = await sb.from("professionals").select("id").eq("user_id", user.id).single();
       if (pr.data) { proId = pr.data.id; if (profile) profile.pro_id = proId; }
-    } catch(e) {}
+    } catch(e) { console.warn('[saveNailColor] pro_id recovery:', e); }
   }
   if (!proId) { toast("Save profile first in Edit Profile tab", "err"); return; }
   try {
