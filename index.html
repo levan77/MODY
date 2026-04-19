@@ -4629,7 +4629,7 @@ async function loadChatMessages(threadId) {
       var isMe = user && m.sender_id === user.id;
       var time = m.created_at ? new Date(m.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "";
       var date = m.created_at ? new Date(m.created_at).toLocaleDateString() : "";
-      var senderLabel = isMe ? "" : "<div style=\"font-size:10px;font-weight:600;opacity:.7;margin-bottom:2px\">" + (m.sender_name || "Unknown") + " <span style=\"font-weight:400\">· " + (m.sender_role || "") + "</span></div>";
+      var senderLabel = isMe ? "" : "<div style=\"font-size:10px;font-weight:600;opacity:.7;margin-bottom:2px\">" + escapeHtml(m.sender_name || "Unknown") + " <span style=\"font-weight:400\">· " + escapeHtml(m.sender_role || "") + "</span></div>";
       var readIcon = isMe && m.is_read ? " <span style=\"font-size:9px;opacity:.5\">✓✓</span>" : "";
       return "<div class=\"msg " + (isMe ? "msg-out" : "msg-in") + "\">"
         + senderLabel
@@ -4865,7 +4865,7 @@ async function adminOpenChat(threadId, clientName, proName) {
         : "<span style=\"background:rgba(59,130,246,.12);color:#3b82f6;padding:1px 6px;border-radius:50px;font-size:9px;font-weight:600\">CLIENT</span>";
       return "<div class=\"msg " + (isClient ? "msg-in" : "msg-out") + "\" style=\"max-width:90%\">"
         + "<div style=\"font-size:10px;margin-bottom:3px;display:flex;align-items:center;gap:4px\">"
-        + "<strong>" + (m.sender_name || "Unknown") + "</strong> " + roleBadge
+        + "<strong>" + escapeHtml(m.sender_name || "Unknown") + "</strong> " + roleBadge
         + "</div>"
         + "<div>" + escapeHtml(m.content) + "</div>"
         + "<div style=\"font-size:9px;opacity:.5;margin-top:2px\">" + time + "</div>"
@@ -5729,96 +5729,116 @@ function buildCal() {
 function fmtDate(d) { return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
 function pickDay(ds) { bkSelDateStr = ds; buildCal(); }
 async function buildTimeSlots() {
-  var slots = ge("bkSlots"); if (!slots) return;
-  var now = new Date(), isToday = bkSelDateStr === fmtDate(now), curHr = now.getHours(), curMin = now.getMinutes();
-  // Fetch existing bookings + pro buffer for collision check
-  var blockedSlots = {};
-  var proId = selSvcPro().proId;
-  var svcDuration = selSvcDuration(); // combined duration of all selected services
-  var arrivalBuffer = 60; // minutes before start
-  var workStart = "09:00", workEnd = "19:00";
-  if (proId && ["d1","d2","d3","d4","d5","d6"].indexOf(proId) === -1) {
+  const slots = ge('bkSlots'); if (!slots) return;
+  const now          = new Date();
+  const isToday      = bkSelDateStr === fmtDate(now);
+  const curHr        = now.getHours();
+  const curMin       = now.getMinutes();
+  const blockedSlots = {};
+  const proId        = selSvcPro().proId;
+  const svcDuration  = selSvcDuration();
+  const ARRIVAL_BUF  = 60;
+  const DEMO_IDS     = ['d1','d2','d3','d4','d5','d6'];
+  let workStart      = '09:00';
+  let workEnd        = '19:00';
+
+  if (proId && !DEMO_IDS.includes(proId)) {
+    // ── Fetch pro schedule + existing bookings ──────────────────
     try {
-      // Get pro's travel buffer and working hours
-      var pRes = await sb.from("professionals").select("travel_buffer,work_start,work_end").eq("id", proId).single();
-      var travelBuffer = (pRes.data && pRes.data.travel_buffer) ? pRes.data.travel_buffer : 60;
-      if (pRes.data && pRes.data.work_start) workStart = pRes.data.work_start;
-      if (pRes.data && pRes.data.work_end) workEnd = pRes.data.work_end;
+      const { data: pro, error: proErr } = await sb.from('professionals')
+        .select('travel_buffer,work_start,work_end').eq('id', proId).single();
+      if (proErr) throw proErr;
 
-      // Get all active bookings for this pro on the selected date
-      var activeStatuses = ["pending","accepted","on_the_way","arrived","in_progress"];
-      var bRes = await sb.from("bookings").select("time_slot,service_name,service_duration")
-        .eq("pro_id", proId).in("status", activeStatuses)
-        .like("time_slot", bkSelDateStr + "%");
-      var bookings = (bRes.data || []);
+      const travelBuffer = pro?.travel_buffer ?? 60;
+      if (pro?.work_start) workStart = pro.work_start;
+      if (pro?.work_end)   workEnd   = pro.work_end;
 
-      // Get service durations for booked services (fallback for old bookings without service_duration)
-      var svcRes = await sb.from("services").select("name,duration").eq("pro_id", proId);
-      var svcMap = {};
-      (svcRes.data || []).forEach(function(s) { svcMap[s.name] = s.duration || 60; });
+      // Build candidate times NOW — before the forEach that needs them
+      const candidateTimes = _buildTimesArray(workStart, workEnd);
 
-      // For each existing booking, calculate blocked time range
-      bookings.forEach(function(bk) {
-        var parts = bk.time_slot.split(" ");
+      const [bkRes, svcRes] = await Promise.all([
+        sb.from('bookings')
+          .select('time_slot,service_name,service_duration')
+          .eq('pro_id', proId)
+          .in('status', ['pending','accepted','on_the_way','arrived','in_progress'])
+          .like('time_slot', `${bkSelDateStr}%`),
+        sb.from('services').select('name,duration').eq('pro_id', proId),
+      ]);
+      if (bkRes.error)  throw bkRes.error;
+      if (svcRes.error) throw svcRes.error;
+
+      const svcMap = {};
+      (svcRes.data || []).forEach(s => { svcMap[s.name] = s.duration || 60; });
+
+      (bkRes.data || []).forEach(bk => {
+        const parts = (bk.time_slot || '').split(' ');
         if (parts.length < 2) return;
-        var tp = parts[1].split(":");
-        var bkStartMin = parseInt(tp[0]) * 60 + parseInt(tp[1]); // minutes from midnight
-        var bkDuration = bk.service_duration || svcMap[bk.service_name] || 60;
-        var bkEndMin = bkStartMin + bkDuration;
-        // Blocked zone: [bkStartMin - arrivalBuffer - travelBuffer, bkEndMin + travelBuffer]
-        var blockStart = bkStartMin - arrivalBuffer - travelBuffer;
-        var blockEnd = bkEndMin + travelBuffer;
+        const [hStr, mStr] = parts[1].split(':');
+        const bkStart = parseInt(hStr) * 60 + parseInt(mStr);
+        const bkDur   = bk.service_duration || svcMap[bk.service_name] || 60;
+        const bkEnd   = bkStart + bkDur;
 
-        // Check each candidate slot against this blocked zone
-        times.forEach(function(tt) {
-          var sp = tt.split(":");
-          var slotStart = parseInt(sp[0]) * 60 + parseInt(sp[1]);
-          var slotEnd = slotStart + svcDuration;
-          // Overlap: new booking [slotStart - arrivalBuffer, slotEnd + travelBuffer] must not overlap [bkStartMin - arrivalBuffer, bkEndMin + travelBuffer]
-          // Simplified: slot is blocked if it overlaps with the blocked zone
-          if (slotEnd + travelBuffer > bkStartMin - arrivalBuffer && slotStart - arrivalBuffer < bkEndMin + travelBuffer) {
+        candidateTimes.forEach(tt => {
+          const [sh, sm]  = tt.split(':').map(Number);
+          const slotStart = sh * 60 + sm;
+          const slotEnd   = slotStart + svcDuration;
+          if (slotEnd + travelBuffer > bkStart - ARRIVAL_BUF &&
+              slotStart - ARRIVAL_BUF < bkEnd + travelBuffer) {
             blockedSlots[tt] = true;
           }
         });
       });
-    } catch(e) { /* continue without blocking */ }
+    } catch (err) {
+      console.error('[buildTimeSlots] schedule/bookings fetch:', err);
+      // Non-fatal: render slots without conflict shading
+    }
 
-    // Check pro_hours_off and pro_days_off
+    // ── Days off / hours off ────────────────────────────────────
     try {
-      var dayOffRes = await sb.from("pro_days_off").select("id").eq("pro_id", proId).eq("off_date", bkSelDateStr);
-      if (dayOffRes.data && dayOffRes.data.length) {
-        // Whole day is off — block all slots
-        times.forEach(function(tt) { blockedSlots[tt] = "dayoff"; });
+      const candidateTimes = _buildTimesArray(workStart, workEnd);
+      const { data: dayOff, error: dErr } = await sb.from('pro_days_off')
+        .select('id').eq('pro_id', proId).eq('off_date', bkSelDateStr);
+      if (dErr) throw dErr;
+
+      if (dayOff?.length) {
+        candidateTimes.forEach(tt => { blockedSlots[tt] = 'dayoff'; });
       } else {
-        var hoursOffRes = await sb.from("pro_hours_off").select("off_hour").eq("pro_id", proId).eq("off_date", bkSelDateStr);
-        (hoursOffRes.data || []).forEach(function(h) { blockedSlots[h.off_hour] = "houroff"; });
+        const { data: hoursOff, error: hErr } = await sb.from('pro_hours_off')
+          .select('off_hour').eq('pro_id', proId).eq('off_date', bkSelDateStr);
+        if (hErr) throw hErr;
+        (hoursOff || []).forEach(h => { blockedSlots[h.off_hour] = 'houroff'; });
       }
-    } catch(e) { /* continue */ }
+    } catch (err) {
+      console.error('[buildTimeSlots] days/hours off fetch:', err);
+    }
   }
 
-  // Build time slots based on pro's working hours
-  var wsParts = workStart.split(":"), weParts = workEnd.split(":");
-  var wsMin = parseInt(wsParts[0]) * 60 + parseInt(wsParts[1] || 0);
-  var weMin = parseInt(weParts[0]) * 60 + parseInt(weParts[1] || 0);
-  if (weMin <= wsMin) weMin = 24 * 60; // handle midnight wrap
-  var times = [];
-  for (var m = wsMin; m < weMin; m += 30) {
-    var hh = Math.floor(m / 60), mm = m % 60;
-    times.push(String(hh).padStart(2, "0") + ":" + String(mm).padStart(2, "0"));
-  }
+  // ── Render ──────────────────────────────────────────────────
+  const times = _buildTimesArray(workStart, workEnd);
+  slots.innerHTML = times.map(tt => {
+    const [hr, mn]  = tt.split(':').map(Number);
+    const isPast    = isToday && (hr < curHr || (hr === curHr && mn <= curMin));
+    const isBlocked = blockedSlots[tt];
+    const cls       = isPast || isBlocked ? ' dis' : '';
+    const title     = isBlocked === 'dayoff'  ? ' title="Professional is unavailable this day"'
+                    : isBlocked === 'houroff' ? ' title="Professional marked this hour unavailable"'
+                    : isBlocked               ? ' title="Not available — professional is booked nearby"'
+                    : '';
+    return `<div class="ts${cls}" onclick="pickTs(this)" style="padding:9px 6px;font-size:13px"${title}>${tt}</div>`;
+  }).join('');
+}
 
-  slots.innerHTML = times.map(function(tt) {
-    var sp = tt.split(":");
-    var hr = parseInt(sp[0]), mn = parseInt(sp[1]);
-    var isPast = isToday && (hr < curHr || (hr === curHr && mn <= curMin));
-    var isBlocked = blockedSlots[tt];
-    var cls = (isPast || isBlocked) ? " dis" : "";
-    var title = isBlocked === "dayoff" ? " title=\"Professional is unavailable this day\""
-              : isBlocked === "houroff" ? " title=\"Professional marked this hour unavailable\""
-              : isBlocked ? " title=\"Not available — professional is booked nearby\""
-              : "";
-    return "<div class=\"ts" + cls + "\" onclick=\"pickTs(this)\" style=\"padding:9px 6px;font-size:13px\"" + title + ">" + tt + "</div>";
-  }).join("");
+function _buildTimesArray(workStart, workEnd) {
+  const [wsh, wsm] = workStart.split(':').map(Number);
+  const [weh, wem] = workEnd.split(':').map(Number);
+  let wsMin = wsh * 60 + wsm;
+  let weMin = weh * 60 + wem;
+  if (weMin <= wsMin) weMin = 24 * 60;
+  const times = [];
+  for (let m = wsMin; m < weMin; m += 30) {
+    times.push(`${String(Math.floor(m / 60)).padStart(2, '0')}:${String(m % 60).padStart(2, '0')}`);
+  }
+  return times;
 }
 function pickTs(el) {
   if (el.classList.contains("dis")) return;
@@ -6169,7 +6189,7 @@ async function chBkStatus(id, status, actor) {
     try {
       var bkTw = await sb.from("bookings").select("client_name,client_phone,pro_name,pro_phone,service_name,time_slot,address").eq("id", id).single();
       if (bkTw.data) { twilioNotifyBooking(bkTw.data, status); }
-    } catch(e) {}
+    } catch(e) { console.warn('[updateStatus] Twilio notify failed:', e); }
 
     // Auto-open review popup when pro completes
     if (actor === "pro" && status === "completed") {
@@ -6178,7 +6198,7 @@ async function chBkStatus(id, status, actor) {
         if (bkData.data && bkData.data.client_id) {
           setTimeout(function() { openRevModal(id, bkData.data.client_id, "pro"); }, 800);
         }
-      } catch(e) {}
+      } catch(e) { console.error('[updateStatus] review modal fetch:', e); }
     }
   } catch(e) { toast("Error: " + e.message, "err"); }
 }
@@ -6196,7 +6216,7 @@ async function acceptBk(id) {
     try {
       var bkTw = await sb.from("bookings").select("client_name,client_phone,pro_name,pro_phone,service_name,time_slot,address").eq("id", id).single();
       if (bkTw.data) { twilioNotifyBooking(bkTw.data, "accepted"); }
-    } catch(e) {}
+    } catch(e) { console.warn('[acceptBk] Twilio notify failed:', e); }
   } catch(e) { toast("Error: " + e.message, "err"); }
 }
 
@@ -6233,7 +6253,7 @@ async function submitTravelFeeRequest() {
         var detail = b.service_name + (b.time_slot ? " · " + b.time_slot : "");
         sendTwilioNotification(b.client_phone, "travel_fee_request", b.client_name, b.pro_name + " requests +" + amount + "₾ travel fee for " + detail + (reason ? ": " + reason : ""));
       }
-    } catch(e) {}
+    } catch(e) { console.warn('[submitTravelFeeRequest] Twilio notify failed:', e); }
   } catch(e) { toast("Error: " + e.message, "err"); }
 }
 
