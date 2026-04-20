@@ -1187,6 +1187,7 @@ footer        { background: #1A1A1A; color: rgba(255,255,255,.4); padding: 38px 
   <div style="background:var(--nv);border-bottom:1px solid var(--br);padding:8px 20px;position:sticky;top:64px;z-index:100">
     <div style="max-width:1200px;margin:0 auto">
       <div style="display:flex;gap:10px;flex-wrap:wrap;padding:6px 0" id="filterChips"></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;padding:2px 0;margin-top:4px" id="serviceFilterChips"></div>
       <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:6px">
         <select class="fi" id="clientRegionSel" style="width:140px;padding:6px 10px;font-size:13px" onchange="setClientRegion(this.value)">
           <option value="">All regions</option>
@@ -1720,6 +1721,21 @@ footer        { background: #1A1A1A; color: rgba(255,255,255,.4); padding: 38px 
           <div class="c-hdr"><h3>Subcategories</h3><button class="btn btn-g" style="font-size:13px" onclick="openSubCatModal(null)">+ Add Subcategory</button></div>
           <p style="font-size:13px;color:var(--mu);margin-bottom:10px">Subcategories appear on hover over category cards. Each one links to its parent category for filtering.</p>
           <div id="aSubCatList"></div>
+        </div>
+        <div class="card" style="margin-top:12px">
+          <div class="c-hdr"><h3>Predefined Services</h3><button class="btn btn-g" style="font-size:13px" onclick="openCatSvcModal(null)">+ Add Service</button></div>
+          <p style="font-size:13px;color:var(--mu);margin-bottom:10px">These are the predefined services professionals can choose from. Each service belongs to a category and supports multilingual names.</p>
+          <div class="fg" style="margin-bottom:10px">
+            <select class="fi" id="aCatSvcFilter" style="max-width:250px;font-size:13px" onchange="renderAdminCatSvcs()">
+              <option value="">All categories</option>
+            </select>
+          </div>
+          <div id="aCatSvcList"></div>
+        </div>
+        <div class="card" style="margin-top:12px">
+          <div class="c-hdr"><h3>Pending Custom Services</h3></div>
+          <p style="font-size:13px;color:var(--mu);margin-bottom:10px">Services submitted by professionals that need approval.</p>
+          <div id="aPendingSvcList"></div>
         </div>
       </div>
       <div id="aTab-promo" class="hide">
@@ -2296,13 +2312,39 @@ footer        { background: #1A1A1A; color: rgba(255,255,255,.4); padding: 38px 
     <button class="mx" onclick="closeM('svc')">✕</button>
     <h2 id="svcModalTitle" style="font-size:20px;font-weight:300;margin-bottom:14px">Add Service</h2>
     <input type="hidden" id="svcId">
-    <div class="fg"><label class="fl">Service Name</label><input class="fi" id="sN" placeholder="e.g. Classic Gel Manicure"></div>
-    <div class="fg"><label class="fl">Description</label><input class="fi" id="sD" placeholder="Short description"></div>
+    <input type="hidden" id="svcCatSvcId">
+    <div class="fg"><label class="fl">Select Service</label>
+      <select class="fi" id="svcSelect" onchange="onSvcSelectChange()">
+        <option value="">— Choose a service —</option>
+      </select>
+    </div>
+    <div id="svcCustomWrap" class="hide">
+      <div class="fg"><label class="fl">Custom Service Name</label><input class="fi" id="sN" placeholder="e.g. Custom nail art"></div>
+      <p style="font-size:11px;color:#a16207;margin-bottom:8px">⚠ Custom services need admin approval before clients can see them.</p>
+    </div>
+    <div class="fg"><label class="fl">Description (optional)</label><input class="fi" id="sD" placeholder="Short description"></div>
     <div class="fi2">
       <div class="fg"><label class="fl">Price (₾)</label><input class="fi" id="sP" type="number" min="0"></div>
       <div class="fg"><label class="fl">Duration (min)</label><input class="fi" id="sDr" type="number" min="15" value="60"></div>
     </div>
     <button class="btn btn-g" style="width:100%;justify-content:center;padding:11px" onclick="saveSvc()">Save Service</button>
+  </div>
+</div>
+
+<!-- ══ MODAL: CATEGORY SERVICE (admin) ══ -->
+<div class="mbg" id="modal-catsvc">
+  <div class="mbox">
+    <button class="mx" onclick="closeM('catsvc')">✕</button>
+    <h2 id="catSvcModalTitle" style="font-size:20px;font-weight:300;margin-bottom:14px">Add Predefined Service</h2>
+    <input type="hidden" id="catSvcEditId">
+    <div class="fg"><label class="fl">Category *</label>
+      <select class="fi" id="catSvcParent"></select>
+    </div>
+    <div class="fg"><label class="fl">Service Name (English) *</label><input class="fi" id="catSvcEn" placeholder="e.g. Manicure"></div>
+    <div class="fg"><label class="fl">Service Name (Georgian)</label><input class="fi" id="catSvcKa" placeholder="მანიკური"></div>
+    <div class="fg"><label class="fl">Service Name (Russian)</label><input class="fi" id="catSvcRu" placeholder="Маникюр"></div>
+    <div class="fg"><label class="fl">Sort Order</label><input class="fi" id="catSvcSort" type="number" min="0" value="0" style="width:80px"></div>
+    <button class="btn btn-g" style="width:100%;justify-content:center;padding:11px;margin-top:4px" onclick="saveCatSvc()">Save Service</button>
   </div>
 </div>
 
@@ -2837,6 +2879,10 @@ function proBio(p) {
   return p.bio || "";
 }
 function svcName(s) {
+  if (s.category_service_id) {
+    var cs = allCatSvcs.find(function(c) { return c.id === s.category_service_id; });
+    if (cs) return catSvcName(cs);
+  }
   if (lang === "ka" && s.name_ka) return s.name_ka;
   if (lang === "ru" && s.name_ru) return s.name_ru;
   return s.name;
@@ -2955,8 +3001,9 @@ var SETUP_SQL = [
   "create table if not exists public.profiles (id uuid primary key references auth.users(id) on delete cascade, full_name text, email text, phone text, gender text, role text not null default 'client', pro_id uuid, avatar_url text, suspended boolean default false, created_at timestamptz default now());",
   "create table if not exists public.categories (id uuid default gen_random_uuid() primary key, name_en text not null, name_ka text, name_ru text, emoji text default '💅', icon_url text, subcategories text, show_home boolean default true, show_filter boolean default true, show_signup boolean default true, sort_order int default 0, visible boolean default true, created_at timestamptz default now());",
   "create table if not exists public.subcategories (id uuid default gen_random_uuid() primary key, category_id uuid references public.categories(id) on delete cascade, name_en text not null, name_ka text, name_ru text, emoji text, sort_order int default 0, visible boolean default true, created_at timestamptz default now());",
+  "create table if not exists public.category_services (id uuid default gen_random_uuid() primary key, category_id uuid references public.categories(id) on delete cascade, name_en text not null, name_ka text, name_ru text, sort_order int default 0, visible boolean default true, created_at timestamptz default now());",
   "create table if not exists public.professionals (id uuid default gen_random_uuid() primary key, user_id uuid references auth.users(id) on delete cascade, name text not null, specialty text, area text, bio text, price_from int default 50, rating numeric default 5.0, review_count int default 0, emoji text default '💅', avatar_url text, status text not null default 'pending', verified boolean default false, featured boolean default false, years_experience int, created_at timestamptz default now());",
-  "create table if not exists public.services (id uuid default gen_random_uuid() primary key, pro_id uuid references public.professionals(id) on delete cascade, name text not null, description text, price int not null default 0, duration int default 60, sort_order int default 0, created_at timestamptz default now());",
+  "create table if not exists public.services (id uuid default gen_random_uuid() primary key, pro_id uuid references public.professionals(id) on delete cascade, category_service_id uuid references public.category_services(id) on delete set null, name text not null, description text, price int not null default 0, duration int default 60, sort_order int default 0, status text default 'approved', created_at timestamptz default now());",
   "create table if not exists public.portfolio_images (id uuid default gen_random_uuid() primary key, pro_id uuid references public.professionals(id) on delete cascade, url text not null, sort_order int default 0, created_at timestamptz default now());",
   "create table if not exists public.nail_colors (id uuid default gen_random_uuid() primary key, pro_id uuid references public.professionals(id) on delete cascade, name text not null, hex_code text not null, brand text, code text, sort_order int default 0, created_at timestamptz default now());",
   "create table if not exists public.promo_codes (id uuid default gen_random_uuid() primary key, code text unique not null, discount_type text not null default 'percent', discount_value numeric not null, min_order int default 0, max_uses int, used_count int default 0, expires_at timestamptz, active boolean default true, created_at timestamptz default now());",
@@ -2975,6 +3022,15 @@ var SETUP_SQL = [
   "alter table public.professionals add column if not exists travel_buffer integer default 60;",
   "create table if not exists public.pro_locations (booking_id uuid primary key, pro_id uuid references public.professionals(id) on delete cascade, lat numeric not null, lng numeric not null, updated_at timestamptz default now());",
   "alter table public.services add column if not exists visible boolean default true;",
+  "alter table public.services add column if not exists category_service_id uuid references public.category_services(id) on delete set null;",
+  "alter table public.services add column if not exists status text default 'approved';",
+  "alter table public.category_services disable row level security;",
+  "-- Seed predefined services (safe to re-run — on conflict do nothing)",
+  "insert into public.category_services (category_id, name_en, name_ka, name_ru, sort_order) select c.id, s.name_en, s.name_ka, s.name_ru, s.sort_order from public.categories c, (values ('Manicure','მანიკური','Маникюр',1),('Pedicure','პედიკური','Педикюр',2),('Gel polish','გელ-ლაქი','Гель-лак',3),('French tips','ფრენჩი','Френч',4),('Nail extension','ფრჩხილის დაგრძელება','Наращивание ногтей',5),('Nail repair','ფრჩხილის აღდგენა','Ремонт ногтей',6)) as s(name_en,name_ka,name_ru,sort_order) where c.name_en='Nails' on conflict do nothing;",
+  "insert into public.category_services (category_id, name_en, name_ka, name_ru, sort_order) select c.id, s.name_en, s.name_ka, s.name_ru, s.sort_order from public.categories c, (values ('Haircut','თმის შეჭრა','Стрижка',1),('Blow dry','ფენით შრობა','Укладка феном',2),('Styling','სტაილინგი','Стайлинг',3),('Curls','ტალღები','Локоны',4),('Coloring','შეღებვა','Окрашивание',5),('Roots touch-up','ფესვების შეღებვა','Подкрашивание корней',6)) as s(name_en,name_ka,name_ru,sort_order) where c.name_en='Hair' on conflict do nothing;",
+  "insert into public.category_services (category_id, name_en, name_ka, name_ru, sort_order) select c.id, s.name_en, s.name_ka, s.name_ru, s.sort_order from public.categories c, (values ('Day makeup','დღის მაკიაჟი','Дневной макияж',1),('Evening makeup','საღამოს მაკიაჟი','Вечерний макияж',2),('Bridal makeup','საქორწინო მაკიაჟი','Свадебный макияж',3),('Natural makeup','ბუნებრივი მაკიაჟი','Естественный макияж',4)) as s(name_en,name_ka,name_ru,sort_order) where c.name_en='Makeup' on conflict do nothing;",
+  "insert into public.category_services (category_id, name_en, name_ka, name_ru, sort_order) select c.id, s.name_en, s.name_ka, s.name_ru, s.sort_order from public.categories c, (values ('Classic lashes','კლასიკური წამწამები','Классические ресницы',1),('Volume lashes','მოცულობითი წამწამები','Объёмные ресницы',2),('Lash lift','წამწამების ლიფტინგი','Ламинирование ресниц',3),('Lash removal','წამწამების მოშორება','Снятие ресниц',4)) as s(name_en,name_ka,name_ru,sort_order) where c.name_en='Lashes' on conflict do nothing;",
+  "insert into public.category_services (category_id, name_en, name_ka, name_ru, sort_order) select c.id, s.name_en, s.name_ka, s.name_ru, s.sort_order from public.categories c, (values ('Brow shaping','წარბის ფორმირება','Моделирование бровей',1),('Brow lamination','წარბის ლამინირება','Ламинирование бровей',2),('Brow tint','წარბის შეღებვა','Окрашивание бровей',3)) as s(name_en,name_ka,name_ru,sort_order) where c.name_en='Brows' on conflict do nothing;",
   "alter table public.profiles add column if not exists blocked boolean default false;",
   "alter table public.profiles add column if not exists block_reason text;",
   "create table if not exists public.client_notes (id uuid default gen_random_uuid() primary key, client_id uuid references auth.users(id) on delete cascade, note text, created_at timestamptz default now(), updated_by text);",
@@ -3190,6 +3246,8 @@ en: {
   forgotPass: "Forgot password?", accountSettings: "Account Settings", changePass: "Change Password",
   changeEmail: "Change Email", changePhone: "Change Phone", updatePass: "Update Password",
   updateEmail: "Update Email", updatePhone: "Update Phone",
+  noProsSvc: "No professionals offer this service yet.",
+  chooseSvc: "— Choose a service —", customSvcOpt: "Custom service (needs approval)",
   yearsExp: "Years of Experience",
   onTheWayRestrict: "Button available only on booking day",
   notAvailToday: "Action available only on service day",
@@ -3376,6 +3434,8 @@ ka: {
   forgotPass: "\u10d3\u10d0\u10d2\u10d0\u10d5\u10d8\u10ec\u10e7\u10d3\u10d0 \u10de\u10d0\u10e0\u10dd\u10da\u10d8?", accountSettings: "\u10d0\u10dc\u10d2\u10d0\u10e0\u10d8\u10e8\u10d8\u10e1 \u10de\u10d0\u10e0\u10d0\u10db\u10d4\u10e2\u10e0\u10d4\u10d1\u10d8",
   changePass: "\u10de\u10d0\u10e0\u10dd\u10da\u10d8\u10e1 \u10e8\u10d4\u10ea\u10d5\u10da\u10d0", changeEmail: "Email-\u10d8\u10e1 \u10e8\u10d4\u10ea\u10d5\u10da\u10d0", changePhone: "\u10e2\u10d4\u10da\u10d4\u10e4\u10dd\u10dc\u10d8\u10e1 \u10e8\u10d4\u10ea\u10d5\u10da\u10d0",
   updatePass: "\u10d2\u10d0\u10dc\u10d0\u10ee\u10da\u10d4\u10d1\u10d0", updateEmail: "\u10d2\u10d0\u10dc\u10d0\u10ee\u10da\u10d4\u10d1\u10d0", updatePhone: "\u10d2\u10d0\u10dc\u10d0\u10ee\u10da\u10d4\u10d1\u10d0",
+  noProsSvc: "u10d0u10db u10e1u10d4u10e0u10d5u10d8u10e1u10e1 u10efu10d4u10e0 u10d0u10e0u10eau10d4u10e0u10d7u10d8 u10e1u10deu10d4u10eau10d8u10d0u10dau10d8u10e1u10e2u10d8 u10d0u10e0 u10e1u10d7u10d0u10d5u10d0u10d6u10ddu10d1u10e1.",
+  chooseSvc: "u2014 u10d0u10d8u10e0u10eau10d8u10d4u10d7 u10e1u10d4u10e0u10d5u10d8u10e1u10d8 u2014", customSvcOpt: "u10dbu10ddu10e0u10d2u10d4u10d1u10e3u10dau10d8 u10e1u10d4u10e0u10d5u10d8u10e1u10d8 (u10e1u10d0u10e9u10d8u10e0u10ddu10d4u10d1u10d0 u10d3u10d0u10dbu10e2u10d9u10d8u10eau10d4u10d1u10d0)",
   yearsExp: "გამოცდილების წლები",
   onTheWayRestrict: "ღილაკი ხელმისაწვდომია მხოლოდ ჯავშნის დღეს",
   notAvailToday: "მოქმედება ხელმისაწვდომია მხოლოდ მომსახურების დღეს",
@@ -3474,6 +3534,8 @@ ru: {
   proTitle: "\u0412\u044b \u0441\u043f\u0435\u0446\u0438\u0430\u043b\u0438\u0441\u0442 \u043f\u043e \u043a\u0440\u0430\u0441\u043e\u0442\u0435 \u0432 \u0422\u0431\u0438\u043b\u0438\u0441\u0438?",
   proSub: "\u041f\u0440\u0438\u0441\u043e\u0435\u0434\u0438\u043d\u044f\u0439\u0442\u0435\u0441\u044c \u043a Le' mody \u2014 \u0441\u0432\u043e\u0451 \u0440\u0430\u0441\u043f\u0438\u0441\u0430\u043d\u0438\u0435, 95% \u0434\u043e\u0445\u043e\u0434\u0430.",
   joinPro: "Регистрация",
+  noProsSvc: "u041fu043eu043au0430 u043du0435u0442 u0441u043fu0435u0446u0438u0430u043bu0438u0441u0442u043eu0432 u0441 u044du0442u043eu0439 u0443u0441u043bu0443u0433u043eu0439.",
+  chooseSvc: "u2014 u0412u044bu0431u0435u0440u0438u0442u0435 u0443u0441u043bu0443u0433u0443 u2014", customSvcOpt: "u0421u0432u043eu044f u0443u0441u043bu0443u0433u0430 (u043du0443u0436u043du043e u043eu0434u043eu0431u0440u0435u043du0438u0435)",
   signIn2: "\u0412\u043e\u0439\u0442\u0438",
   fhSvc: "\u0423\u0441\u043b\u0443\u0433\u0438", fhCo: "\u041a\u043e\u043c\u043f\u0430\u043d\u0438\u044f", fhSup: "\u041f\u043e\u0434\u0434\u0435\u0440\u0436\u043a\u0430",
   footerTag: "\u041f\u0440\u0435\u043c\u0438\u0443\u043c \u043f\u043b\u0430\u0442\u0444\u043e\u0440\u043c\u0430 \u043a\u0440\u0430\u0441\u043e\u0442\u044b \u0422\u0431\u0438\u043b\u0438\u0441\u0438.",
@@ -3694,6 +3756,7 @@ function applyLang() {
   // re-render dynamic content with new lang
   renderCatGrid();
   renderFilterChips();
+  renderServiceFilterChips();
   renderFooterSvcs();
   populateSpecSelects();
   // Sync duplicate step titles for interactive how-it-works
@@ -4861,6 +4924,9 @@ var allPros     = [].concat(DEMOS);
 var categories  = [];
 var activeFilter = "All";
 var allSubCats  = [];
+var allCatSvcs  = [];
+var activeServiceFilter = null;
+var _svcFilterProIds = null; // null = no filter; array = cached pro IDs matching current service filter
 
 // ── CATEGORY ICON HELPER (shared) ────────────────────────────
 function catIcon(c, size) {
@@ -4876,6 +4942,53 @@ async function loadSubCategories() {
     if (r.error) r = await sb.from("subcategories").select("*");
     allSubCats = r.data || [];
   } catch(e) { allSubCats = []; }
+}
+
+// ── CATEGORY SERVICES (predefined) ───────────────────────────
+async function loadCategoryServices() {
+  if (allCatSvcs.length) return; // cached
+  try {
+    var r = await sb.from("category_services").select("*").order("sort_order");
+    if (r.error) r = await sb.from("category_services").select("*");
+    allCatSvcs = r.data || [];
+  } catch(e) { allCatSvcs = []; }
+}
+
+function catSvcName(cs) {
+  if (lang === "ka" && cs.name_ka) return cs.name_ka;
+  if (lang === "ru" && cs.name_ru) return cs.name_ru;
+  return cs.name_en;
+}
+
+function getCatSvcsForCat(catId) {
+  return allCatSvcs.filter(function(s) { return s.category_id === catId && s.visible !== false; });
+}
+
+function renderServiceFilterChips() {
+  var el = ge("serviceFilterChips"); if (!el) return;
+  if (activeFilter === "All" || !allCatSvcs.length) { el.innerHTML = ""; return; }
+  var cat = categories.find(function(c) { return c.name_en === activeFilter; });
+  if (!cat) { el.innerHTML = ""; return; }
+  var svcsForCat = getCatSvcsForCat(cat.id);
+  if (!svcsForCat.length) { el.innerHTML = ""; return; }
+  el.innerHTML = "<button class=\"btn-sm " + (!activeServiceFilter ? "btn-g" : "btn-gh") + "\" style=\"font-size:13px;padding:6px 14px\" onclick=\"setServiceFilter(null)\">" + t("viewAll") + "</button>"
+    + svcsForCat.map(function(cs) {
+        var isActive = activeServiceFilter === cs.id;
+        return "<button class=\"btn-sm " + (isActive ? "btn-g" : "btn-gh") + "\" onclick=\"setServiceFilter('" + cs.id + "')\" style=\"font-size:13px;padding:6px 14px\">" + catSvcName(cs) + "</button>";
+      }).join("");
+}
+
+async function setServiceFilter(catSvcId) {
+  activeServiceFilter = catSvcId;
+  _svcFilterProIds = null;
+  renderServiceFilterChips();
+  if (catSvcId) {
+    try {
+      var res = await sb.from("services").select("pro_id").eq("category_service_id", catSvcId).eq("status", "approved");
+      _svcFilterProIds = (res.data || []).map(function(s) { return s.pro_id; });
+    } catch(e) { console.warn('[setServiceFilter]', e); }
+  }
+  renderPros();
 }
 
 // ── SUBCATEGORY HELPERS (shared, used by both public pages and admin) ──
@@ -4911,6 +5024,7 @@ async function loadCategories() {
   }
   renderCatGrid();
   renderFilterChips();
+  renderServiceFilterChips();
   renderFooterSvcs();
   populateSpecSelects();
 }
@@ -4953,9 +5067,10 @@ function renderCatGrid() {
 function renderFilterChips() {
   var el = ge("filterChips"); if (!el) return;
   var vis = visibleCats();
-  el.innerHTML = "<button class=\"btn-sm btn-g\" style=\"font-size:16px;padding:10px 20px\" onclick=\"setFilter('All')\">" + t("viewAll") + "</button>"
+  el.innerHTML = "<button class=\"btn-sm " + (activeFilter === "All" ? "btn-g" : "btn-gh") + "\" style=\"font-size:16px;padding:10px 20px\" onclick=\"setFilter('All')\">" + t("viewAll") + "</button>"
     + vis.map(function(c) {
-        return "<button class=\"btn-sm btn-gh\" onclick=\"setFilter('" + c.name_en + "')\" style=\"display:inline-flex;align-items:center;gap:8px;font-size:16px;padding:10px 18px\">" + catIcon(c, 42) + " " + catName(c) + "</button>";
+        var isActive = activeFilter === c.name_en;
+        return "<button class=\"btn-sm " + (isActive ? "btn-g" : "btn-gh") + "\" onclick=\"setFilter('" + c.name_en + "')\" style=\"display:inline-flex;align-items:center;gap:8px;font-size:16px;padding:10px 18px\">" + catIcon(c, 42) + " " + catName(c) + "</button>";
       }).join("");
 }
 
@@ -4991,9 +5106,9 @@ async function loadPros() {
   renderPros();
 }
 
-function setFilter(cat)   { activeFilter = cat; document.body.classList.toggle("viewing-category", cat !== "All"); renderPros(); }
-function filterGo(cat)    { activeFilter = cat; document.body.classList.toggle("viewing-category", cat !== "All"); show("list"); renderPros(); }
-function filterGoSub(cat, sub) { activeFilter = cat; document.body.classList.toggle("viewing-category", cat !== "All"); show("list"); renderPros(); toast("Showing: " + sub); }
+function setFilter(cat)   { activeFilter = cat; activeServiceFilter = null; _svcFilterProIds = null; document.body.classList.toggle("viewing-category", cat !== "All"); renderFilterChips(); renderServiceFilterChips(); renderPros(); }
+function filterGo(cat)    { activeFilter = cat; activeServiceFilter = null; _svcFilterProIds = null; document.body.classList.toggle("viewing-category", cat !== "All"); show("list"); renderFilterChips(); renderServiceFilterChips(); renderPros(); }
+function filterGoSub(cat, sub) { activeFilter = cat; activeServiceFilter = null; _svcFilterProIds = null; document.body.classList.toggle("viewing-category", cat !== "All"); show("list"); renderFilterChips(); renderServiceFilterChips(); renderPros(); toast("Showing: " + sub); }
 
 var unavailableProIds = [];
 var availFilterActive = false;
@@ -5107,6 +5222,11 @@ function renderPros() {
     ? allPros
     : allPros.filter(function(p) { return p.specialty === activeFilter; });
 
+  // Apply service filter (populated async by setServiceFilter)
+  if (_svcFilterProIds !== null) {
+    filtered = filtered.filter(function(p) { return _svcFilterProIds.indexOf(p.id) !== -1; });
+  }
+
   // Apply availability filter
   if (availFilterActive && unavailableProIds.length) {
     filtered = filtered.filter(function(p) { return unavailableProIds.indexOf(p.id) === -1; });
@@ -5124,7 +5244,10 @@ function renderPros() {
   var le = ge("prosList");
   if (le) {
     if (!filtered.length) {
-      le.innerHTML = "<p style=\"color:var(--mu);padding:20px\">" + (availFilterActive ? "No professionals available at this time. Try a different date/time." : "No professionals found.") + "</p>";
+      var emptyMsg = availFilterActive ? "No professionals available at this time. Try a different date/time."
+                   : _svcFilterProIds !== null ? t("noProsSvc")
+                   : "No professionals found.";
+      le.innerHTML = "<p style=\"color:var(--mu);padding:20px\">" + emptyMsg + "</p>";
     } else {
       var sorted = filtered;
       if (clientRegion) {
@@ -5247,7 +5370,7 @@ async function viewPro(proId) {
       ]);
       if (res[0].error) { toast("Could not load professional: " + res[0].error.message, "err"); return; }
       pro        = res[0].data;
-      svcs       = (res[1].data || []).filter(function(s) { return s.visible !== false; });
+      svcs       = (res[1].data || []).filter(function(s) { return s.visible !== false && s.status !== "pending"; });
       portfolio  = (res[2].data || []).map(function(i) { return i.url; });
       nailColors = res[3].data || [];
       reviews    = res[4].data || [];
@@ -7083,6 +7206,7 @@ async function init() {
   // Load DB-driven categories (falls back to hardcoded)
   await loadCategories();
   await loadSubCategories();
+  await loadCategoryServices();
 
   // Load professionals from DB and merge with demos
   loadPros();
@@ -7575,6 +7699,10 @@ async function loadAdminCats() {
   var el = ge("aCatList"); if (!el) return;
   await loadCategories();
   await loadSubCategories();
+  allCatSvcs = []; await loadCategoryServices();
+  populateCatSvcFilter();
+  renderAdminCatSvcs();
+  loadPendingSvcs();
   if (!categories.length) { el.innerHTML = "<p style=\"color:var(--mu);font-size:14px\">No categories yet.</p>"; return; }
   el.innerHTML = categories.map(function(c) {
     var subs = getSubsForCat(c.id);
@@ -7611,6 +7739,127 @@ async function loadAdminCats() {
       }).join("");
     }
   }
+}
+
+function populateCatSvcFilter() {
+  var sel = ge("aCatSvcFilter"); if (!sel) return;
+  sel.innerHTML = "<option value=\"\">All categories</option>"
+    + categories.map(function(c) { return "<option value=\"" + c.id + "\">" + catName(c) + "</option>"; }).join("");
+}
+
+function renderAdminCatSvcs() {
+  var el = ge("aCatSvcList"); if (!el) return;
+  var filterCatId = ge("aCatSvcFilter") ? ge("aCatSvcFilter").value : "";
+  var list = filterCatId
+    ? allCatSvcs.filter(function(cs) { return cs.category_id === filterCatId; })
+    : allCatSvcs;
+  if (!list.length) { el.innerHTML = "<p style=\"color:var(--mu);font-size:14px\">No predefined services yet.</p>"; return; }
+  el.innerHTML = list.map(function(cs) {
+    var cat = categories.find(function(c) { return c.id === cs.category_id; });
+    return "<div class=\"cat-admin-row\">"
+      + "<div style=\"flex:1\">"
+      + "<div style=\"font-weight:500;font-size:14px\">" + escapeHtml(cs.name_en) + (cs.name_ka ? " / " + escapeHtml(cs.name_ka) : "") + "</div>"
+      + "<div style=\"font-size:12px;color:var(--mu)\">" + (cat ? catName(cat) : "—") + " · sort: " + (cs.sort_order || 0) + "</div>"
+      + "</div>"
+      + "<label class=\"sw\"><input type=\"checkbox\"" + (cs.visible !== false ? " checked" : "") + " onchange=\"toggleCatSvcVis('" + cs.id + "',this.checked)\"><span class=\"sw-t\"></span></label>"
+      + "<button class=\"btn-sm btn-gh\" onclick=\"openCatSvcModal('" + cs.id + "')\">Edit</button>"
+      + "<button class=\"btn-sm btn-no\" onclick=\"deleteCatSvc('" + cs.id + "')\">Del</button>"
+      + "</div>";
+  }).join("");
+}
+
+function openCatSvcModal(id) {
+  var cs = id ? allCatSvcs.find(function(s) { return s.id === id; }) : null;
+  ge("catSvcEditId").value = id || "";
+  ge("catSvcModalTitle").textContent = id ? "Edit Predefined Service" : "Add Predefined Service";
+  ge("catSvcEn").value = cs ? cs.name_en : "";
+  ge("catSvcKa").value = cs ? (cs.name_ka || "") : "";
+  ge("catSvcRu").value = cs ? (cs.name_ru || "") : "";
+  ge("catSvcSort").value = cs ? (cs.sort_order || 0) : 0;
+  var catSel = ge("catSvcParent");
+  if (catSel) {
+    catSel.innerHTML = categories.map(function(c) {
+      return "<option value=\"" + c.id + "\"" + (cs && cs.category_id === c.id ? " selected" : "") + ">" + catName(c) + "</option>";
+    }).join("");
+  }
+  openM("catsvc");
+}
+
+async function saveCatSvc() {
+  var id   = ge("catSvcEditId").value;
+  var catId= ge("catSvcParent").value;
+  var en   = ge("catSvcEn").value.trim();
+  var ka   = ge("catSvcKa").value.trim() || null;
+  var ru   = ge("catSvcRu").value.trim() || null;
+  var sort = parseInt(ge("catSvcSort").value) || 0;
+  if (!en) { toast("English name is required", "err"); return; }
+  if (!catId) { toast("Category is required", "err"); return; }
+  var data = { category_id: catId, name_en: en, name_ka: ka, name_ru: ru, sort_order: sort, visible: true };
+  try {
+    if (id) await sb.from("category_services").update(data).eq("id", id);
+    else     await sb.from("category_services").insert(data);
+    toast("Saved!", "ok");
+    closeM("catsvc");
+    allCatSvcs = []; await loadCategoryServices();
+    renderAdminCatSvcs();
+  } catch(e) { toast("Error: " + e.message, "err"); }
+}
+
+async function deleteCatSvc(id) {
+  if (!confirm("Delete this predefined service?")) return;
+  try {
+    await sb.from("category_services").delete().eq("id", id);
+    allCatSvcs = allCatSvcs.filter(function(cs) { return cs.id !== id; });
+    renderAdminCatSvcs();
+    toast("Deleted.");
+  } catch(e) { toast("Error: " + e.message, "err"); }
+}
+
+async function toggleCatSvcVis(id, visible) {
+  try {
+    await sb.from("category_services").update({ visible: visible }).eq("id", id);
+    var cs = allCatSvcs.find(function(s) { return s.id === id; });
+    if (cs) cs.visible = visible;
+    renderAdminCatSvcs();
+  } catch(e) { toast("Error: " + e.message, "err"); }
+}
+
+async function loadPendingSvcs() {
+  var el = ge("aPendingSvcList"); if (!el) return;
+  try {
+    var r = await sb.from("services").select("*, professionals(name,emoji)").eq("status", "pending").order("created_at");
+    var svcs = r.data || [];
+    el.innerHTML = !svcs.length
+      ? "<p style=\"color:var(--mu);font-size:14px\">No pending services.</p>"
+      : svcs.map(function(s) {
+          var proName = s.professionals ? escapeHtml(s.professionals.name || "") : "—";
+          return "<div class=\"cat-admin-row\">"
+            + "<div style=\"flex:1\">"
+            + "<div style=\"font-weight:500;font-size:14px\">" + escapeHtml(s.name) + "</div>"
+            + "<div style=\"font-size:12px;color:var(--mu)\">by " + proName + (s.description ? " · " + escapeHtml(s.description) : "") + "</div>"
+            + "</div>"
+            + "<button class=\"btn-sm btn-g\" onclick=\"approveSvc('" + s.id + "')\">Approve</button>"
+            + "<button class=\"btn-sm btn-no\" onclick=\"rejectSvc('" + s.id + "')\">Reject</button>"
+            + "</div>";
+        }).join("");
+  } catch(e) { console.warn('[loadPendingSvcs]', e); }
+}
+
+async function approveSvc(id) {
+  try {
+    await sb.from("services").update({ status: "approved" }).eq("id", id);
+    toast("Service approved!", "ok");
+    loadPendingSvcs();
+  } catch(e) { toast("Error: " + e.message, "err"); }
+}
+
+async function rejectSvc(id) {
+  if (!confirm("Reject this service? It will be hidden from clients.")) return;
+  try {
+    await sb.from("services").update({ status: "rejected" }).eq("id", id);
+    toast("Service rejected.");
+    loadPendingSvcs();
+  } catch(e) { toast("Error: " + e.message, "err"); }
 }
 
 function openCatModal(id) {
@@ -9835,6 +10084,7 @@ async function loadProSvcs() {
     el.innerHTML = "<p style=\"color:var(--mu);font-size:14px\">No professional profile linked. Go to <strong>Edit Profile</strong>, fill in your details, and click <strong>Submit</strong>.</p>";
     return;
   }
+  await loadCategoryServices();
   try {
     var r = await sb.from("services").select("*").eq("pro_id", proId).order("created_at");
     if (r.error) {
@@ -9847,9 +10097,11 @@ async function loadProSvcs() {
       ? "<p style=\"color:var(--mu);font-size:14px\">No services yet. Click <strong>+ Add</strong> above to create your first service.</p>"
       : svcs.map(function(s) {
           var vis = s.visible !== false;
+          var isPending = s.status === "pending";
+          var pendingBadge = isPending ? " <span style=\"font-size:11px;background:#fef3c7;color:#92400e;border:1px solid #fde68a;padding:1px 6px;border-radius:50px\">⏳ pending approval</span>" : "";
           return "<div class=\"svc-item\" style=\"" + (vis ? "" : "opacity:.5") + "\">"
-               + "<div><div style=\"font-size:14px;font-weight:500\">" + s.name + (vis ? "" : " <span style=\"font-size:11px;color:var(--mu)\">(hidden)</span>") + "</div>"
-               + "<div style=\"font-size:12px;color:var(--mu)\">" + (s.description || "") + " · " + s.duration + " min</div></div>"
+               + "<div><div style=\"font-size:14px;font-weight:500\">" + escapeHtml(svcName(s)) + pendingBadge + (vis ? "" : " <span style=\"font-size:11px;color:var(--mu)\">(hidden)</span>") + "</div>"
+               + "<div style=\"font-size:12px;color:var(--mu)\">" + escapeHtml(s.description || "") + " · " + s.duration + " min</div></div>"
                + "<div style=\"text-align:right;display:flex;align-items:center;gap:7px\">"
                + "<div style=\"font-family:'Cormorant Garamond',serif;font-size:19px;font-weight:600\">" + s.price + "₾</div>"
                + "<button class=\"btn-sm btn-gh\" onclick=\"toggleSvcVis('" + s.id + "'," + !vis + ")\" title=\"" + (vis ? "Hide" : "Show") + "\">" + (vis ? "Hide" : "Show") + "</button>"
@@ -9863,15 +10115,19 @@ async function loadProSvcs() {
 }
 
 async function openSvcModal(id) {
+  await loadCategoryServices();
   ge("svcId").value = id || "";
+  ge("svcCatSvcId").value = "";
   ge("svcModalTitle").textContent = id ? "Edit Service" : "Add Service";
+  var existingCatSvcId = null;
   if (!id) {
     ge("sN").value = ""; ge("sD").value = ""; ge("sP").value = ""; ge("sDr").value = "60";
   } else {
-    // Load existing service data for editing
     try {
       var r = await sb.from("services").select("*").eq("id", id).single();
       if (r.data) {
+        existingCatSvcId = r.data.category_service_id || null;
+        ge("svcCatSvcId").value = existingCatSvcId || "";
         ge("sN").value  = r.data.name || "";
         ge("sD").value  = r.data.description || "";
         ge("sP").value  = r.data.price || "";
@@ -9881,15 +10137,57 @@ async function openSvcModal(id) {
       ge("sN").value = ""; ge("sD").value = ""; ge("sP").value = ""; ge("sDr").value = "60";
     }
   }
+  populateSvcSelect(existingCatSvcId);
   openM("svc");
 }
 
+function populateSvcSelect(existingCatSvcId) {
+  var sel = ge("svcSelect"); if (!sel) return;
+  var proSpec = profile && profile.specialty ? profile.specialty : null;
+  var cat = proSpec ? categories.find(function(c) { return c.name_en === proSpec; }) : null;
+  var svcs = cat ? getCatSvcsForCat(cat.id) : allCatSvcs.filter(function(s) { return s.visible !== false; });
+  sel.innerHTML = "<option value=\"\">— " + t("chooseSvc") + " —</option>"
+    + svcs.map(function(cs) {
+        return "<option value=\"" + cs.id + "\"" + (existingCatSvcId === cs.id ? " selected" : "") + ">" + catSvcName(cs) + "</option>";
+      }).join("")
+    + "<option value=\"__custom__\"" + (!existingCatSvcId ? " selected" : "") + ">" + t("customSvcOpt") + "</option>";
+  var hasCustom = !existingCatSvcId;
+  var wrap = ge("svcCustomWrap");
+  if (wrap) wrap.classList.toggle("hide", !hasCustom);
+  if (existingCatSvcId) ge("svcCatSvcId").value = existingCatSvcId;
+}
+
+function onSvcSelectChange() {
+  var sel = ge("svcSelect"); if (!sel) return;
+  var val = sel.value;
+  var wrap = ge("svcCustomWrap");
+  if (val === "__custom__" || val === "") {
+    if (wrap) wrap.classList.remove("hide");
+    ge("svcCatSvcId").value = "";
+  } else {
+    if (wrap) wrap.classList.add("hide");
+    ge("svcCatSvcId").value = val;
+    var cs = allCatSvcs.find(function(c) { return c.id === val; });
+    if (cs) ge("sN").value = cs.name_en;
+  }
+}
+
 async function saveSvc() {
-  var id   = ge("svcId").value;
-  var name = ge("sN").value.trim();
-  var desc = ge("sD").value.trim();
-  var price= parseInt(ge("sP").value) || 0;
-  var dur  = parseInt(ge("sDr").value) || 60;
+  var id         = ge("svcId").value;
+  var catSvcId   = ge("svcCatSvcId").value || null;
+  var selVal     = ge("svcSelect") ? ge("svcSelect").value : "";
+  var isCustom   = !catSvcId || selVal === "__custom__" || selVal === "";
+  var name       = ge("sN").value.trim();
+  var desc       = ge("sD").value.trim();
+  var price      = parseInt(ge("sP").value) || 0;
+  var dur        = parseInt(ge("sDr").value) || 60;
+  var svcStatus  = isCustom ? "pending" : "approved";
+
+  if (!catSvcId && !name) { toast(t("chooseSvc") || "Choose or enter a service name", "err"); return; }
+  if (!name && catSvcId) {
+    var cs = allCatSvcs.find(function(c) { return c.id === catSvcId; });
+    if (cs) name = cs.name_en;
+  }
   if (!name) { toast("Service name is required", "err"); return; }
   if (!price) { toast("Price is required", "err"); return; }
   if (!dur || dur < 15) { toast("Duration is required — minimum 15 minutes", "err"); return; }
@@ -9916,18 +10214,20 @@ async function saveSvc() {
     var r;
     if (id) {
       r = await sb.from("services").update({
-        name: name, description: desc, price: price, duration: dur
+        name: name, description: desc, price: price, duration: dur,
+        category_service_id: catSvcId, status: svcStatus
       }).eq("id", id).select();
     } else {
       r = await sb.from("services").insert({
-        pro_id: proId, name: name, description: desc, price: price, duration: dur
+        pro_id: proId, name: name, description: desc, price: price, duration: dur,
+        category_service_id: catSvcId, status: svcStatus
       }).select();
     }
     if (r.error) {
       toast("Error: " + r.error.message, "err");
       return;
     }
-    toast("Service saved!", "ok");
+    toast(isCustom ? "Service submitted for approval!" : "Service saved!", "ok");
     closeM("svc");
     loadProSvcs();
   } catch(e) {
