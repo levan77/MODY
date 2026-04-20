@@ -220,9 +220,15 @@ footer        { background: #1A1A1A; color: rgba(255,255,255,.4); padding: 38px 
 /* ── MOBILE BOTTOM NAV ── */
 .mob-nav {
   display: none; position: fixed; bottom: 0; left: 0; right: 0; z-index: 350;
-  background: var(--cd); border-top: 1px solid var(--br);
+  background: rgba(255, 255, 255, 0.80);
+  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(16px);
+  border-top: 1px solid var(--br);
   padding: 2px 0 env(safe-area-inset-bottom, 0);
   box-shadow: 0 -2px 16px rgba(0,0,0,.08);
+}
+html.dark .mob-nav {
+  background: rgba(26, 26, 26, 0.85);
 }
 .mob-nav-inner { display: flex; justify-content: space-around; align-items: stretch; max-width: 600px; margin: 0 auto; }
 .mob-tab {
@@ -328,20 +334,49 @@ footer        { background: #1A1A1A; color: rgba(255,255,255,.4); padding: 38px 
   .card  { padding: 14px; }
   .c-hdr { flex-direction: column; align-items: flex-start; gap: 6px; }
 
-  /* Modals */
-  .mbox  { width: 95vw; max-width: 95vw; max-height: 90vh; margin: 16px; }
+  /* Modals → native bottom sheets */
+  .mbg { align-items: flex-end; padding: 0; }
+  .mbox {
+    width: 100vw !important;
+    max-width: 100vw !important;
+    margin: 0 !important;
+    border-radius: 24px 24px 0 0 !important;
+    padding: 24px 16px 32px !important;
+    max-height: 90vh !important;
+    overflow-y: auto !important;
+  }
+  /* Drag-handle pill */
+  .mbox::before {
+    content: "";
+    display: block;
+    width: 40px; height: 4px;
+    background: var(--bg3);
+    border-radius: 2px;
+    margin: -8px auto 16px;
+  }
+  /* Slide-up entrance */
+  .mbg.on .mbox { animation: slideUp .35s cubic-bezier(0.32, 0.72, 0, 1); }
 
   /* Prevent overflow — use clip (not hidden) so iOS position:fixed still works */
   body { overflow-x: clip; }
   .fi, input, select, textarea { max-width: 100%; box-sizing: border-box; }
 
-  /* Chat */
+  /* Chat → full-screen overlay on mobile */
   .chat-wrap { bottom: 80px; right: 12px; }
-  .chat-win { position: fixed; width: calc(100vw - 24px); right: 12px; bottom: 140px; height: calc(100vh - 200px); max-height: 420px; left: auto; z-index: 401; }
+  .chat-win {
+    position: fixed !important;
+    top: 0 !important; left: 0 !important; right: 0 !important; bottom: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    border-radius: 0 !important;
+    z-index: 999 !important;
+    max-height: none !important;
+  }
+  .chat-win .chat-hdr { border-radius: 0; }
 
-  /* Booking flow */
+  /* Booking flow — hide text labels, keep dots only */
   .bk-flow     { gap: 0; }
-  .bk-step-lbl { font-size: 7px; }
+  .bk-step-lbl { display: none !important; }
   .bk-dot      { width: 20px; height: 20px; font-size: 8px; }
 
   /* Admin */
@@ -383,15 +418,13 @@ footer        { background: #1A1A1A; color: rgba(255,255,255,.4); padding: 38px 
   /* Sidebar cart on pro profile */
   #sbCartSummary { font-size: 13px; }
 
-  /* Booking modal — full width */
-  .mbox { padding: 16px !important; width: calc(100vw - 16px) !important; max-width: none !important; margin: 8px !important; }
-
   /* Time slots grid */
-  .ts-grid { grid-template-columns: repeat(3, 1fr); gap: 6px; }
+  .ts-grid { grid-template-columns: repeat(3, 1fr); gap: 10px; }
   .ts { font-size: 12px; padding: 8px 4px; }
 
-  /* Touch targets — WCAG AA minimum */
-  .btn, .btn-sm { min-height: 40px; min-width: 36px; }
+  /* Touch targets — primary CTA 56px, secondary 40px */
+  .btn    { min-height: 56px; min-width: 36px; }
+  .btn-sm { min-height: 40px; min-width: 36px; }
   .fi, .fi select { min-height: 44px; font-size: 16px; }
   .ts  { min-height: 42px; display: flex; align-items: center; justify-content: center; }
   .swatch { width: 36px; height: 36px; }
@@ -400,4 +433,36 @@ footer        { background: #1A1A1A; color: rgba(255,255,255,.4); padding: 38px 
 
   /* Prevent horizontal scroll on content containers */
   .sec-w, .dash-w { overflow-x: hidden; }
+
+  /* ── EDGE-TO-EDGE CINEMATIC IMAGERY ── */
+  /* Category cards bleed to screen edges */
+  .cat-grid {
+    width: 100vw;
+    margin-left: calc(-50vw + 50%);
+    gap: 4px;
+    padding: 0 4px;
+  }
+  .cat-card { border-radius: 8px; }
+  /* Stronger gradient overlay for text readability on mobile */
+  .cat-card-content {
+    background: linear-gradient(to top, rgba(0,0,0,0.80) 0%, transparent 100%);
+  }
+
+  /* Portfolio grid bleeds to edges */
+  .port-grid {
+    width: 100vw;
+    margin-left: calc(-50vw + 50%);
+    gap: 3px;
+  }
+  .port-thumb { border-radius: 0; }
+
+  /* Pro image — gradient overlay for cinematic look */
+  .pro-img { position: relative; }
+  .pro-img::after {
+    content: "";
+    position: absolute; inset: 0;
+    background: linear-gradient(to top, rgba(0,0,0,0.60), transparent 55%);
+    pointer-events: none;
+    border-radius: inherit;
+  }
 }

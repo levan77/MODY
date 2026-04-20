@@ -3,6 +3,22 @@
 //  Load order: 3 (depends on: config.js, i18n.js)
 // ═══════════════════════════════════════════════════════════════
 
+// ── HAPTIC FEEDBACK ───────────────────────────────────────────
+function haptic(ms) {
+  if (navigator.vibrate) navigator.vibrate(ms || 10);
+}
+
+// Haptic on key interaction targets (category cards, time slots, primary CTAs)
+document.addEventListener("click", function(e) {
+  var t = e.target;
+  if (
+    t.closest(".cat-card") ||
+    (t.closest(".ts") && !t.closest(".ts.dis")) ||
+    t.matches(".btn-g") ||
+    t.closest(".btn-g")
+  ) { haptic(10); }
+}, { passive: true });
+
 // ── DARK MODE ─────────────────────────────────────────────────
 if (localStorage.getItem("mody-dark") === "1") {
   document.documentElement.classList.add("dark");
@@ -350,5 +366,50 @@ function canSeePhone(bk) {
   }
   return true;
 }
+
+// ── BOTTOM SHEET SWIPE-TO-DISMISS ────────────────────────────
+(function() {
+  var DISMISS_THRESHOLD = 120; // px drag distance to trigger dismiss
+
+  document.addEventListener("touchstart", function(e) {
+    var mbox = e.target.closest(".mbox");
+    if (!mbox) return;
+    var mbg = mbox.closest(".mbg.on");
+    if (!mbg) return;
+
+    var startY        = e.touches[0].clientY;
+    var startScrollTop = mbox.scrollTop;
+
+    function onMove(ev) {
+      var dy = ev.touches[0].clientY - startY;
+      // Only allow drag-down when scrolled to top of modal content
+      if (dy > 0 && startScrollTop <= 0) {
+        mbox.style.transform  = "translateY(" + dy + "px)";
+        mbox.style.transition = "none";
+        ev.preventDefault(); // block page scroll while dragging sheet
+      }
+    }
+
+    function onEnd(ev) {
+      var dy = ev.changedTouches[0].clientY - startY;
+      mbox.style.transition = "";
+      if (dy > DISMISS_THRESHOLD) {
+        // Animate out, then close the backdrop
+        mbox.style.transform = "translateY(100%)";
+        setTimeout(function() {
+          mbg.classList.remove("on");
+          mbox.style.transform = "";
+        }, 300);
+      } else {
+        mbox.style.transform = ""; // snap back
+      }
+      document.removeEventListener("touchmove", onMove);
+      document.removeEventListener("touchend",  onEnd);
+    }
+
+    document.addEventListener("touchmove", onMove, { passive: false });
+    document.addEventListener("touchend",  onEnd,  { passive: true });
+  }, { passive: true });
+}());
 
 // ── ADMIN CHANGE ANY STATUS ──────────────────────────────────

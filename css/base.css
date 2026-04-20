@@ -28,6 +28,12 @@ button, input, select, textarea {
 
 a { text-decoration: none; }
 
+/* ── GLOBAL TYPOGRAPHY ADJUSTMENTS ── */
+p { line-height: 1.5; }
+
+/* Georgian script (Mkhedruli) — slightly heavier weight for visual parity with Latin */
+.ge { font-weight: 500; }
+
 /* ── GLOBAL UTILITIES ── */
 .hide { display: none !important; }
 
@@ -60,4 +66,10 @@ a { text-decoration: none; }
   0%   { transform: scale(.5); opacity: 0; }
   60%  { transform: scale(1.15); }
   100% { transform: scale(1); opacity: 1; }
+}
+
+/* Bottom-sheet slide-up (mobile modals) */
+@keyframes slideUp {
+  from { transform: translateY(100%); }
+  to   { transform: translateY(0); }
 }
