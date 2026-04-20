@@ -196,6 +196,20 @@
   display: flex; flex-direction: column; gap: 8px;
   max-width: 380px; width: calc(100vw - 40px);
 }
+/* Minimized tracker pill — frosted glass floating state */
+.ftracker.ft-minimized {
+  background: rgba(255, 255, 255, 0.85);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  border-radius: 30px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+}
+html.dark .ftracker.ft-minimized {
+  background: rgba(28, 27, 27, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
 .ft-toggle {
   display: flex; align-items: center; justify-content: space-between;
   padding: 8px 14px; background: var(--cd);

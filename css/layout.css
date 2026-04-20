@@ -341,9 +341,13 @@ html.dark .mob-nav {
     max-width: 100vw !important;
     margin: 0 !important;
     border-radius: 24px 24px 0 0 !important;
-    padding: 24px 16px 32px !important;
-    max-height: 90vh !important;
+    /* 80px bottom padding clears scrolled content above the mob-nav */
+    padding: 24px 16px 80px !important;
+    /* 85vh keeps the sheet below the top of the screen */
+    max-height: 85vh !important;
     overflow-y: auto !important;
+    /* Ensure sheet always renders above the frosted-glass mob-nav */
+    z-index: 1000 !important;
   }
   /* Drag-handle pill */
   .mbox::before {
