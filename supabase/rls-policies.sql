@@ -1,5 +1,5 @@
 -- ═══════════════════════════════════════════════════════════
---  MODY — Row Level Security (RLS) Policies
+--  AMODY — Row Level Security (RLS) Policies
 --  Run in Supabase SQL Editor AFTER the initial setup SQL
 --
 --  Strategy:

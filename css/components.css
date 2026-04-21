@@ -1,5 +1,5 @@
 /* ══════════════════════════════════════════════
-   MODY — Reusable UI Components
+   AMODY — Reusable UI Components
    Depends on: variables.css, base.css
    Sections:
      Buttons · Toast · Modals · Forms · Spinner
@@ -456,7 +456,7 @@ html.dark .bk-dot-now { background: #E8E4DF; color: #1a1a1a; }
   border-color: rgba(212, 175, 55, 0.55) !important;
 }
 
-/* "MODY Premium" metallic badge */
+/* "AMODY Premium" metallic badge */
 .badge-premium {
   display: inline-flex; align-items: center; gap: 4px;
   background: linear-gradient(135deg, rgba(212,175,55,.18) 0%, rgba(232,184,120,.24) 100%);

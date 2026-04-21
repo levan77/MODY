@@ -16,7 +16,7 @@
 
 <style>
 /* ══════════════════════════════════════════════
-   MODY — Design Tokens & Theme Variables
+   AMODY — Design Tokens & Theme Variables
    All CSS custom properties live here.
    To rebrand, only this file needs to change.
    ══════════════════════════════════════════════ */
@@ -74,7 +74,7 @@ html.dark {
 }
 
 /* ══════════════════════════════════════════════
-   MODY — Reset, Typography & Global Utilities
+   AMODY — Reset, Typography & Global Utilities
    Depends on: variables.css
    ══════════════════════════════════════════════ */
 
@@ -138,7 +138,7 @@ a { text-decoration: none; }
 }
 
 /* ══════════════════════════════════════════════
-   MODY — Reusable UI Components
+   AMODY — Reusable UI Components
    Depends on: variables.css, base.css
    Sections:
      Buttons · Toast · Modals · Forms · Spinner
@@ -700,7 +700,7 @@ html.dark .tier-pill.on.tp-premium { color: #1a1a1a; }
 }
 
 /* ══════════════════════════════════════════════
-   MODY — Layout, Page Structures & Responsive
+   AMODY — Layout, Page Structures & Responsive
    Depends on: variables.css, base.css
    Sections:
      Navigation · Language Switcher
@@ -2764,7 +2764,7 @@ footer        { background: #1A1A1A; color: rgba(255,255,255,.4); padding: 38px 
 <script>
 // ── config.js ──
 // ═══════════════════════════════════════════════════════════════
-//  MODY — Configuration, Constants & Platform Settings
+//  AMODY — Configuration, Constants & Platform Settings
 //  Load order: 1 (no dependencies)
 // ═══════════════════════════════════════════════════════════════
 
@@ -3086,7 +3086,7 @@ function applyAccentColor(hex, silent) {
 
 // ── SQL HELPER ────────────────────────────────────────────────
 var SETUP_SQL = [
-  "-- MODY Production Schema",
+  "-- AMODY Production Schema",
   "-- Run in Supabase → SQL Editor → New Query → Run",
   "",
   "create table if not exists public.profiles (id uuid primary key references auth.users(id) on delete cascade, full_name text, email text, phone text, gender text, role text not null default 'client', pro_id uuid, avatar_url text, suspended boolean default false, created_at timestamptz default now());",
@@ -3877,7 +3877,7 @@ async function loadSavedTranslations() {
 
 // ── ui.js ──
 // ═══════════════════════════════════════════════════════════════
-//  MODY — UI Utilities (dark mode, pages, modals, toast, etc.)
+//  AMODY — UI Utilities (dark mode, pages, modals, toast, etc.)
 //  Load order: 3 (depends on: config.js, i18n.js)
 // ═══════════════════════════════════════════════════════════════
 
@@ -4234,7 +4234,7 @@ function canSeePhone(bk) {
 
 // ── auth.js ──
 // ═══════════════════════════════════════════════════════════════
-//  MODY — Authentication & User Management
+//  AMODY — Authentication & User Management
 //  Load order: 4 (depends on: config.js, i18n.js, ui.js)
 // ═══════════════════════════════════════════════════════════════
 
@@ -4570,7 +4570,7 @@ function showUidBadges() {
 
 // ── chat.js ──
 // ═══════════════════════════════════════════════════════════════
-//  MODY — Chat: Client ↔ Professional + Support Tickets
+//  AMODY — Chat: Client ↔ Professional + Support Tickets
 //  Load order: 5 (depends on: config.js, ui.js, auth.js)
 // ═══════════════════════════════════════════════════════════════
 
@@ -4993,7 +4993,7 @@ async function adminOpenChat(threadId, clientName, proName) {
 
 // ── categories.js ──
 // ═══════════════════════════════════════════════════════════════
-//  MODY — Categories, Professionals List & Filtering
+//  AMODY — Categories, Professionals List & Filtering
 //  Load order: 6 (depends on: config.js, i18n.js, ui.js)
 // ═══════════════════════════════════════════════════════════════
 
@@ -5298,7 +5298,7 @@ function renderPros() {
     }
     var bar = ge(barId);
     bar.innerHTML = "<button class=\"tier-pill" + (tierFilter === "all" ? " on" : "") + "\" onclick=\"setTierFilter('all')\">All Pros</button>"
-      + "<button class=\"tier-pill tp-premium" + (tierFilter === "premium" ? " on" : "") + "\" onclick=\"setTierFilter('premium')\">✦ MODY Premium</button>"
+      + "<button class=\"tier-pill tp-premium" + (tierFilter === "premium" ? " on" : "") + "\" onclick=\"setTierFilter('premium')\">✦ AMODY Premium</button>"
       + "<button class=\"tier-pill" + (tierFilter === "standard" ? " on" : "") + "\" onclick=\"setTierFilter('standard')\">◆ Standard</button>";
 
     if (!filtered.length) {
@@ -5339,7 +5339,7 @@ function proCard(p) {
   var vBadge = p.verified
     ? "<div style=\"position:absolute;top:10px;left:10px;background:rgba(59,130,246,.9);color:#fff;padding:3px 10px;border-radius:50px;font-size:11px;font-weight:600;display:flex;align-items:center;gap:3px;backdrop-filter:blur(4px)\">✓ " + t("pcVerified") + "</div>"
     : "<div style=\"position:absolute;top:10px;left:10px;background:rgba(0,0,0,.5);color:rgba(255,255,255,.7);padding:3px 10px;border-radius:50px;font-size:11px;font-weight:500;backdrop-filter:blur(4px)\">" + t("pcUnverified") + "</div>";
-  var premBadge = isPrem ? " <span class=\"badge-premium\">✦ MODY Premium</span>" : "";
+  var premBadge = isPrem ? " <span class=\"badge-premium\">✦ AMODY Premium</span>" : "";
   return "<div class=\"pro-card" + (isPrem ? " tier-premium" : "") + "\" onclick=\"viewPro('" + p.id + "')\">"
        + "<div class=\"pro-img\" style=\"position:relative\">" + img + emo + vBadge + "</div>"
        + "<div style=\"padding:16px\">"
@@ -5360,7 +5360,7 @@ function proListCard(p) {
   var vTag = p.verified
     ? "<span class=\"vbadge\" style=\"font-size:12px;padding:3px 9px\">" + t("pcVerified") + "</span>"
     : "<span style=\"display:inline-flex;align-items:center;gap:3px;background:rgba(150,150,150,.1);color:var(--mu);border:1px solid rgba(150,150,150,.25);padding:2px 8px;border-radius:50px;font-size:11px\">" + t("pcUnverified") + "</span>";
-  var premBadge = isPrem ? "<span class=\"badge-premium\" style=\"margin-left:4px\">✦ MODY Premium</span>" : "";
+  var premBadge = isPrem ? "<span class=\"badge-premium\" style=\"margin-left:4px\">✦ AMODY Premium</span>" : "";
   var isOutRegion = clientRegion && p.area && p.area !== clientRegion;
   var crossFeeAmt = isOutRegion ? (parseInt(p.cross_region_fee) || parseInt(settings.default_cross_region_fee) || 0) : 0;
   var crossBadge = (isOutRegion && settings.cross_region_fee_enabled !== false && crossFeeAmt > 0)
@@ -5392,7 +5392,7 @@ function proListCard(p) {
 
 // ── professionals.js ──
 // ═══════════════════════════════════════════════════════════════
-//  MODY — Professional Profile View
+//  AMODY — Professional Profile View
 //  Load order: 7 (depends on: config.js, i18n.js, ui.js, categories.js)
 // ═══════════════════════════════════════════════════════════════
 
@@ -5606,7 +5606,7 @@ function pickSbTs(el) {
 
 // ── booking.js ──
 // ═══════════════════════════════════════════════════════════════
-//  MODY — Booking Flow, Detail Modal & Reviews
+//  AMODY — Booking Flow, Detail Modal & Reviews
 //  Load order: 8 (depends on: config.js, i18n.js, ui.js, auth.js)
 // ═══════════════════════════════════════════════════════════════
 
@@ -6565,7 +6565,7 @@ function isSlotPast(timeStr) {
 
 // ── client.js ──
 // ═══════════════════════════════════════════════════════════════
-//  MODY — Client Dashboard
+//  AMODY — Client Dashboard
 //  Load order: 9 (depends on: config.js, i18n.js, ui.js, auth.js, booking.js)
 // ═══════════════════════════════════════════════════════════════
 
@@ -6728,7 +6728,7 @@ async function loadClientRevs() {
 
 // ── twilio.js ──
 // ═══════════════════════════════════════════════════════════════
-//  MODY — Twilio SMS/WhatsApp Notifications (Direct API)
+//  AMODY — Twilio SMS/WhatsApp Notifications (Direct API)
 //  Load order: 11.5 (depends on: config.js, ui.js)
 //  Calls Twilio REST API directly — no edge function needed
 // ═══════════════════════════════════════════════════════════════
@@ -6915,7 +6915,7 @@ async function notifyAdminSimultaneous(newBk, otherBks) {
 
 // ── tracking.js ──
 // ═══════════════════════════════════════════════════════════════
-//  MODY — Floating Tracker & Live Location
+//  AMODY — Floating Tracker & Live Location
 //  Load order: 12 (depends on: config.js, ui.js)
 // ═══════════════════════════════════════════════════════════════
 
@@ -7175,7 +7175,7 @@ function cleanupClientMaps() {
 
 // ── realtime.js ──
 // ═══════════════════════════════════════════════════════════════
-//  MODY — Supabase Realtime Subscriptions
+//  AMODY — Supabase Realtime Subscriptions
 //  Load order: 13 (depends on: config.js, dashboards)
 // ═══════════════════════════════════════════════════════════════
 
@@ -7263,7 +7263,7 @@ function subscribeRealtime() {
 
 // ── app.js ──
 // ═══════════════════════════════════════════════════════════════
-//  MODY — Application Entry Point
+//  AMODY — Application Entry Point
 //  Load order: 14 (last — depends on all other modules)
 // ═══════════════════════════════════════════════════════════════
 
@@ -7332,7 +7332,7 @@ init();
 
 // ── admin.js (normally lazy-loaded) ──
 // ═══════════════════════════════════════════════════════════════
-//  MODY — Admin Panel
+//  AMODY — Admin Panel
 //  Load order: 11 (depends on: config.js, i18n.js, ui.js, auth.js)
 // ═══════════════════════════════════════════════════════════════
 
@@ -9597,7 +9597,7 @@ async function processRetentionQueue() {
 
 // ── professional.js (normally lazy-loaded) ──
 // ═══════════════════════════════════════════════════════════════
-//  MODY — Professional Dashboard
+//  AMODY — Professional Dashboard
 //  Load order: 10 (depends on: config.js, i18n.js, ui.js, auth.js, booking.js)
 // ═══════════════════════════════════════════════════════════════
 

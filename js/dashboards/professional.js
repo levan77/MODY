@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════════════════════════════
-//  MODY — Professional Dashboard
+//  AMODY — Professional Dashboard
 //  Load order: 10 (depends on: config.js, i18n.js, ui.js, auth.js, booking.js)
 // ═══════════════════════════════════════════════════════════════
 
