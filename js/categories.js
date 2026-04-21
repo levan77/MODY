@@ -6,6 +6,7 @@
 var allPros     = [].concat(DEMOS);
 var categories  = [];
 var activeFilter = "All";
+var tierFilter  = "all";
 var allSubCats  = [];
 
 // ── CATEGORY ICON HELPER (shared) ────────────────────────────
@@ -140,6 +141,7 @@ async function loadPros() {
 function setFilter(cat)   { activeFilter = cat; document.body.classList.toggle("viewing-category", cat !== "All"); renderPros(); }
 function filterGo(cat)    { activeFilter = cat; document.body.classList.toggle("viewing-category", cat !== "All"); show("list"); renderPros(); }
 function filterGoSub(cat, sub) { activeFilter = cat; document.body.classList.toggle("viewing-category", cat !== "All"); show("list"); renderPros(); toast("Showing: " + sub); }
+function setTierFilter(val) { tierFilter = val; renderPros(); }
 
 var unavailableProIds = [];
 var availFilterActive = false;
@@ -244,6 +246,13 @@ function renderPros() {
     filtered = filtered.filter(function(p) { return unavailableProIds.indexOf(p.id) === -1; });
   }
 
+  // Apply tier filter
+  if (tierFilter === "premium") {
+    filtered = filtered.filter(function(p) { return p.tier === "premium"; });
+  } else if (tierFilter === "standard") {
+    filtered = filtered.filter(function(p) { return p.tier !== "premium"; });
+  }
+
   // Featured section on home
   var fe = ge("featuredPros");
   if (fe) {
@@ -255,6 +264,23 @@ function renderPros() {
   // List page
   var le = ge("prosList");
   if (le) {
+    // Inject tier filter bar before the list (idempotent)
+    var barId = "tierFilterBar";
+    if (!ge(barId)) {
+      var bar = document.createElement("div");
+      bar.id = barId;
+      bar.className = "tier-filter-bar";
+      bar.innerHTML = "<button class=\"tier-pill" + (tierFilter === "all" ? " on" : "") + "\" onclick=\"setTierFilter('all')\">All</button>"
+        + "<button class=\"tier-pill tp-premium" + (tierFilter === "premium" ? " on" : "") + "\" onclick=\"setTierFilter('premium')\">✨ Premium</button>"
+        + "<button class=\"tier-pill" + (tierFilter === "standard" ? " on" : "") + "\" onclick=\"setTierFilter('standard')\">Standard</button>";
+      le.parentNode.insertBefore(bar, le);
+    } else {
+      ge(barId).querySelectorAll(".tier-pill").forEach(function(btn) {
+        var val = btn.classList.contains("tp-premium") ? "premium" : (btn.textContent.trim() === "Standard" ? "standard" : "all");
+        btn.classList.toggle("on", val === tierFilter);
+      });
+    }
+
     if (!filtered.length) {
       le.innerHTML = "<p style=\"color:var(--mu);padding:20px\">" + (availFilterActive ? "No professionals available at this time. Try a different date/time." : "No professionals found.") + "</p>";
     } else {
@@ -268,16 +294,18 @@ function renderPros() {
 function proCard(p) {
   var img = p.avatar_url ? "<img src=\"" + p.avatar_url + "\" style=\"width:100%;height:100%;object-fit:cover\">" : "";
   var emo = p.avatar_url ? "" : p.emoji || "💅";
+  var isPrem = p.tier === "premium";
   var vBadge = p.verified
     ? "<div style=\"position:absolute;top:10px;left:10px;background:rgba(59,130,246,.9);color:#fff;padding:3px 10px;border-radius:50px;font-size:11px;font-weight:600;display:flex;align-items:center;gap:3px;backdrop-filter:blur(4px)\">✓ " + t("pcVerified") + "</div>"
     : "<div style=\"position:absolute;top:10px;left:10px;background:rgba(0,0,0,.5);color:rgba(255,255,255,.7);padding:3px 10px;border-radius:50px;font-size:11px;font-weight:500;backdrop-filter:blur(4px)\">" + t("pcUnverified") + "</div>";
-  return "<div class=\"pro-card\" onclick=\"viewPro('" + p.id + "')\">"
+  var premBadge = isPrem ? " <span class=\"badge-premium\">✦ MODY Premium</span>" : "";
+  return "<div class=\"pro-card" + (isPrem ? " tier-premium" : "") + "\" onclick=\"viewPro('" + p.id + "')\">"
        + "<div class=\"pro-img\" style=\"position:relative\">" + img + emo + vBadge + "</div>"
        + "<div style=\"padding:16px\">"
        + "<div style=\"display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px\">"
        + "<div style=\"font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:700;line-height:1.15\">" + proName(p) + "</div>"
        + "<span class=\"bdg bdg-g\" style=\"font-size:15px;padding:4px 10px\">★ " + p.rating + "</span></div>"
-       + "<div style=\"font-size:18px;color:var(--mu);margin-bottom:10px;font-weight:500\">" + proSpec(p) + " · " + proArea(p) + "</div>"
+       + "<div style=\"font-size:18px;color:var(--mu);margin-bottom:10px;font-weight:500\">" + proSpec(p) + " · " + proArea(p) + premBadge + "</div>"
        + "<div style=\"display:flex;justify-content:space-between;font-size:17px\">"
        + "<span style=\"color:var(--mu)\">" + p.review_count + " " + t("pcReviews") + "</span>"
        + "<span style=\"font-size:20px\">" + t("pcFrom") + " <strong>" + p.price_from + "₾</strong></span></div>"
@@ -287,19 +315,29 @@ function proCard(p) {
 function proListCard(p) {
   var img = p.avatar_url ? "<img src=\"" + p.avatar_url + "\" style=\"width:100%;height:100%;object-fit:cover\">" : "";
   var emo = p.avatar_url ? "" : p.emoji || "💅";
+  var isPrem = p.tier === "premium";
   var vTag = p.verified
     ? "<span class=\"vbadge\" style=\"font-size:12px;padding:3px 9px\">" + t("pcVerified") + "</span>"
     : "<span style=\"display:inline-flex;align-items:center;gap:3px;background:rgba(150,150,150,.1);color:var(--mu);border:1px solid rgba(150,150,150,.25);padding:2px 8px;border-radius:50px;font-size:11px\">" + t("pcUnverified") + "</span>";
-  return "<div style=\"background:var(--cd);border-radius:var(--r);padding:16px;display:grid;grid-template-columns:80px 1fr auto;gap:11px;align-items:center;box-shadow:var(--sh);cursor:pointer;transition:all .25s;border:1.5px solid transparent\""
+  var premBadge = isPrem ? "<span class=\"badge-premium\" style=\"margin-left:4px\">✦ MODY Premium</span>" : "";
+
+  // Travel fee indicator: compare client profile area to pro region
+  var clientArea = (window.profile && profile.area) ? profile.area : "";
+  var proRegion = p.region || p.area || "";
+  var showTravelFee = clientArea && proRegion && clientArea !== proRegion;
+  var travelBadge = showTravelFee ? "<span class=\"badge-travel-fee\" style=\"margin-left:4px\">+15₾ travel</span>" : "";
+
+  var cardClasses = "pro-list-card" + (isPrem ? " tier-premium" : "");
+  return "<div class=\"" + cardClasses + "\" style=\"background:var(--cd);border-radius:var(--r);padding:16px;display:grid;grid-template-columns:80px 1fr auto;gap:11px;align-items:center;box-shadow:var(--sh);cursor:pointer;transition:all .25s" + (isPrem ? "" : ";border:1.5px solid transparent") + "\""
        + " onclick=\"viewPro('" + p.id + "')\""
-       + " onmouseover=\"this.style.borderColor='rgba(234,184,183,.4)'\""
-       + " onmouseout=\"this.style.borderColor='transparent'\">"
+       + (isPrem ? "" : " onmouseover=\"this.style.borderColor='rgba(234,184,183,.4)'\" onmouseout=\"this.style.borderColor='transparent'\"")
+       + ">"
        + "<div style=\"width:80px;height:80px;background:var(--bg2);border-radius:var(--rs);display:flex;align-items:center;justify-content:center;font-size:36px;overflow:hidden;position:relative\">" + img + emo + "</div>"
        + "<div>"
-       + "<div style=\"display:flex;align-items:center;gap:8px;margin-bottom:3px\">"
+       + "<div style=\"display:flex;align-items:center;gap:8px;margin-bottom:3px;flex-wrap:wrap\">"
        + "<div style=\"font-family:'Cormorant Garamond',serif;font-size:21px;font-weight:700;line-height:1.2\">" + proName(p) + "</div>"
-       + vTag + "</div>"
-       + "<div style=\"font-size:14px;color:var(--mu);margin-bottom:5px;font-weight:500\">" + proSpec(p) + " · " + proArea(p) + "</div>"
+       + vTag + premBadge + "</div>"
+       + "<div style=\"font-size:14px;color:var(--mu);margin-bottom:5px;font-weight:500\">" + proSpec(p) + " · " + proArea(p) + travelBadge + "</div>"
        + "<span style=\"color:#facc15;font-size:14px;font-weight:600\">★ " + p.rating + "</span>"
        + (p.rating >= 4.9 ? "<span class=\"bdg bdg-g\" style=\"margin-left:4px\">" + t("pcTopRated") + "</span>" : "")
        + "</div>"

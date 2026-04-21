@@ -1319,7 +1319,7 @@ footer        { background: #1A1A1A; color: rgba(255,255,255,.4); padding: 38px 
       <div class="fg"><label class="fl" id="bkStreetLbl"></label><input class="fi" id="bkAddr"></div>
       <div class="fi2">
         <div class="fg"><label class="fl" id="bkDistLbl"></label>
-          <select class="fi" id="bkDist">
+          <select class="fi" id="bkDist" onchange="updateBkTotal()">
             <option>Vake</option><option>Saburtalo</option><option>Isani</option>
             <option>Didi Dighomi</option><option>Vera</option><option>Mtatsminda</option><option>Gldani</option>
           </select>
@@ -1581,6 +1581,18 @@ footer        { background: #1A1A1A; color: rgba(255,255,255,.4); padding: 38px 
           <div class="fg"><label class="fl">District</label>
             <select class="fi" id="pEditArea"><option>Vake</option><option>Saburtalo</option><option>Isani</option><option>Didi Dighomi</option><option>Vera</option><option>Mtatsminda</option></select>
           </div>
+          <div class="fg"><label class="fl">Home Region</label>
+            <select class="fi" id="pEditRegion">
+              <option value="">— Same as District —</option>
+              <option value="Vake">Vake</option>
+              <option value="Saburtalo">Saburtalo</option>
+              <option value="Isani">Isani</option>
+              <option value="Didi Dighomi">Didi Dighomi</option>
+              <option value="Vera">Vera</option>
+              <option value="Mtatsminda">Mtatsminda</option>
+            </select>
+            <p style="font-size:12px;color:var(--mu);margin-top:4px">Clients outside your home region will see a +15₾ travel fee.</p>
+          </div>
           <div class="fg"><label class="fl">Starting Price (₾)</label><input class="fi" id="pEditPrice" type="number" min="0"></div>
           <div class="fg"><label class="fl">Years of Experience</label><input class="fi" id="pEditYears" type="number" min="0" max="50" placeholder="e.g. 5"></div>
           <div class="fg">
@@ -1727,7 +1739,7 @@ footer        { background: #1A1A1A; color: rgba(255,255,255,.4); padding: 38px 
       <div id="aTab-pros" class="hide">
         <div class="card">
           <div class="c-hdr"><h3>All Professionals</h3></div>
-          <div class="tw"><table class="tbl"><thead><tr><th>Name</th><th>Specialty</th><th>Area</th><th>Rating</th><th>Commission</th><th>Status</th><th>Action</th></tr></thead><tbody id="aProsBody"></tbody></table></div>
+          <div class="tw"><table class="tbl"><thead><tr><th>Name</th><th>Specialty</th><th>Area</th><th>Rating</th><th>Tier</th><th>Commission</th><th>Status</th><th>Action</th></tr></thead><tbody id="aProsBody"></tbody></table></div>
         </div>
       </div>
       <div id="aTab-usr" class="hide">

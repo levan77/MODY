@@ -354,6 +354,8 @@ var SETUP_SQL = [
   "alter table public.bookings add column if not exists travel_fee_requested int default 0;",
   "alter table public.bookings add column if not exists travel_fee_status text;",
   "alter table public.bookings add column if not exists travel_fee_reason text;",
+  "alter table public.professionals add column if not exists region text default null;",
+  "alter table public.professionals add column if not exists tier text not null default 'standard' check (tier in ('standard','premium'));",
   "create table if not exists public.client_wallets (client_id uuid primary key references auth.users(id) on delete cascade, balance int default 0, updated_at timestamptz default now());",
   "alter table public.client_wallets enable row level security;",
   "grant all on public.client_wallets to anon, authenticated;",

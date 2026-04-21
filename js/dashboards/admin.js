@@ -321,14 +321,21 @@ async function loadAdminPros() {
     if (!list.length) { body.innerHTML = "<tr><td colspan=\"7\" style=\"text-align:center;padding:18px;color:var(--mu)\">No professionals yet.</td></tr>"; return; }
     body.innerHTML = list.map(function(p) {
       var uid = genUid("P", p.id);
-      return "<tr>"
+      var isPrem = p.tier === "premium";
+      var tierSel = "<select class=\"fi\" style=\"padding:2px 5px;font-size:11px;min-width:90px\" onchange=\"setProTier('" + p.id + "',this.value)\">"
+        + "<option value=\"standard\"" + (!isPrem ? " selected" : "") + ">Standard</option>"
+        + "<option value=\"premium\"" + (isPrem ? " selected" : "") + ">✦ Premium</option>"
+        + "</select>";
+      return "<tr" + (isPrem ? " style=\"background:rgba(212,175,55,.05)\"" : "") + ">"
            + "<td><strong>" + p.name + "</strong>"
            + (p.verified ? " <span class=\"vbadge\">Verified</span>" : "")
            + (p.featured ? " <span style=\"display:inline-flex;align-items:center;gap:2px;background:rgba(234,184,183,.12);color:#C9918F;border:1px solid rgba(234,184,183,.25);padding:2px 7px;border-radius:50px;font-size:10px;font-weight:600\">★ Featured</span>" : "")
+           + (isPrem ? " <span class=\"badge-premium\">✦ Premium</span>" : "")
            + "<div style=\"font-size:10px;color:var(--g);font-weight:600;letter-spacing:.5px\">" + uid + "</div></td>"
            + "<td>" + (p.specialty || "—") + "</td>"
-           + "<td>" + (p.area || "—") + "</td>"
+           + "<td>" + (p.area || "—") + (p.region && p.region !== p.area ? "<br><span style=\"font-size:10px;color:var(--mu)\">Region: " + p.region + "</span>" : "") + "</td>"
            + "<td>★ " + (p.rating || "—") + "</td>"
+           + "<td>" + tierSel + "</td>"
            + "<td><input class=\"fi\" type=\"number\" min=\"0\" max=\"50\" style=\"width:60px;padding:3px 5px;font-size:12px\" value=\"" + (p.commission_rate || "") + "\" placeholder=\"—\" onchange=\"setProCommission('" + p.id + "',this.value)\">%</td>"
            + "<td>" + sBadge(p.status) + "</td>"
            + "<td style=\"display:flex;gap:5px;flex-wrap:wrap\">"
@@ -342,6 +349,15 @@ async function loadAdminPros() {
            + "</td></tr>";
     }).join("");
   } catch(e) { body.innerHTML = "<tr><td colspan=\"7\" style=\"text-align:center;padding:18px;color:var(--mu)\">Run setup SQL first.</td></tr>"; }
+}
+
+async function setProTier(proId, tier) {
+  try {
+    var r = await sb.from("professionals").update({ tier: tier }).eq("id", proId);
+    if (r.error) { toast("Error: " + r.error.message, "err"); return; }
+    toast(tier === "premium" ? "Upgraded to Premium!" : "Set to Standard.", "ok");
+    loadAdminPros();
+  } catch(e) { toast("Error: " + e.message, "err"); }
 }
 
 // ── ALL USERS ─────────────────────────────────────────────────
