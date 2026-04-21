@@ -593,6 +593,24 @@ html.dark .bk-dot-now { background: #E8E4DF; color: #1a1a1a; }
 .mtab  { flex: 1; padding: 7px; text-align: center; border-radius: 8px; font-size: 12px; cursor: pointer; color: var(--mu); transition: all .2s; }
 .mtab.on { background: var(--cd); color: var(--tx); font-weight: 500; box-shadow: 0 1px 3px rgba(0,0,0,.09); }
 
+/* ── CATEGORY FILTER CHIPS ── */
+.fchip {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 9px 18px; border-radius: 30px;
+  border: 1.5px solid var(--br); background: transparent;
+  font-size: 14px; font-weight: 500; color: var(--tx);
+  cursor: pointer; transition: all .2s;
+  white-space: nowrap; flex: 0 0 auto;
+}
+.fchip:hover { border-color: var(--g); color: var(--g); }
+.fchip.fchip-on {
+  background: var(--g); border-color: var(--g);
+  color: #1a1a1a; font-weight: 700;
+  box-shadow: 0 2px 8px rgba(0,0,0,.12);
+}
+html.dark .fchip { color: var(--tx); border-color: rgba(255,255,255,.15); }
+html.dark .fchip.fchip-on { color: #1a1a1a; }
+
 /* ── TIER SYSTEM ── */
 .pro-card.tier-premium, .pro-list-card.tier-premium {
   border: 1.5px solid rgba(212,175,55,.35) !important;
@@ -1040,8 +1058,24 @@ footer        { background: #1A1A1A; color: rgba(255,255,255,.4); padding: 38px 
   /* Hide sub-category dropdown on mobile — tap goes straight to category */
   .cat-subs { display: none !important; }
 
-  /* Hide filter chips on mobile when viewing category (not "All") */
-  body.viewing-category #filterChips { display: none !important; }
+  /* Category chips: compact scrollable pill bar on mobile */
+  #filterChips {
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    overflow-y: visible !important;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding: 4px 0 !important;
+    gap: 8px !important;
+    /* bleed past parent's 20px padding so bar reaches screen edges */
+    margin-left: -20px; margin-right: -20px;
+    padding-left: 16px !important; padding-right: 16px !important;
+  }
+  #filterChips::-webkit-scrollbar { display: none; }
+  /* Always show — even when a specific category is active */
+  body.viewing-category #filterChips { display: flex !important; }
+  /* Slightly tighter pills on mobile */
+  #filterChips .fchip { font-size: 13px; padding: 8px 14px; }
 
   /* Push chat lower on mobile when category is active */
   body.viewing-category .chat-wrap { bottom: 180px !important; }
@@ -5060,9 +5094,10 @@ function renderCatGrid() {
 function renderFilterChips() {
   var el = ge("filterChips"); if (!el) return;
   var vis = visibleCats();
-  el.innerHTML = "<button class=\"btn-sm btn-g\" style=\"font-size:16px;padding:10px 20px\" onclick=\"setFilter('All')\">" + t("viewAll") + "</button>"
+  el.innerHTML = "<button class=\"fchip" + (activeFilter === "All" ? " fchip-on" : "") + "\" data-cat=\"All\" onclick=\"setFilter('All')\">" + t("viewAll") + "</button>"
     + vis.map(function(c) {
-        return "<button class=\"btn-sm btn-gh\" onclick=\"setFilter('" + c.name_en + "')\" style=\"display:inline-flex;align-items:center;gap:8px;font-size:16px;padding:10px 18px\">" + catIcon(c, 42) + " " + catName(c) + "</button>";
+        return "<button class=\"fchip" + (activeFilter === c.name_en ? " fchip-on" : "") + "\" data-cat=\"" + c.name_en + "\" onclick=\"setFilter('" + c.name_en + "')\">"
+             + catIcon(c, 20) + " " + catName(c) + "</button>";
       }).join("");
 }
 
@@ -5098,9 +5133,24 @@ async function loadPros() {
   renderPros();
 }
 
-function setFilter(cat)   { activeFilter = cat; document.body.classList.toggle("viewing-category", cat !== "All"); renderPros(); }
-function filterGo(cat)    { activeFilter = cat; document.body.classList.toggle("viewing-category", cat !== "All"); show("list"); renderPros(); }
-function filterGoSub(cat, sub) { activeFilter = cat; document.body.classList.toggle("viewing-category", cat !== "All"); show("list"); renderPros(); toast("Showing: " + sub); }
+function setFilter(cat) {
+  activeFilter = cat;
+  document.body.classList.toggle("viewing-category", cat !== "All");
+  document.querySelectorAll(".fchip").forEach(function(ch) {
+    ch.classList.toggle("fchip-on", ch.getAttribute("data-cat") === cat);
+  });
+  renderPros();
+}
+function filterGo(cat) {
+  activeFilter = cat;
+  document.body.classList.toggle("viewing-category", cat !== "All");
+  show("list"); renderFilterChips(); renderPros();
+}
+function filterGoSub(cat, sub) {
+  activeFilter = cat;
+  document.body.classList.toggle("viewing-category", cat !== "All");
+  show("list"); renderFilterChips(); renderPros(); toast("Showing: " + sub);
+}
 function setTierFilter(val) { tierFilter = val; renderPros(); }
 
 var unavailableProIds = [];
