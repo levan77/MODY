@@ -1128,13 +1128,12 @@ footer        { background: #1A1A1A; color: rgba(255,255,255,.4); padding: 38px 
 <!-- LOADING SCREEN -->
 <div id="loadingScreen" style="position:fixed;inset:0;z-index:99999;background:#FAF8F5;display:flex;align-items:center;justify-content:center;transition:opacity .5s">
   <div style="display:flex;flex-direction:column;align-items:center;justify-content:center">
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="-5 0 520 120" style="width:260px;margin-bottom:24px">
-      <text x="0" y="95" font-family="'Cormorant Garamond',serif" font-size="90" font-weight="300" fill="#2d2d2d" font-style="italic">Le'</text>
-      <text x="160" y="95" font-family="'Jost',sans-serif" font-size="90" font-weight="400" fill="#2d2d2d" letter-spacing="4">m</text>
-      <circle cx="292" cy="58" r="32" fill="none" stroke="#C9918F" stroke-width="7"/>
-      <line x1="283" y1="74" x2="294" y2="42" stroke="#C4A85A" stroke-width="2.5" stroke-linecap="round"/>
-      <line x1="290" y1="74" x2="301" y2="42" stroke="#C4A85A" stroke-width="2.5" stroke-linecap="round"/>
-      <text x="330" y="95" font-family="'Jost',sans-serif" font-size="90" font-weight="400" fill="#2d2d2d" letter-spacing="4">dy</text>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 380 120" style="width:240px;margin-bottom:24px">
+      <text x="0" y="95" font-family="'Jost',sans-serif" font-size="90" font-weight="400" fill="#2d2d2d" letter-spacing="4">AM</text>
+      <circle cx="193" cy="58" r="32" fill="none" stroke="#C9918F" stroke-width="7"/>
+      <line x1="184" y1="74" x2="195" y2="42" stroke="#C4A85A" stroke-width="2.5" stroke-linecap="round"/>
+      <line x1="191" y1="74" x2="202" y2="42" stroke="#C4A85A" stroke-width="2.5" stroke-linecap="round"/>
+      <text x="231" y="95" font-family="'Jost',sans-serif" font-size="90" font-weight="400" fill="#2d2d2d" letter-spacing="4">DY</text>
     </svg>
     <div style="width:36px;height:36px;border:3px solid rgba(201,145,143,.2);border-top-color:#C9918F;border-radius:50%;animation:spin 1s linear infinite"></div>
   </div>
@@ -2045,7 +2044,7 @@ footer        { background: #1A1A1A; color: rgba(255,255,255,.4); padding: 38px 
           </div>
           <div style="padding:10px 0;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
             <div style="flex:1;min-width:120px"><div style="font-weight:500;font-size:14px">Admin Alert Email</div><div style="font-size:12px;color:var(--mu)">Receive alerts for new signups & issues</div></div>
-            <input class="fi" id="setAlertEmail" type="email" style="width:200px" placeholder="admin@mody.ge">
+            <input class="fi" id="setAlertEmail" type="email" style="width:200px" placeholder="admin@amody.ge">
             <button class="btn btn-g" style="font-size:13px" onclick="saveSetting('alert_email',document.getElementById('setAlertEmail').value)">Save</button>
           </div>
         </div>
@@ -8608,7 +8607,7 @@ async function exportAnalyticsExcel() {
     var url = URL.createObjectURL(blob);
     var a = document.createElement("a");
     a.href = url;
-    a.download = "LeMody_Analytics_" + new Date().toISOString().slice(0,10) + ".xls";
+    a.download = "AMODY_Analytics_" + new Date().toISOString().slice(0,10) + ".xls";
     a.click();
     URL.revokeObjectURL(url);
     toast("Full report exported!", "ok");
