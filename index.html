@@ -614,26 +614,49 @@ html.dark .bk-dot-now { background: #E8E4DF; color: #1a1a1a; }
   font-size: 10px; font-weight: 600;
 }
 .tier-filter-bar {
-  display: flex; gap: 7px; padding: 0 0 14px;
+  display: flex; gap: 8px; padding: 4px 0 16px; align-items: center;
   overflow-x: auto; -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
 }
 .tier-filter-bar::-webkit-scrollbar { display: none; }
 .tier-pill {
   flex-shrink: 0;
-  padding: 6px 16px; border-radius: 50px;
-  border: 1.5px solid var(--br); background: var(--cd);
-  font-size: 12px; font-weight: 500; color: var(--mu);
+  padding: 10px 22px; border-radius: 50px;
+  border: 2px solid var(--br); background: var(--cd);
+  font-size: 13px; font-weight: 600; color: var(--tx);
   cursor: pointer; transition: all .2s;
-  white-space: nowrap;
+  white-space: nowrap; line-height: 1;
 }
-.tier-pill:hover { border-color: var(--g); color: var(--tx); }
-.tier-pill.on { background: var(--g); border-color: var(--g); color: #1a1a1a; font-weight: 600; }
+/* Premium pill — gold tinted even when inactive */
+.tier-pill.tp-premium {
+  background: rgba(212,175,55,.10);
+  border-color: rgba(212,175,55,.45);
+  color: #9a7010;
+}
+html.dark .tier-pill.tp-premium {
+  background: rgba(212,175,55,.15);
+  border-color: rgba(212,175,55,.50);
+  color: #C9A227;
+}
+/* Hover */
+.tier-pill:hover { border-color: var(--g); color: var(--tx); transform: translateY(-1px); box-shadow: 0 3px 10px rgba(0,0,0,.10); }
+.tier-pill.tp-premium:hover { border-color: rgba(212,175,55,.8); color: #7a5c00; }
+html.dark .tier-pill.tp-premium:hover { color: #E5C040; }
+/* Active — All */
+.tier-pill.on {
+  background: var(--g); border-color: var(--g);
+  color: #1a1a1a; font-weight: 700;
+  box-shadow: 0 3px 10px rgba(0,0,0,.15);
+}
+/* Active — Premium: solid gold */
 .tier-pill.on.tp-premium {
-  background: linear-gradient(135deg, rgba(212,175,55,.22), rgba(232,184,120,.30));
-  border-color: rgba(212,175,55,.55); color: #8a6800;
+  background: linear-gradient(135deg, #D4AF37 0%, #F2C94C 50%, #C9A227 100%);
+  border-color: transparent;
+  color: #1a1a1a; font-weight: 700;
+  box-shadow: 0 4px 16px rgba(212,175,55,.50);
+  text-shadow: 0 1px 2px rgba(255,255,255,.25);
 }
-html.dark .tier-pill.on.tp-premium { color: #D4AF37; background: linear-gradient(135deg, rgba(212,175,55,.15), rgba(232,184,120,.20)); }
+html.dark .tier-pill.on.tp-premium { color: #1a1a1a; }
 
 /* ── MOBILE STICKY CTA ── */
 /* On desktop: renders inline in the booking sidebar */
@@ -3934,7 +3957,7 @@ function closeM(id) {
   if (m) m.classList.remove("on");
 }
 document.addEventListener("click", function(e) {
-  if (e.target.classList.contains("mbg")) e.target.classList.remove("on");
+  if (e.target.classList.contains("mbg") && e.target.id !== "modal-auth") e.target.classList.remove("on");
 });
 
 // ── AUTH MODAL TABS ───────────────────────────────────────────
@@ -5224,9 +5247,9 @@ function renderPros() {
       le.parentNode.insertBefore(bar, le);
     }
     var bar = ge(barId);
-    bar.innerHTML = "<button class=\"tier-pill" + (tierFilter === "all" ? " on" : "") + "\" onclick=\"setTierFilter('all')\">All</button>"
-      + "<button class=\"tier-pill tp-premium" + (tierFilter === "premium" ? " on" : "") + "\" onclick=\"setTierFilter('premium')\">✨ Premium</button>"
-      + "<button class=\"tier-pill" + (tierFilter === "standard" ? " on" : "") + "\" onclick=\"setTierFilter('standard')\">Standard</button>";
+    bar.innerHTML = "<button class=\"tier-pill" + (tierFilter === "all" ? " on" : "") + "\" onclick=\"setTierFilter('all')\">All Pros</button>"
+      + "<button class=\"tier-pill tp-premium" + (tierFilter === "premium" ? " on" : "") + "\" onclick=\"setTierFilter('premium')\">✦ MODY Premium</button>"
+      + "<button class=\"tier-pill" + (tierFilter === "standard" ? " on" : "") + "\" onclick=\"setTierFilter('standard')\">◆ Standard</button>";
 
     if (!filtered.length) {
       le.innerHTML = "<p style=\"color:var(--mu);padding:20px\">" + (availFilterActive ? "No professionals available at this time. Try a different date/time." : "No professionals found.") + "</p>";
