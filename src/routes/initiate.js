@@ -1,4 +1,4 @@
-import { encryptPayload } from '../../utils/keepzCrypto.js';
+import { encryptPayload } from '../utils/keepzCrypto.js';
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -15,7 +15,7 @@ function json(data, status = 200) {
  * Body: { bookingId: string (UUID), amount: number, currency: string }
  * Returns: { paymentUrl: string }
  */
-export async function onRequestPost({ request, env }) {
+export async function handleInitiate(request, env) {
   let body;
   try {
     body = await request.json();

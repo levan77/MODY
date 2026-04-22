@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
-import { decryptPayload } from '../../utils/keepzCrypto.js';
+import { decryptPayload } from '../utils/keepzCrypto.js';
 
 // Map Keepz terminal statuses to our payment_status column values
 const STATUS_MAP = {
@@ -16,7 +16,7 @@ const STATUS_MAP = {
  * Called by Keepz after a transaction completes.
  * Must return HTTP 200 quickly; DB update runs via waitUntil.
  */
-export async function onRequestPost({ request, env, ctx }) {
+export async function handleWebhook(request, env, ctx) {
   let body;
   try {
     body = await request.json();
