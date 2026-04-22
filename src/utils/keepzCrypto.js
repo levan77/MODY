@@ -7,9 +7,10 @@
  * Incoming: RSA-OAEP/SHA-256 decrypts the key material; AES-256-CBC
  *           decrypts the payload using the recovered key + IV.
  *
- * NOTE on MGF1: Java's OAEPWithSHA-256AndMGF1Padding defaults to SHA-1 for
- * MGF1, while the Web Crypto API ties MGF1 to the same hash (SHA-256 here).
- * If Keepz decryption fails, change the `hash` param below to "SHA-1".
+ * MGF1 note: Java's OAEPWithSHA-256AndMGF1Padding uses SHA-1 for MGF1 by
+ * default. Web Crypto API ties MGF1 to the same hash as the label hash.
+ * Using SHA-1 here matches Java's default OAEP behaviour (hash=SHA-256, mgf1=SHA-1)
+ * which is what Keepz's backend almost certainly uses.
  */
 
 // ─── helpers ────────────────────────────────────────────────────────────────
@@ -49,10 +50,11 @@ function fromBase64(str) {
  * @returns {{ encryptedData: string, encryptedKeys: string }}  both base64
  */
 export async function encryptPayload(payload, keepzPublicKeyPem) {
+  // SHA-1 matches Java's OAEPWithSHA-256AndMGF1Padding default (SHA-1 for MGF1)
   const rsaPublicKey = await crypto.subtle.importKey(
     'spki',
     pemToArrayBuffer(keepzPublicKeyPem),
-    { name: 'RSA-OAEP', hash: 'SHA-256' },
+    { name: 'RSA-OAEP', hash: 'SHA-1' },
     false,
     ['encrypt'],
   );

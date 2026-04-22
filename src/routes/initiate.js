@@ -87,7 +87,7 @@ export async function handleInitiate(request, env) {
   if (!keepzRes.ok) {
     const errText = await keepzRes.text().catch(() => '');
     console.error(`Keepz API error ${keepzRes.status}:`, errText);
-    return json({ error: 'Keepz order creation failed' }, 502);
+    return json({ error: 'Keepz order creation failed', keepzStatus: keepzRes.status, keepzBody: errText }, 502);
   }
 
   let keepzBody;
