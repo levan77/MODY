@@ -531,6 +531,25 @@ async function submitBooking() {
   selNailColors = [];
   clearDesign();
 
+  // Initiate Keepz payment — redirect client to payment page
+  try {
+    var payRes = await fetch('/api/payment/initiate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ bookingId: insertedBk.id, amount: total, currency: 'GEL' })
+    });
+    if (payRes.ok) {
+      var payData = await payRes.json();
+      if (payData.paymentUrl) {
+        twilioNotifyBooking(insertedBk, "new_booking");
+        window.location.href = payData.paymentUrl;
+        return;
+      }
+    }
+  } catch(e) {
+    console.error("Payment initiation failed:", e);
+  }
+
   // Populate confirmation modal
   var pro = selSvcPro();
   ge("bkConfDets").innerHTML =

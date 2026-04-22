@@ -432,7 +432,12 @@ var SETUP_SQL = [
   "grant all on public.static_pages to anon, authenticated;",
   "",
   "-- Make yourself admin (replace YOUR_EMAIL):",
-  "-- update public.profiles set role='admin' where email='YOUR_EMAIL';"
+  "-- update public.profiles set role='admin' where email='YOUR_EMAIL';",
+  "",
+  "-- Keepz payment integration:",
+  "alter table public.bookings add column if not exists payment_status text not null default 'unpaid';",
+  "alter table public.bookings add column if not exists keepz_order_id text;",
+  "create index if not exists bookings_keepz_order_id_idx on public.bookings (keepz_order_id) where keepz_order_id is not null;"
 ].join("\n");
 
 function copySQL() {
