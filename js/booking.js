@@ -522,7 +522,8 @@ async function submitBooking() {
     });
     if (!payRes.ok) {
       var errBody = await payRes.json().catch(function() { return {}; });
-      throw new Error(errBody.error || "HTTP " + payRes.status);
+      var errMsg = errBody.keepzBody ? errBody.error + ": " + errBody.keepzBody : (errBody.error || "HTTP " + payRes.status);
+      throw new Error(errMsg);
     }
     var payData = await payRes.json();
     if (!payData.paymentUrl) throw new Error("No payment URL received");

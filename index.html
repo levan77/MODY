@@ -6008,7 +6008,8 @@ async function submitBooking() {
     });
     if (!payRes.ok) {
       const errBody = await payRes.json().catch(() => ({}));
-      throw new Error(errBody.error || `HTTP ${payRes.status}`);
+      const errMsg = errBody.keepzBody ? `${errBody.error}: ${errBody.keepzBody}` : (errBody.error || `HTTP ${payRes.status}`);
+      throw new Error(errMsg);
     }
     const { paymentUrl } = await payRes.json();
     if (!paymentUrl) throw new Error('No payment URL received');
