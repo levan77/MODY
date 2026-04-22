@@ -531,41 +531,31 @@ async function submitBooking() {
   selNailColors = [];
   clearDesign();
 
-  // Initiate Keepz payment — redirect client to payment page
+  // ── Initiate Keepz payment ──
+  var cb = ge("confirmBtn");
+  var origTxt = cb ? cb.textContent : "";
+  if (cb) { cb.disabled = true; cb.textContent = t("bkRedirecting"); }
+
+  twilioNotifyBooking(insertedBk, "new_booking");
+
   try {
     var payRes = await fetch('/api/payment/initiate', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ bookingId: insertedBk.id, amount: total, currency: 'GEL' })
     });
-    if (payRes.ok) {
-      var payData = await payRes.json();
-      if (payData.paymentUrl) {
-        twilioNotifyBooking(insertedBk, "new_booking");
-        window.location.href = payData.paymentUrl;
-        return;
-      }
+    if (!payRes.ok) {
+      var errBody = await payRes.json().catch(function() { return {}; });
+      throw new Error(errBody.error || "HTTP " + payRes.status);
     }
+    var payData = await payRes.json();
+    if (!payData.paymentUrl) throw new Error("No payment URL received");
+    window.location.href = payData.paymentUrl;
   } catch(e) {
-    console.error("Payment initiation failed:", e);
+    console.error("[submitBooking] payment initiate:", e);
+    toast("Payment failed: " + e.message, "err");
+    if (cb) { cb.disabled = false; cb.textContent = origTxt; }
   }
-
-  // Populate confirmation modal
-  var pro = selSvcPro();
-  ge("bkConfDets").innerHTML =
-    "<div style=\"display:flex;justify-content:space-between;padding:3px 0;font-size:13px\"><span>" + t("bdService") + "</span><span>" + selSvcNames() + "</span></div>"
-  + "<div style=\"display:flex;justify-content:space-between;padding:3px 0;font-size:13px\"><span>" + t("bdProfessional") + "</span><span>" + pro.proName + "</span></div>"
-  + "<div style=\"display:flex;justify-content:space-between;padding:3px 0;font-size:13px\"><span>" + t("bdTime") + "</span><span>" + slot.textContent + "</span></div>"
-  + "<div style=\"display:flex;justify-content:space-between;padding:3px 0;font-size:13px\"><span>" + t("bdAddress") + "</span><span>" + addr + "</span></div>"
-  + (promoDisc > 0 ? "<div style=\"display:flex;justify-content:space-between;padding:3px 0;font-size:13px;color:#15803d\"><span>" + t("bdDiscount") + "</span><span>-" + promoDisc + "₾</span></div>" : "")
-  + (walletUsed > 0 ? "<div style=\"display:flex;justify-content:space-between;padding:3px 0;font-size:13px;color:#15803d\"><span>" + t("bdWalletCredit") + "</span><span>-" + walletUsed + "₾</span></div>" : "")
-  + "<div style=\"display:flex;justify-content:space-between;padding:7px 0 2px;font-size:14px;font-weight:500;border-top:1px solid var(--br);margin-top:4px\"><span>" + t("bdTotal") + "</span><span>" + total + "₾</span></div>";
-
-  openM("bkconf");
-  toast(t("bkSubmitted"), "ok");
-
-  // Twilio notification for new booking
-  twilioNotifyBooking(insertedBk, "new_booking");
 }
 
 // ── BOOKING DETAIL MODAL ──────────────────────────────────────
