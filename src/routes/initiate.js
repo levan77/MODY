@@ -2,6 +2,13 @@ import { encryptPayload } from '../utils/keepzCrypto.js';
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
+const REQUIRED_ENV = [
+  'KEEPZ_RSA_PUBLIC_KEY',
+  'KEEPZ_IDENTIFIER',
+  'KEEPZ_API_URL',
+  'APP_URL',
+];
+
 function json(data, status = 200) {
   return new Response(JSON.stringify(data), {
     status,
@@ -12,10 +19,17 @@ function json(data, status = 200) {
 /**
  * POST /api/payment/initiate
  *
- * Body: { bookingId: string (UUID), amount: number, currency: string }
+ * Body: { bookingId: string (UUID), amount: number|string, currency: string }
  * Returns: { paymentUrl: string }
  */
 export async function handleInitiate(request, env) {
+  // Fast-fail if Worker is not configured — surfaces missing env vars clearly
+  const missing = REQUIRED_ENV.filter((k) => !env[k]);
+  if (missing.length) {
+    console.error('Keepz initiate: missing env vars:', missing.join(', '));
+    return json({ error: `Worker not configured: missing ${missing.join(', ')}` }, 500);
+  }
+
   let body;
   try {
     body = await request.json();
@@ -23,12 +37,14 @@ export async function handleInitiate(request, env) {
     return json({ error: 'Invalid JSON body' }, 400);
   }
 
-  const { bookingId, amount, currency = 'GEL' } = body;
+  const { bookingId, currency = 'GEL' } = body;
+  // Accept amount as number or numeric string (Supabase NUMERIC columns return strings)
+  const amount = Number(body.amount);
 
   if (!bookingId || !UUID_RE.test(bookingId)) {
     return json({ error: 'bookingId must be a valid UUID' }, 400);
   }
-  if (!amount || typeof amount !== 'number' || amount <= 0) {
+  if (!Number.isFinite(amount) || amount <= 0) {
     return json({ error: 'amount must be a positive number' }, 400);
   }
 
