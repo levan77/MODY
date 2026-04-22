@@ -512,8 +512,6 @@ async function submitBooking() {
   var origTxt = cb ? cb.textContent : "";
   if (cb) { cb.disabled = true; cb.textContent = t("bkRedirecting"); }
 
-  twilioNotifyBooking(insertedBk, "new_booking");
-
   try {
     var payRes = await fetch('/api/payment/initiate', {
       method: 'POST',
@@ -527,10 +525,13 @@ async function submitBooking() {
     }
     var payData = await payRes.json();
     if (!payData.paymentUrl) throw new Error("No payment URL received");
+    twilioNotifyBooking(insertedBk, "new_booking");
     window.location.href = payData.paymentUrl;
   } catch(e) {
     console.error("[submitBooking] payment initiate:", e);
-    toast("Payment failed: " + e.message, "err");
+    // Payment failed — delete the booking so it doesn't sit as an orphaned pending
+    sb.from("bookings").delete().eq("id", insertedBk.id).then(function(){}).catch(function(){});
+    toast("Payment error: " + e.message, "err");
     if (cb) { cb.disabled = false; cb.textContent = origTxt; }
   }
 }
