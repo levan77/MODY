@@ -520,8 +520,14 @@ async function submitBooking() {
     });
     if (!payRes.ok) {
       var errBody = await payRes.json().catch(function() { return {}; });
-      var errMsg = errBody.keepzBody ? errBody.error + ": " + errBody.keepzBody : (errBody.error || "HTTP " + payRes.status);
-      throw new Error(errMsg);
+      var parts = [
+        errBody.error || "HTTP " + payRes.status,
+        errBody.keepzStatus ? "Keepz HTTP " + errBody.keepzStatus : null,
+        errBody.keepzBody || null,
+        errBody.sentTo || null,
+        errBody.identifierUsed || null,
+      ].filter(Boolean);
+      throw new Error(parts.join(" | "));
     }
     var payData = await payRes.json();
     if (!payData.paymentUrl) throw new Error("No payment URL received");

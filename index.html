@@ -6005,8 +6005,14 @@ async function submitBooking() {
     });
     if (!payRes.ok) {
       const errBody = await payRes.json().catch(() => ({}));
-      const errMsg = errBody.keepzBody ? `${errBody.error}: ${errBody.keepzBody}` : (errBody.error || `HTTP ${payRes.status}`);
-      throw new Error(errMsg);
+      const parts = [
+        errBody.error || `HTTP ${payRes.status}`,
+        errBody.keepzStatus && `Keepz HTTP ${errBody.keepzStatus}`,
+        errBody.keepzBody || null,
+        errBody.sentTo || null,
+        errBody.identifierUsed || null,
+      ].filter(Boolean);
+      throw new Error(parts.join(' | '));
     }
     const { paymentUrl } = await payRes.json();
     if (!paymentUrl) throw new Error('No payment URL received');
