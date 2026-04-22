@@ -1,5 +1,5 @@
 /* ══════════════════════════════════════════════
-   AMODY — Reusable UI Components
+   MODY — Reusable UI Components
    Depends on: variables.css, base.css
    Sections:
      Buttons · Toast · Modals · Forms · Spinner
@@ -196,20 +196,6 @@
   display: flex; flex-direction: column; gap: 8px;
   max-width: 380px; width: calc(100vw - 40px);
 }
-/* Minimized tracker pill — frosted glass floating state */
-.ftracker.ft-minimized {
-  background: rgba(255, 255, 255, 0.85);
-  -webkit-backdrop-filter: blur(12px);
-  backdrop-filter: blur(12px);
-  border-radius: 30px;
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
-  border: 1px solid rgba(0, 0, 0, 0.05);
-}
-html.dark .ftracker.ft-minimized {
-  background: rgba(28, 27, 27, 0.85);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-}
-
 .ft-toggle {
   display: flex; align-items: center; justify-content: space-between;
   padding: 8px 14px; background: var(--cd);
@@ -442,100 +428,18 @@ html.dark .bk-dot-now { background: #E8E4DF; color: #1a1a1a; }
 .mtab  { flex: 1; padding: 7px; text-align: center; border-radius: 8px; font-size: 12px; cursor: pointer; color: var(--mu); transition: all .2s; }
 .mtab.on { background: var(--cd); color: var(--tx); font-weight: 500; box-shadow: 0 1px 3px rgba(0,0,0,.09); }
 
-/* ── TIER SYSTEM ── */
-
-/* Premium pro card — faint champagne border + warm glow */
-.pro-card.tier-premium,
-.pro-list-card.tier-premium {
-  border: 1.5px solid rgba(212, 175, 55, 0.35) !important;
-  box-shadow: 0 4px 24px rgba(212, 175, 55, 0.10), var(--sh);
-}
-.pro-card.tier-premium:hover,
-.pro-list-card.tier-premium:hover {
-  box-shadow: 0 8px 36px rgba(212, 175, 55, 0.18), var(--sl);
-  border-color: rgba(212, 175, 55, 0.55) !important;
-}
-
-/* "AMODY Premium" metallic badge */
-.badge-premium {
-  display: inline-flex; align-items: center; gap: 4px;
-  background: linear-gradient(135deg, rgba(212,175,55,.18) 0%, rgba(232,184,120,.24) 100%);
-  color: #B8941C;
-  border: 1px solid rgba(212,175,55,.40);
-  padding: 2px 9px; border-radius: 50px;
-  font-size: 10px; font-weight: 700;
-  text-transform: uppercase; letter-spacing: .08em;
-  white-space: nowrap;
-}
-html.dark .badge-premium {
-  background: linear-gradient(135deg, rgba(212,175,55,.12) 0%, rgba(232,184,120,.16) 100%);
-  color: #D4AF37;
-  border-color: rgba(212,175,55,.30);
-}
-
-/* Travel fee badge on pro list cards */
-.badge-travel-fee {
-  display: inline-flex; align-items: center; gap: 3px;
-  background: rgba(180,83,9,.08);
-  color: #b45309;
-  border: 1px solid rgba(180,83,9,.20);
-  padding: 2px 8px; border-radius: 50px;
-  font-size: 10px; font-weight: 600;
-  white-space: nowrap;
-}
-html.dark .badge-travel-fee {
-  background: rgba(251,146,60,.08);
-  color: #fb923c;
-  border-color: rgba(251,146,60,.25);
-}
-
-/* Tier filter pill bar (above the pro list) */
-.tier-filter-bar {
-  display: flex; gap: 7px; padding: 0 0 14px;
-  overflow-x: auto; -webkit-overflow-scrolling: touch;
-  scrollbar-width: none;
-}
-.tier-filter-bar::-webkit-scrollbar { display: none; }
-.tier-pill {
-  flex-shrink: 0;
-  padding: 6px 16px; border-radius: 50px;
-  border: 1.5px solid var(--br); background: var(--cd);
-  font-size: 12px; font-weight: 500; color: var(--mu);
-  cursor: pointer; transition: all .2s;
-  white-space: nowrap;
-}
-.tier-pill:hover { border-color: var(--g); color: var(--tx); }
-.tier-pill.on {
-  background: var(--g);
-  border-color: var(--g);
-  color: #1a1a1a;
-  font-weight: 600;
-}
-/* Premium-active pill gets the gold accent */
-.tier-pill.on.tp-premium {
-  background: linear-gradient(135deg, rgba(212,175,55,.22), rgba(232,184,120,.30));
-  border-color: rgba(212,175,55,.55);
-  color: #8a6800;
-}
-html.dark .tier-pill.on.tp-premium {
-  color: #D4AF37;
-  background: linear-gradient(135deg, rgba(212,175,55,.15), rgba(232,184,120,.20));
-}
-
 /* ── MOBILE STICKY CTA ── */
 /* On desktop: renders inline in the booking sidebar */
 .mobile-sticky-cta { display: block; }
 
-@media (max-width: 1024px) {
+@media (max-width: 768px) {
   .mobile-sticky-cta {
     position: fixed;
-    /* Pin above mobile bottom nav (~52px) + device safe area */
-    bottom: calc(52px + env(safe-area-inset-bottom, 0px));
-    left: 0; right: 0;
-    z-index: 349; /* below mob-nav (350) */
-    padding: 12px 16px;
+    bottom: 0; left: 0; right: 0;
+    z-index: 350;
+    padding: 12px 16px calc(12px + env(safe-area-inset-bottom)) 16px;
     background: var(--cd);
-    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 -4px 24px rgba(0, 0, 0, .10);
   }
   .mobile-sticky-cta .btn {
     width: 100%;
@@ -544,5 +448,5 @@ html.dark .tier-pill.on.tp-premium {
     font-size: 14px;
   }
   /* Push page content up so sticky CTA doesn't overlap last element */
-  #pg-profile .prof-layout { padding-bottom: 120px; }
+  #pg-profile .prof-layout { padding-bottom: 80px; }
 }

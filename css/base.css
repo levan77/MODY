@@ -1,5 +1,5 @@
 /* ══════════════════════════════════════════════
-   AMODY — Reset, Typography & Global Utilities
+   MODY — Reset, Typography & Global Utilities
    Depends on: variables.css
    ══════════════════════════════════════════════ */
 
@@ -27,12 +27,6 @@ button, input, select, textarea {
 }
 
 a { text-decoration: none; }
-
-/* ── GLOBAL TYPOGRAPHY ADJUSTMENTS ── */
-p { line-height: 1.5; }
-
-/* Georgian script (Mkhedruli) — slightly heavier weight for visual parity with Latin */
-.ge { font-weight: 500; }
 
 /* ── GLOBAL UTILITIES ── */
 .hide { display: none !important; }
@@ -66,10 +60,4 @@ p { line-height: 1.5; }
   0%   { transform: scale(.5); opacity: 0; }
   60%  { transform: scale(1.15); }
   100% { transform: scale(1); opacity: 1; }
-}
-
-/* Bottom-sheet slide-up (mobile modals) */
-@keyframes slideUp {
-  from { transform: translateY(100%); }
-  to   { transform: translateY(0); }
 }

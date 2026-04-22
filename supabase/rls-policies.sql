@@ -1,5 +1,5 @@
 -- ═══════════════════════════════════════════════════════════
---  AMODY — Row Level Security (RLS) Policies
+--  MODY — Row Level Security (RLS) Policies
 --  Run in Supabase SQL Editor AFTER the initial setup SQL
 --
 --  Strategy:
@@ -75,16 +75,6 @@ CREATE POLICY "profiles_pro_read_clients" ON public.profiles
 -- ══════════════════════════════════════════════════════════
 ALTER TABLE public.professionals ENABLE ROW LEVEL SECURITY;
 
--- ── NEW COLUMNS (idempotent) ───────────────────────────────
--- region: pro's home base district for cross-region travel fee logic
-ALTER TABLE public.professionals
-  ADD COLUMN IF NOT EXISTS region TEXT DEFAULT NULL;
-
--- tier: 'standard' or 'premium' — admin-only field
-ALTER TABLE public.professionals
-  ADD COLUMN IF NOT EXISTS tier TEXT NOT NULL DEFAULT 'standard'
-  CHECK (tier IN ('standard', 'premium'));
-
 DROP POLICY IF EXISTS "pros_public_read"   ON public.professionals;
 DROP POLICY IF EXISTS "pros_own_read"      ON public.professionals;
 DROP POLICY IF EXISTS "pros_own_insert"    ON public.professionals;
@@ -103,21 +93,11 @@ CREATE POLICY "pros_own_read" ON public.professionals
 CREATE POLICY "pros_own_insert" ON public.professionals
   FOR INSERT WITH CHECK (user_id = auth.uid());
 
--- Pro can update their own record, but CANNOT change their tier.
--- The WITH CHECK subquery reads the existing tier value (pre-update snapshot);
--- if the submitted tier differs from the stored tier the row is rejected.
--- Admins bypass this entirely via pros_admin_all (ALL policy takes precedence).
+-- Pro can update their own record
 CREATE POLICY "pros_own_update" ON public.professionals
-  FOR UPDATE
-  USING (user_id = auth.uid())
-  WITH CHECK (
-    user_id = auth.uid()
-    AND tier IS NOT DISTINCT FROM (
-      SELECT p2.tier FROM public.professionals p2 WHERE p2.id = professionals.id
-    )
-  );
+  FOR UPDATE USING (user_id = auth.uid()) WITH CHECK (user_id = auth.uid());
 
--- Admins can do everything (approve/reject/edit/delete/change tier)
+-- Admins can do everything (approve/reject/edit/delete)
 CREATE POLICY "pros_admin_all" ON public.professionals
   FOR ALL USING (get_my_role() = 'admin');
 

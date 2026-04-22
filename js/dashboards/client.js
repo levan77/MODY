@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════════════════════════════
-//  AMODY — Client Dashboard
+//  MODY — Client Dashboard
 //  Load order: 9 (depends on: config.js, i18n.js, ui.js, auth.js, booking.js)
 // ═══════════════════════════════════════════════════════════════
 

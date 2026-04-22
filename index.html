@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>AMODY — Beauty at Home, Tbilisi</title>
+<title>Le' mody — Beauty at Home, Tbilisi</title>
 <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
 <link rel="apple-touch-icon" href="assets/logo.svg">
 <link rel="shortcut icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='12' fill='%23FAF8F5'/><circle cx='32' cy='32' r='22' fill='none' stroke='%23C9918F' stroke-width='5'/><line x1='27' y1='42' x2='33' y2='22' stroke='%23C4A85A' stroke-width='2.5' stroke-linecap='round'/><line x1='31' y1='42' x2='37' y2='22' stroke='%23C4A85A' stroke-width='2.5' stroke-linecap='round'/></svg>">
@@ -16,7 +16,7 @@
 
 <style>
 /* ══════════════════════════════════════════════
-   AMODY — Design Tokens & Theme Variables
+   MODY — Design Tokens & Theme Variables
    All CSS custom properties live here.
    To rebrand, only this file needs to change.
    ══════════════════════════════════════════════ */
@@ -74,7 +74,7 @@ html.dark {
 }
 
 /* ══════════════════════════════════════════════
-   AMODY — Reset, Typography & Global Utilities
+   MODY — Reset, Typography & Global Utilities
    Depends on: variables.css
    ══════════════════════════════════════════════ */
 
@@ -138,7 +138,7 @@ a { text-decoration: none; }
 }
 
 /* ══════════════════════════════════════════════
-   AMODY — Reusable UI Components
+   MODY — Reusable UI Components
    Depends on: variables.css, base.css
    Sections:
      Buttons · Toast · Modals · Forms · Spinner
@@ -593,89 +593,6 @@ html.dark .bk-dot-now { background: #E8E4DF; color: #1a1a1a; }
 .mtab  { flex: 1; padding: 7px; text-align: center; border-radius: 8px; font-size: 12px; cursor: pointer; color: var(--mu); transition: all .2s; }
 .mtab.on { background: var(--cd); color: var(--tx); font-weight: 500; box-shadow: 0 1px 3px rgba(0,0,0,.09); }
 
-/* ── CATEGORY FILTER CHIPS ── */
-.fchip {
-  display: inline-flex; align-items: center; gap: 6px;
-  padding: 9px 18px; border-radius: 30px;
-  border: 1.5px solid var(--br); background: transparent;
-  font-size: 14px; font-weight: 500; color: var(--tx);
-  cursor: pointer; transition: all .2s;
-  white-space: nowrap; flex: 0 0 auto;
-}
-.fchip:hover { border-color: var(--g); color: var(--g); }
-.fchip.fchip-on {
-  background: var(--g); border-color: var(--g);
-  color: #1a1a1a; font-weight: 700;
-  box-shadow: 0 2px 8px rgba(0,0,0,.12);
-}
-html.dark .fchip { color: var(--tx); border-color: rgba(255,255,255,.15); }
-html.dark .fchip.fchip-on { color: #1a1a1a; }
-
-/* ── TIER SYSTEM ── */
-.pro-card.tier-premium, .pro-list-card.tier-premium {
-  border: 1.5px solid rgba(212,175,55,.35) !important;
-  box-shadow: 0 4px 24px rgba(212,175,55,.10), var(--sh);
-}
-.badge-premium {
-  display: inline-flex; align-items: center; gap: 4px;
-  background: linear-gradient(135deg, rgba(212,175,55,.18), rgba(232,184,120,.24));
-  color: #B8941C; border: 1px solid rgba(212,175,55,.40);
-  padding: 2px 9px; border-radius: 50px;
-  font-size: 10px; font-weight: 700;
-  text-transform: uppercase; letter-spacing: .08em;
-}
-.badge-travel-fee {
-  display: inline-flex; align-items: center;
-  background: rgba(180,83,9,.08); color: #b45309;
-  border: 1px solid rgba(180,83,9,.20);
-  padding: 2px 8px; border-radius: 50px;
-  font-size: 10px; font-weight: 600;
-}
-.tier-filter-bar {
-  display: flex; gap: 8px; padding: 4px 0 16px; align-items: center;
-  overflow-x: auto; -webkit-overflow-scrolling: touch;
-  scrollbar-width: none;
-}
-.tier-filter-bar::-webkit-scrollbar { display: none; }
-.tier-pill {
-  flex-shrink: 0;
-  padding: 10px 22px; border-radius: 50px;
-  border: 2px solid var(--br); background: var(--cd);
-  font-size: 13px; font-weight: 600; color: var(--tx);
-  cursor: pointer; transition: all .2s;
-  white-space: nowrap; line-height: 1;
-}
-/* Premium pill — gold tinted even when inactive */
-.tier-pill.tp-premium {
-  background: rgba(212,175,55,.10);
-  border-color: rgba(212,175,55,.45);
-  color: #9a7010;
-}
-html.dark .tier-pill.tp-premium {
-  background: rgba(212,175,55,.15);
-  border-color: rgba(212,175,55,.50);
-  color: #C9A227;
-}
-/* Hover */
-.tier-pill:hover { border-color: var(--g); color: var(--tx); transform: translateY(-1px); box-shadow: 0 3px 10px rgba(0,0,0,.10); }
-.tier-pill.tp-premium:hover { border-color: rgba(212,175,55,.8); color: #7a5c00; }
-html.dark .tier-pill.tp-premium:hover { color: #E5C040; }
-/* Active — All */
-.tier-pill.on {
-  background: var(--g); border-color: var(--g);
-  color: #1a1a1a; font-weight: 700;
-  box-shadow: 0 3px 10px rgba(0,0,0,.15);
-}
-/* Active — Premium: solid gold */
-.tier-pill.on.tp-premium {
-  background: linear-gradient(135deg, #D4AF37 0%, #F2C94C 50%, #C9A227 100%);
-  border-color: transparent;
-  color: #1a1a1a; font-weight: 700;
-  box-shadow: 0 4px 16px rgba(212,175,55,.50);
-  text-shadow: 0 1px 2px rgba(255,255,255,.25);
-}
-html.dark .tier-pill.on.tp-premium { color: #1a1a1a; }
-
 /* ── MOBILE STICKY CTA ── */
 /* On desktop: renders inline in the booking sidebar */
 .mobile-sticky-cta { display: block; }
@@ -700,7 +617,7 @@ html.dark .tier-pill.on.tp-premium { color: #1a1a1a; }
 }
 
 /* ══════════════════════════════════════════════
-   AMODY — Layout, Page Structures & Responsive
+   MODY — Layout, Page Structures & Responsive
    Depends on: variables.css, base.css
    Sections:
      Navigation · Language Switcher
@@ -1058,24 +975,8 @@ footer        { background: #1A1A1A; color: rgba(255,255,255,.4); padding: 38px 
   /* Hide sub-category dropdown on mobile — tap goes straight to category */
   .cat-subs { display: none !important; }
 
-  /* Category chips: compact scrollable pill bar on mobile */
-  #filterChips {
-    flex-wrap: nowrap !important;
-    overflow-x: auto !important;
-    overflow-y: visible !important;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
-    padding: 4px 0 !important;
-    gap: 8px !important;
-    /* bleed past parent's 20px padding so bar reaches screen edges */
-    margin-left: -20px; margin-right: -20px;
-    padding-left: 16px !important; padding-right: 16px !important;
-  }
-  #filterChips::-webkit-scrollbar { display: none; }
-  /* Always show — even when a specific category is active */
-  body.viewing-category #filterChips { display: flex !important; }
-  /* Slightly tighter pills on mobile */
-  #filterChips .fchip { font-size: 13px; padding: 8px 14px; }
+  /* Hide filter chips on mobile when viewing category (not "All") */
+  body.viewing-category #filterChips { display: none !important; }
 
   /* Push chat lower on mobile when category is active */
   body.viewing-category .chat-wrap { bottom: 180px !important; }
@@ -1128,12 +1029,13 @@ footer        { background: #1A1A1A; color: rgba(255,255,255,.4); padding: 38px 
 <!-- LOADING SCREEN -->
 <div id="loadingScreen" style="position:fixed;inset:0;z-index:99999;background:#FAF8F5;display:flex;align-items:center;justify-content:center;transition:opacity .5s">
   <div style="display:flex;flex-direction:column;align-items:center;justify-content:center">
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 380 120" style="width:240px;margin-bottom:24px">
-      <text x="0" y="95" font-family="'Jost',sans-serif" font-size="90" font-weight="400" fill="#2d2d2d" letter-spacing="4">AM</text>
-      <circle cx="193" cy="58" r="32" fill="none" stroke="#C9918F" stroke-width="7"/>
-      <line x1="184" y1="74" x2="195" y2="42" stroke="#C4A85A" stroke-width="2.5" stroke-linecap="round"/>
-      <line x1="191" y1="74" x2="202" y2="42" stroke="#C4A85A" stroke-width="2.5" stroke-linecap="round"/>
-      <text x="231" y="95" font-family="'Jost',sans-serif" font-size="90" font-weight="400" fill="#2d2d2d" letter-spacing="4">DY</text>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="-5 0 520 120" style="width:260px;margin-bottom:24px">
+      <text x="0" y="95" font-family="'Cormorant Garamond',serif" font-size="90" font-weight="300" fill="#2d2d2d" font-style="italic">Le'</text>
+      <text x="160" y="95" font-family="'Jost',sans-serif" font-size="90" font-weight="400" fill="#2d2d2d" letter-spacing="4">m</text>
+      <circle cx="292" cy="58" r="32" fill="none" stroke="#C9918F" stroke-width="7"/>
+      <line x1="283" y1="74" x2="294" y2="42" stroke="#C4A85A" stroke-width="2.5" stroke-linecap="round"/>
+      <line x1="290" y1="74" x2="301" y2="42" stroke="#C4A85A" stroke-width="2.5" stroke-linecap="round"/>
+      <text x="330" y="95" font-family="'Jost',sans-serif" font-size="90" font-weight="400" fill="#2d2d2d" letter-spacing="4">dy</text>
     </svg>
     <div style="width:36px;height:36px;border:3px solid rgba(201,145,143,.2);border-top-color:#C9918F;border-radius:50%;animation:spin 1s linear infinite"></div>
   </div>
@@ -1152,7 +1054,7 @@ footer        { background: #1A1A1A; color: rgba(255,255,255,.4); padding: 38px 
   <div class="nav-w">
     <div style="display:flex;align-items:center;gap:8px">
       <button class="dm-btn" id="navBackBtn" onclick="goBack()" style="display:none;font-size:18px" title="Go back">←</button>
-      <div class="logo" onclick="goHome()">AMODY<span>.</span></div>
+      <div class="logo" onclick="goHome()">Le' mody<span>.</span></div>
     </div>
     <div style="display:flex;align-items:center;gap:8px">
       <div class="lsw" id="lsw">
@@ -1286,13 +1188,13 @@ footer        { background: #1A1A1A; color: rgba(255,255,255,.4); padding: 38px 
   <footer>
     <div class="footer-w">
       <div class="footer-grid">
-        <div><span class="footer-logo">AMODY<span style="color:var(--g)">.</span></span><p id="footerTag" style="font-size:12px;line-height:1.7"></p></div>
+        <div><span class="footer-logo">Le' mody<span style="color:var(--g)">.</span></span><p id="footerTag" style="font-size:12px;line-height:1.7"></p></div>
         <div class="footer-col"><h4 id="fhSvc"></h4><div id="footerSvcs"></div></div>
         <div class="footer-col"><h4 id="fhCo"></h4><a onclick="viewStaticPage('about')" id="ftAbout"></a><a onclick="loadBlogPublic()" id="ftBlog"></a></div>
         <div class="footer-col"><h4 id="fhSup"></h4><a onclick="openM('newticket')" id="ftHelp"></a><a onclick="viewStaticPage('terms')" id="ftTerms"></a><a onclick="viewStaticPage('privacy')" id="ftPrivacy"></a></div>
       </div>
       <div style="border-top:1px solid rgba(255,255,255,.07);padding-top:12px;display:flex;justify-content:space-between;font-size:12px">
-        <span>© 2025 AMODY Georgia LLC.</span><span>Tbilisi 🇬🇪</span>
+        <span>© 2025 Le' mody Georgia LLC.</span><span>Tbilisi 🇬🇪</span>
       </div>
     </div>
   </footer>
@@ -1417,7 +1319,7 @@ footer        { background: #1A1A1A; color: rgba(255,255,255,.4); padding: 38px 
       <div class="fg"><label class="fl" id="bkStreetLbl"></label><input class="fi" id="bkAddr"></div>
       <div class="fi2">
         <div class="fg"><label class="fl" id="bkDistLbl"></label>
-          <select class="fi" id="bkDist" onchange="updateBkTotal()">
+          <select class="fi" id="bkDist">
             <option>Vake</option><option>Saburtalo</option><option>Isani</option>
             <option>Didi Dighomi</option><option>Vera</option><option>Mtatsminda</option><option>Gldani</option>
           </select>
@@ -1679,18 +1581,6 @@ footer        { background: #1A1A1A; color: rgba(255,255,255,.4); padding: 38px 
           <div class="fg"><label class="fl">District</label>
             <select class="fi" id="pEditArea"><option>Vake</option><option>Saburtalo</option><option>Isani</option><option>Didi Dighomi</option><option>Vera</option><option>Mtatsminda</option></select>
           </div>
-          <div class="fg"><label class="fl">Home Region</label>
-            <select class="fi" id="pEditRegion">
-              <option value="">— Same as District —</option>
-              <option value="Vake">Vake</option>
-              <option value="Saburtalo">Saburtalo</option>
-              <option value="Isani">Isani</option>
-              <option value="Didi Dighomi">Didi Dighomi</option>
-              <option value="Vera">Vera</option>
-              <option value="Mtatsminda">Mtatsminda</option>
-            </select>
-            <p style="font-size:12px;color:var(--mu);margin-top:4px">Clients outside your home region will see a +15₾ travel fee.</p>
-          </div>
           <div class="fg"><label class="fl">Starting Price (₾)</label><input class="fi" id="pEditPrice" type="number" min="0"></div>
           <div class="fg"><label class="fl">Years of Experience</label><input class="fi" id="pEditYears" type="number" min="0" max="50" placeholder="e.g. 5"></div>
           <div class="fg">
@@ -1775,7 +1665,7 @@ footer        { background: #1A1A1A; color: rgba(255,255,255,.4); padding: 38px 
 <div class="pg" id="pg-admin">
   <div style="background:#1A1A1A;padding:12px 20px;border-bottom:1px solid rgba(255,255,255,.08)">
     <div style="max-width:1400px;margin:0 auto;display:flex;align-items:center;justify-content:space-between">
-      <div style="font-family:'Cormorant Garamond',serif;font-size:19px;font-weight:600;color:#fff;letter-spacing:2px">AMODY <span style="color:var(--g)">Admin</span></div>
+      <div style="font-family:'Cormorant Garamond',serif;font-size:19px;font-weight:600;color:#fff;letter-spacing:2px">Le' mody <span style="color:var(--g)">Admin</span></div>
       <div style="display:flex;gap:7px;align-items:center">
         <span id="aEmail" style="font-size:12px;color:rgba(255,255,255,.4)"></span>
         <button class="btn btn-dk" onclick="signOut()">Sign Out</button>
@@ -1837,7 +1727,7 @@ footer        { background: #1A1A1A; color: rgba(255,255,255,.4); padding: 38px 
       <div id="aTab-pros" class="hide">
         <div class="card">
           <div class="c-hdr"><h3>All Professionals</h3></div>
-          <div class="tw"><table class="tbl"><thead><tr><th>Name</th><th>Specialty</th><th>Area</th><th>Rating</th><th>Tier</th><th>Commission</th><th>Status</th><th>Action</th></tr></thead><tbody id="aProsBody"></tbody></table></div>
+          <div class="tw"><table class="tbl"><thead><tr><th>Name</th><th>Specialty</th><th>Area</th><th>Rating</th><th>Commission</th><th>Status</th><th>Action</th></tr></thead><tbody id="aProsBody"></tbody></table></div>
         </div>
       </div>
       <div id="aTab-usr" class="hide">
@@ -1993,7 +1883,7 @@ footer        { background: #1A1A1A; color: rgba(255,255,255,.4); padding: 38px 
           <div class="c-hdr"><h3>Branding & Appearance</h3></div>
           <div style="padding:10px 0;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--br);flex-wrap:wrap">
             <div style="flex:1;min-width:120px"><div style="font-weight:500;font-size:14px">Platform Name</div><div style="font-size:12px;color:var(--mu)">Shown in nav, hero, and footer</div></div>
-            <input class="fi" id="setBrandName" style="width:160px" placeholder="AMODY">
+            <input class="fi" id="setBrandName" style="width:160px" placeholder="Le' mody">
             <button class="btn btn-g" style="font-size:13px" onclick="saveSetting('brand_name',document.getElementById('setBrandName').value);toast('Reload page to see changes')">Save</button>
           </div>
           <div style="padding:10px 0;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--br);flex-wrap:wrap">
@@ -2008,7 +1898,7 @@ footer        { background: #1A1A1A; color: rgba(255,255,255,.4); padding: 38px 
           </div>
           <div style="padding:10px 0;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
             <div style="flex:1;min-width:120px"><div style="font-weight:500;font-size:14px">Footer Text</div><div style="font-size:12px;color:var(--mu)">Copyright / company footer</div></div>
-            <input class="fi" id="setFooterTxt" style="width:200px" placeholder="© 2025 AMODY Georgia LLC.">
+            <input class="fi" id="setFooterTxt" style="width:200px" placeholder="© 2025 Le' mody Georgia LLC.">
             <button class="btn btn-g" style="font-size:13px" onclick="saveSetting('footer_text',document.getElementById('setFooterTxt').value)">Save</button>
           </div>
         </div>
@@ -2044,7 +1934,7 @@ footer        { background: #1A1A1A; color: rgba(255,255,255,.4); padding: 38px 
           </div>
           <div style="padding:10px 0;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
             <div style="flex:1;min-width:120px"><div style="font-weight:500;font-size:14px">Admin Alert Email</div><div style="font-size:12px;color:var(--mu)">Receive alerts for new signups & issues</div></div>
-            <input class="fi" id="setAlertEmail" type="email" style="width:200px" placeholder="admin@amody.ge">
+            <input class="fi" id="setAlertEmail" type="email" style="width:200px" placeholder="admin@mody.ge">
             <button class="btn btn-g" style="font-size:13px" onclick="saveSetting('alert_email',document.getElementById('setAlertEmail').value)">Save</button>
           </div>
         </div>
@@ -2763,7 +2653,7 @@ footer        { background: #1A1A1A; color: rgba(255,255,255,.4); padding: 38px 
 <script>
 // ── config.js ──
 // ═══════════════════════════════════════════════════════════════
-//  AMODY — Configuration, Constants & Platform Settings
+//  MODY — Configuration, Constants & Platform Settings
 //  Load order: 1 (no dependencies)
 // ═══════════════════════════════════════════════════════════════
 
@@ -2985,7 +2875,7 @@ function svcDesc(s) {
 
 
 // ── PLATFORM SETTINGS ─────────────────────────────────────────
-var settings = { promo_enabled: true, nail_colors_enabled: true, commission: 5, platform_fee: 5, chat_enabled: true, pro_registration_enabled: true, reviews_enabled: true, auto_accept: false, min_order: 0, cancel_hours: 2, brand_name: "AMODY", open_time: "10:00", close_time: "20:00", advance_days: 30, email_notifications: true, sms_notifications: false, cross_region_fee_enabled: false, default_cross_region_fee: 10 };
+var settings = { promo_enabled: true, nail_colors_enabled: true, commission: 5, platform_fee: 5, chat_enabled: true, pro_registration_enabled: true, reviews_enabled: true, auto_accept: false, min_order: 0, cancel_hours: 2, brand_name: "Le' mody", open_time: "10:00", close_time: "20:00", advance_days: 30, email_notifications: true, sms_notifications: false, cross_region_fee_enabled: false, default_cross_region_fee: 10 };
 
 // District management
 var districts = ["Vake","Saburtalo","Isani","Didi Dighomi","Vera","Mtatsminda","Gldani"];
@@ -3015,7 +2905,7 @@ async function loadSettings() {
   var saa = ge("setAutoAccept"); if (saa) saa.checked = settings.auto_accept === true || settings.auto_accept === "true";
   var smo = ge("setMinOrder");   if (smo) smo.value = settings.min_order || 0;
   var sch = ge("setCancelHrs");  if (sch) sch.value = settings.cancel_hours || 2;
-  var sbn = ge("setBrandName");  if (sbn) sbn.value = settings.brand_name || "AMODY";
+  var sbn = ge("setBrandName");  if (sbn) sbn.value = settings.brand_name || "Le' mody";
   var sot = ge("setOpenTime");   if (sot) sot.value = settings.open_time || "10:00";
   var sct = ge("setCloseTime");  if (sct) sct.value = settings.close_time || "20:00";
   var sad = ge("setAdvDays");    if (sad) sad.value = settings.advance_days || 30;
@@ -3085,7 +2975,7 @@ function applyAccentColor(hex, silent) {
 
 // ── SQL HELPER ────────────────────────────────────────────────
 var SETUP_SQL = [
-  "-- AMODY Production Schema",
+  "-- MODY Production Schema",
   "-- Run in Supabase → SQL Editor → New Query → Run",
   "",
   "create table if not exists public.profiles (id uuid primary key references auth.users(id) on delete cascade, full_name text, email text, phone text, gender text, role text not null default 'client', pro_id uuid, avatar_url text, suspended boolean default false, created_at timestamptz default now());",
@@ -3128,8 +3018,6 @@ var SETUP_SQL = [
   "alter table public.professionals add column if not exists cross_region_fee int default 0;",
   "alter table public.professionals add column if not exists cross_region_fee_pending int;",
   "alter table public.professionals add column if not exists cross_region_fee_status text default 'approved';",
-  "alter table public.professionals add column if not exists region text default null;",
-  "alter table public.professionals add column if not exists tier text not null default 'standard' check (tier in ('standard','premium'));",
   "create table if not exists public.client_wallets (client_id uuid primary key references auth.users(id) on delete cascade, balance int default 0, updated_at timestamptz default now());",
   "alter table public.client_wallets enable row level security;",
   "grant all on public.client_wallets to anon, authenticated;",
@@ -3171,26 +3059,6 @@ var SETUP_SQL = [
   "grant all on all tables in schema public to anon, authenticated;",
   "grant all on all sequences in schema public to anon, authenticated;",
   "",
-  "-- Helper functions for role-based access",
-  "create or replace function public.get_my_role() returns text language sql stable security definer set search_path = public as $$ select coalesce((select role from public.profiles where id = auth.uid()),'anon'); $$;",
-  "create or replace function public.get_my_pro_id() returns uuid language sql stable security definer set search_path = public as $$ select pro_id from public.profiles where id = auth.uid(); $$;",
-  "",
-  "-- Admin full access policies",
-  "drop policy if exists \"pros_admin_all\" on public.professionals;",
-  "drop policy if exists \"bookings_admin_all\" on public.bookings;",
-  "drop policy if exists \"profiles_admin_all\" on public.profiles;",
-  "create policy \"pros_admin_all\" on public.professionals for all using (get_my_role() = 'admin');",
-  "create policy \"bookings_admin_all\" on public.bookings for all using (get_my_role() = 'admin');",
-  "create policy \"profiles_admin_all\" on public.profiles for all using (get_my_role() = 'admin');",
-  "-- Public read for approved pros",
-  "drop policy if exists \"pros_public_read\" on public.professionals;",
-  "create policy \"pros_public_read\" on public.professionals for select using (status = 'approved');",
-  "-- Pros can read/update their own record",
-  "drop policy if exists \"pros_own_read\" on public.professionals;",
-  "drop policy if exists \"pros_own_update\" on public.professionals;",
-  "create policy \"pros_own_read\" on public.professionals for select using (user_id = auth.uid());",
-  "create policy \"pros_own_update\" on public.professionals for update using (user_id = auth.uid()) with check (user_id = auth.uid());",
-  "",
   "-- Enable realtime for live tracking and booking updates",
   "drop publication if exists supabase_realtime;",
   "create publication supabase_realtime for table public.bookings, public.professionals, public.pro_locations, public.messages;",
@@ -3207,19 +3075,8 @@ var SETUP_SQL = [
   "",
   "insert into storage.buckets (id,name,public) values",
   "  ('profile-pictures','profile-pictures',true),",
-  "  ('portfolio-images','portfolio-images',true),",
-  "  ('assets','assets',true)",
+  "  ('portfolio-images','portfolio-images',true)",
   "on conflict do nothing;",
-  "",
-  "-- Storage RLS policies",
-  "drop policy if exists \"storage_public_read\"  on storage.objects;",
-  "drop policy if exists \"storage_auth_upload\"  on storage.objects;",
-  "drop policy if exists \"storage_auth_update\"  on storage.objects;",
-  "drop policy if exists \"storage_auth_delete\"  on storage.objects;",
-  "create policy \"storage_public_read\"  on storage.objects for select using (bucket_id in ('profile-pictures','portfolio-images','assets'));",
-  "create policy \"storage_auth_upload\"  on storage.objects for insert with check (auth.uid() is not null and bucket_id in ('profile-pictures','portfolio-images','assets'));",
-  "create policy \"storage_auth_update\"  on storage.objects for update using (auth.uid() is not null);",
-  "create policy \"storage_auth_delete\"  on storage.objects for delete using (auth.uid() is not null);",
   "",
   "-- Pro calendar tables",
   "create table if not exists public.pro_tasks (id uuid default gen_random_uuid() primary key, pro_id uuid references public.professionals(id) on delete cascade, title text not null, task_date date not null, task_time text, notes text, created_at timestamptz default now());",
@@ -3280,7 +3137,7 @@ var EXTRA_SQL = [
 
 // ── i18n.js ──
 // ═══════════════════════════════════════════════════════════════
-//  AMODY — Internationalization (i18n)
+//  Le' mody — Internationalization (i18n)
 //  Load order: 2 (depends on: config.js)
 // ═══════════════════════════════════════════════════════════════
 
@@ -3297,14 +3154,14 @@ en: {
   catTitle: "Browse by <span style=\"color:var(--g)\">service</span>",
   catSub: "What are you looking for today?",
   viewAll: "View all", seeAll: "See all",
-  howTitle: "How <em style=\"font-style:italic;color:var(--g)\">AMODY</em> works",
+  howTitle: "How <em style=\"font-style:italic;color:var(--g)\">Le' mody</em> works",
   s1t: "Choose a service", s1d: "Browse professionals by category, rating, and price.",
   s2t: "Pick a time", s2d: "Book ASAP or schedule ahead up to 30 days.",
   s3t: "Professional arrives", s3d: "Your certified pro comes to your door, fully equipped.",
   featTitle: "Featured <span style=\"color:var(--g)\">professionals</span>",
   proTag: "\uD83D\uDC85 For Professionals",
   proTitle: "Are you a beauty professional in Tbilisi?",
-  proSub: "Join AMODY \u2014 set your own hours, manage bookings, keep 95% of earnings.",
+  proSub: "Join Le' mody \u2014 set your own hours, manage bookings, keep 95% of earnings.",
   joinPro: "Sign Up", signIn2: "Sign In",
   fhSvc: "Services", fhCo: "Company", fhSup: "Support",
   footerTag: "Tbilisi\u2019s premium at-home beauty platform.",
@@ -3457,7 +3314,7 @@ ka: {
   catTitle: "\u10d3\u10d0\u10d0\u10d7\u10d5\u10d0\u10da\u10d8\u10d4\u10e0\u10d4 <span style=\"color:var(--g)\">\u10e1\u10d4\u10e0\u10d5\u10d8\u10e1\u10d8\u10e1</span> \u10db\u10d8\u10ee\u10d4\u10d3\u10d5\u10d8\u10d7",
   catSub: "\u10e0\u10d0 \u10d2\u10ed\u10d8\u10e0\u10d3\u10d4\u10d1\u10d0 \u10d3\u10d8\u10da\u10d4\u10e1?",
   viewAll: "\u10e7\u10d5\u10d4\u10da\u10d0", seeAll: "\u10e7\u10d5\u10d4\u10da\u10d0",
-  howTitle: "\u10e0\u10dd\u10d2\u10dd\u10e0 \u10db\u10e3\u10e8\u10d0\u10dd\u10d1\u10e1 <em style=\"font-style:italic;color:var(--g)\">AMODY</em>",
+  howTitle: "\u10e0\u10dd\u10d2\u10dd\u10e0 \u10db\u10e3\u10e8\u10d0\u10dd\u10d1\u10e1 <em style=\"font-style:italic;color:var(--g)\">Le' mody</em>",
   s1t: "\u10d0\u10d8\u10e0\u10e9\u10d8\u10d4 \u10e1\u10d4\u10e0\u10d5\u10d8\u10e1\u10d8",
   s1d: "\u10d3\u10d0\u10d0\u10d7\u10d5\u10d0\u10da\u10d8\u10d4\u10e0\u10d4 \u10d9\u10d0\u10e2\u10d4\u10d2\u10dd\u10e0\u10d8\u10d8\u10e1, \u10e8\u10d4\u10e4\u10d0\u10e1\u10d4\u10d1\u10d8\u10e1 \u10d3\u10d0 \u10e4\u10d0\u10e1\u10d8\u10e1 \u10db\u10d8\u10ee\u10d4\u10d3\u10d5\u10d8\u10d7.",
   s2t: "\u10d0\u10d8\u10e0\u10e9\u10d8\u10d4 \u10d3\u10e0\u10dd",
@@ -3467,7 +3324,7 @@ ka: {
   featTitle: "\u10d2\u10d0\u10db\u10dd\u10e0\u10e9\u10d4\u10e3\u10da\u10d8 <span style=\"color:var(--g)\">\u10e1\u10de\u10d4\u10ea\u10d8\u10d0\u10da\u10d8\u10e1\u10e2\u10d4\u10d1\u10d8</span>",
   proTag: "\uD83D\uDC85 \u10e1\u10de\u10d4\u10ea\u10d8\u10d0\u10da\u10d8\u10e1\u10e2\u10d4\u10d1\u10d8\u10e1\u10d7\u10d5\u10d8\u10e1",
   proTitle: "\u10ee\u10d0\u10e0 \u10e1\u10d8\u10da\u10d0\u10db\u10d0\u10d6\u10d8\u10e1 \u10e1\u10de\u10d4\u10ea\u10d8\u10d0\u10da\u10d8\u10e1\u10e2\u10d8 \u10d7\u10d1\u10d8\u10da\u10d8\u10e1\u10e8\u10d8?",
-  proSub: "\u10e8\u10d4\u10e3\u10d4\u10e0\u10d7\u10d3\u10d8 AMODY-\u10e1 \u2014 \u10e1\u10d0\u10d9\u10e3\u10d7\u10d0\u10e0\u10d8 \u10d2\u10d0\u10dc\u10e0\u10d8\u10d2\u10d8, \u10e8\u10d4\u10d8\u10dc\u10d0\u10ee\u10d4 95%.",
+  proSub: "\u10e8\u10d4\u10e3\u10d4\u10e0\u10d7\u10d3\u10d8 Le' mody-\u10e1 \u2014 \u10e1\u10d0\u10d9\u10e3\u10d7\u10d0\u10e0\u10d8 \u10d2\u10d0\u10dc\u10e0\u10d8\u10d2\u10d8, \u10e8\u10d4\u10d8\u10dc\u10d0\u10ee\u10d4 95%.",
   joinPro: "რეგისტრაცია",
   signIn2: "\u10e8\u10d4\u10e1\u10d5\u10da\u10d0",
   fhSvc: "\u10e1\u10d4\u10e0\u10d5\u10d8\u10e1\u10d4\u10d1\u10d8",
@@ -3633,7 +3490,7 @@ ru: {
   catTitle: "\u0412\u044b\u0431\u0440\u0430\u0442\u044c \u043f\u043e <span style=\"color:var(--g)\">\u0443\u0441\u043b\u0443\u0433\u0435</span>",
   catSub: "\u0427\u0442\u043e \u0432\u0430\u043c \u043d\u0443\u0436\u043d\u043e \u0441\u0435\u0433\u043e\u0434\u043d\u044f?",
   viewAll: "\u0412\u0441\u0435", seeAll: "\u0412\u0441\u0435",
-  howTitle: "\u041a\u0430\u043a \u0440\u0430\u0431\u043e\u0442\u0430\u0435\u0442 <em style=\"font-style:italic;color:var(--g)\">AMODY</em>",
+  howTitle: "\u041a\u0430\u043a \u0440\u0430\u0431\u043e\u0442\u0430\u0435\u0442 <em style=\"font-style:italic;color:var(--g)\">Le' mody</em>",
   s1t: "\u0412\u044b\u0431\u0435\u0440\u0438\u0442\u0435 \u0443\u0441\u043b\u0443\u0433\u0443",
   s1d: "\u041f\u0440\u043e\u0441\u043c\u0430\u0442\u0440\u0438\u0432\u0430\u0439\u0442\u0435 \u043f\u043e \u043a\u0430\u0442\u0435\u0433\u043e\u0440\u0438\u0438, \u0440\u0435\u0439\u0442\u0438\u043d\u0433\u0443 \u0438 \u0446\u0435\u043d\u0435.",
   s2t: "\u0412\u044b\u0431\u0435\u0440\u0438\u0442\u0435 \u0432\u0440\u0435\u043c\u044f",
@@ -3643,7 +3500,7 @@ ru: {
   featTitle: "\u041b\u0443\u0447\u0448\u0438\u0435 <span style=\"color:var(--g)\">\u0441\u043f\u0435\u0446\u0438\u0430\u043b\u0438\u0441\u0442\u044b</span>",
   proTag: "\uD83D\uDC85 \u0414\u043b\u044f \u0441\u043f\u0435\u0446\u0438\u0430\u043b\u0438\u0441\u0442\u043e\u0432",
   proTitle: "\u0412\u044b \u0441\u043f\u0435\u0446\u0438\u0430\u043b\u0438\u0441\u0442 \u043f\u043e \u043a\u0440\u0430\u0441\u043e\u0442\u0435 \u0432 \u0422\u0431\u0438\u043b\u0438\u0441\u0438?",
-  proSub: "\u041f\u0440\u0438\u0441\u043e\u0435\u0434\u0438\u043d\u044f\u0439\u0442\u0435\u0441\u044c \u043a AMODY \u2014 \u0441\u0432\u043e\u0451 \u0440\u0430\u0441\u043f\u0438\u0441\u0430\u043d\u0438\u0435, 95% \u0434\u043e\u0445\u043e\u0434\u0430.",
+  proSub: "\u041f\u0440\u0438\u0441\u043e\u0435\u0434\u0438\u043d\u044f\u0439\u0442\u0435\u0441\u044c \u043a Le' mody \u2014 \u0441\u0432\u043e\u0451 \u0440\u0430\u0441\u043f\u0438\u0441\u0430\u043d\u0438\u0435, 95% \u0434\u043e\u0445\u043e\u0434\u0430.",
   joinPro: "Регистрация",
   signIn2: "\u0412\u043e\u0439\u0442\u0438",
   fhSvc: "\u0423\u0441\u043b\u0443\u0433\u0438", fhCo: "\u041a\u043e\u043c\u043f\u0430\u043d\u0438\u044f", fhSup: "\u041f\u043e\u0434\u0434\u0435\u0440\u0436\u043a\u0430",
@@ -3795,7 +3652,7 @@ ru: {
 };
 
 // ── i18n ──────────────────────────────────────────────────────
-var lang = localStorage.getItem("amody-lang") || "en";
+var lang = localStorage.getItem("mody-lang") || "en";
 function t(k) { return (TR[lang] || TR.en)[k] || TR.en[k] || k; }
 
 // Map of element-id -> translation-key
@@ -3876,7 +3733,7 @@ function applyLang() {
 
 function setLang(l) {
   lang = l;
-  localStorage.setItem("amody-lang", l);
+  localStorage.setItem("mody-lang", l);
   document.getElementById("lsw").classList.remove("open");
   applyLang();
   updateNav();
@@ -3912,12 +3769,12 @@ async function loadSavedTranslations() {
 
 // ── ui.js ──
 // ═══════════════════════════════════════════════════════════════
-//  AMODY — UI Utilities (dark mode, pages, modals, toast, etc.)
+//  MODY — UI Utilities (dark mode, pages, modals, toast, etc.)
 //  Load order: 3 (depends on: config.js, i18n.js)
 // ═══════════════════════════════════════════════════════════════
 
 // ── DARK MODE ─────────────────────────────────────────────────
-if (localStorage.getItem("amody-dark") === "1") {
+if (localStorage.getItem("mody-dark") === "1") {
   document.documentElement.classList.add("dark");
   document.querySelector(".dm-btn") && (document.querySelector(".dm-btn").textContent = "☀️");
 }
@@ -3926,7 +3783,7 @@ function toggleDark() {
   var d = document.documentElement.classList.toggle("dark");
   var btn = document.querySelector(".dm-btn");
   if (btn) btn.textContent = d ? "☀️" : "🌙";
-  localStorage.setItem("amody-dark", d ? "1" : "0");
+  localStorage.setItem("mody-dark", d ? "1" : "0");
 }
 
 // ── HOW IT WORKS INTERACTIVE ─────────────────────────────────
@@ -4026,7 +3883,7 @@ function closeM(id) {
   if (m) m.classList.remove("on");
 }
 document.addEventListener("click", function(e) {
-  if (e.target.classList.contains("mbg") && e.target.id !== "modal-auth") e.target.classList.remove("on");
+  if (e.target.classList.contains("mbg")) e.target.classList.remove("on");
 });
 
 // ── AUTH MODAL TABS ───────────────────────────────────────────
@@ -4269,7 +4126,7 @@ function canSeePhone(bk) {
 
 // ── auth.js ──
 // ═══════════════════════════════════════════════════════════════
-//  AMODY — Authentication & User Management
+//  MODY — Authentication & User Management
 //  Load order: 4 (depends on: config.js, i18n.js, ui.js)
 // ═══════════════════════════════════════════════════════════════
 
@@ -4605,7 +4462,7 @@ function showUidBadges() {
 
 // ── chat.js ──
 // ═══════════════════════════════════════════════════════════════
-//  AMODY — Chat: Client ↔ Professional + Support Tickets
+//  MODY — Chat: Client ↔ Professional + Support Tickets
 //  Load order: 5 (depends on: config.js, ui.js, auth.js)
 // ═══════════════════════════════════════════════════════════════
 
@@ -5028,14 +4885,13 @@ async function adminOpenChat(threadId, clientName, proName) {
 
 // ── categories.js ──
 // ═══════════════════════════════════════════════════════════════
-//  AMODY — Categories, Professionals List & Filtering
+//  MODY — Categories, Professionals List & Filtering
 //  Load order: 6 (depends on: config.js, i18n.js, ui.js)
 // ═══════════════════════════════════════════════════════════════
 
 var allPros     = [].concat(DEMOS);
 var categories  = [];
 var activeFilter = "All";
-var tierFilter  = "all";
 var allSubCats  = [];
 
 // ── CATEGORY ICON HELPER (shared) ────────────────────────────
@@ -5129,10 +4985,9 @@ function renderCatGrid() {
 function renderFilterChips() {
   var el = ge("filterChips"); if (!el) return;
   var vis = visibleCats();
-  el.innerHTML = "<button class=\"fchip" + (activeFilter === "All" ? " fchip-on" : "") + "\" data-cat=\"All\" onclick=\"setFilter('All')\">" + t("viewAll") + "</button>"
+  el.innerHTML = "<button class=\"btn-sm btn-g\" style=\"font-size:16px;padding:10px 20px\" onclick=\"setFilter('All')\">" + t("viewAll") + "</button>"
     + vis.map(function(c) {
-        return "<button class=\"fchip" + (activeFilter === c.name_en ? " fchip-on" : "") + "\" data-cat=\"" + c.name_en + "\" onclick=\"setFilter('" + c.name_en + "')\">"
-             + catIcon(c, 20) + " " + catName(c) + "</button>";
+        return "<button class=\"btn-sm btn-gh\" onclick=\"setFilter('" + c.name_en + "')\" style=\"display:inline-flex;align-items:center;gap:8px;font-size:16px;padding:10px 18px\">" + catIcon(c, 42) + " " + catName(c) + "</button>";
       }).join("");
 }
 
@@ -5168,25 +5023,9 @@ async function loadPros() {
   renderPros();
 }
 
-function setFilter(cat) {
-  activeFilter = cat;
-  document.body.classList.toggle("viewing-category", cat !== "All");
-  document.querySelectorAll(".fchip").forEach(function(ch) {
-    ch.classList.toggle("fchip-on", ch.getAttribute("data-cat") === cat);
-  });
-  renderPros();
-}
-function filterGo(cat) {
-  activeFilter = cat;
-  document.body.classList.toggle("viewing-category", cat !== "All");
-  show("list"); renderFilterChips(); renderPros();
-}
-function filterGoSub(cat, sub) {
-  activeFilter = cat;
-  document.body.classList.toggle("viewing-category", cat !== "All");
-  show("list"); renderFilterChips(); renderPros(); toast("Showing: " + sub);
-}
-function setTierFilter(val) { tierFilter = val; renderPros(); }
+function setFilter(cat)   { activeFilter = cat; document.body.classList.toggle("viewing-category", cat !== "All"); renderPros(); }
+function filterGo(cat)    { activeFilter = cat; document.body.classList.toggle("viewing-category", cat !== "All"); show("list"); renderPros(); }
+function filterGoSub(cat, sub) { activeFilter = cat; document.body.classList.toggle("viewing-category", cat !== "All"); show("list"); renderPros(); toast("Showing: " + sub); }
 
 var unavailableProIds = [];
 var availFilterActive = false;
@@ -5305,13 +5144,6 @@ function renderPros() {
     filtered = filtered.filter(function(p) { return unavailableProIds.indexOf(p.id) === -1; });
   }
 
-  // Apply tier filter
-  if (tierFilter === "premium") {
-    filtered = filtered.filter(function(p) { return p.tier === "premium"; });
-  } else if (tierFilter === "standard") {
-    filtered = filtered.filter(function(p) { return p.tier !== "premium"; });
-  }
-
   // Featured section on home
   var fe = ge("featuredPros");
   if (fe) {
@@ -5323,19 +5155,6 @@ function renderPros() {
   // List page
   var le = ge("prosList");
   if (le) {
-    // Inject tier filter bar before the list (idempotent)
-    var barId = "tierFilterBar";
-    if (!ge(barId)) {
-      var bar = document.createElement("div");
-      bar.id = barId;
-      bar.className = "tier-filter-bar";
-      le.parentNode.insertBefore(bar, le);
-    }
-    var bar = ge(barId);
-    bar.innerHTML = "<button class=\"tier-pill" + (tierFilter === "all" ? " on" : "") + "\" onclick=\"setTierFilter('all')\">All Pros</button>"
-      + "<button class=\"tier-pill tp-premium" + (tierFilter === "premium" ? " on" : "") + "\" onclick=\"setTierFilter('premium')\">✦ AMODY Premium</button>"
-      + "<button class=\"tier-pill" + (tierFilter === "standard" ? " on" : "") + "\" onclick=\"setTierFilter('standard')\">◆ Standard</button>";
-
     if (!filtered.length) {
       le.innerHTML = "<p style=\"color:var(--mu);padding:20px\">" + (availFilterActive ? "No professionals available at this time. Try a different date/time." : "No professionals found.") + "</p>";
     } else {
@@ -5370,18 +5189,16 @@ function renderPros() {
 function proCard(p) {
   var img = p.avatar_url ? "<img src=\"" + p.avatar_url + "\" style=\"width:100%;height:100%;object-fit:cover\">" : "";
   var emo = p.avatar_url ? "" : p.emoji || "💅";
-  var isPrem = p.tier === "premium";
   var vBadge = p.verified
     ? "<div style=\"position:absolute;top:10px;left:10px;background:rgba(59,130,246,.9);color:#fff;padding:3px 10px;border-radius:50px;font-size:11px;font-weight:600;display:flex;align-items:center;gap:3px;backdrop-filter:blur(4px)\">✓ " + t("pcVerified") + "</div>"
     : "<div style=\"position:absolute;top:10px;left:10px;background:rgba(0,0,0,.5);color:rgba(255,255,255,.7);padding:3px 10px;border-radius:50px;font-size:11px;font-weight:500;backdrop-filter:blur(4px)\">" + t("pcUnverified") + "</div>";
-  var premBadge = isPrem ? " <span class=\"badge-premium\">✦ AMODY Premium</span>" : "";
-  return "<div class=\"pro-card" + (isPrem ? " tier-premium" : "") + "\" onclick=\"viewPro('" + p.id + "')\">"
+  return "<div class=\"pro-card\" onclick=\"viewPro('" + p.id + "')\">"
        + "<div class=\"pro-img\" style=\"position:relative\">" + img + emo + vBadge + "</div>"
        + "<div style=\"padding:16px\">"
        + "<div style=\"display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px\">"
        + "<div style=\"font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:700;line-height:1.15\">" + proName(p) + "</div>"
        + "<span class=\"bdg bdg-g\" style=\"font-size:15px;padding:4px 10px\">★ " + p.rating + "</span></div>"
-       + "<div style=\"font-size:18px;color:var(--mu);margin-bottom:10px;font-weight:500\">" + proSpec(p) + " · " + proArea(p) + premBadge + "</div>"
+       + "<div style=\"font-size:18px;color:var(--mu);margin-bottom:10px;font-weight:500\">" + proSpec(p) + " · " + proArea(p) + "</div>"
        + "<div style=\"display:flex;justify-content:space-between;font-size:17px\">"
        + "<span style=\"color:var(--mu)\">" + p.review_count + " " + t("pcReviews") + "</span>"
        + "<span style=\"font-size:20px\">" + t("pcFrom") + " <strong>" + p.price_from + "₾</strong></span></div>"
@@ -5391,28 +5208,23 @@ function proCard(p) {
 function proListCard(p) {
   var img = p.avatar_url ? "<img src=\"" + p.avatar_url + "\" style=\"width:100%;height:100%;object-fit:cover\">" : "";
   var emo = p.avatar_url ? "" : p.emoji || "💅";
-  var isPrem = p.tier === "premium";
   var vTag = p.verified
     ? "<span class=\"vbadge\" style=\"font-size:12px;padding:3px 9px\">" + t("pcVerified") + "</span>"
     : "<span style=\"display:inline-flex;align-items:center;gap:3px;background:rgba(150,150,150,.1);color:var(--mu);border:1px solid rgba(150,150,150,.25);padding:2px 8px;border-radius:50px;font-size:11px\">" + t("pcUnverified") + "</span>";
-  var premBadge = isPrem ? "<span class=\"badge-premium\" style=\"margin-left:4px\">✦ AMODY Premium</span>" : "";
   var isOutRegion = clientRegion && p.area && p.area !== clientRegion;
   var crossFeeAmt = isOutRegion ? (parseInt(p.cross_region_fee) || parseInt(settings.default_cross_region_fee) || 0) : 0;
   var crossBadge = (isOutRegion && settings.cross_region_fee_enabled !== false && crossFeeAmt > 0)
     ? "<span style=\"display:inline-flex;align-items:center;gap:3px;background:rgba(245,158,11,.12);color:#b45309;border:1px solid rgba(245,158,11,.3);padding:2px 7px;border-radius:50px;font-size:11px\">🗺 +"+crossFeeAmt+"₾ travel</span>"
     : "";
-  var borderColor = isPrem ? "rgba(212,175,55,.35)" : (isOutRegion ? "rgba(245,158,11,.2)" : "transparent");
-  var hoverColor  = isPrem ? "rgba(212,175,55,.6)"  : (isOutRegion ? "rgba(245,158,11,.5)" : "rgba(234,184,183,.4)");
-  var outColor    = isPrem ? "rgba(212,175,55,.35)" : (isOutRegion ? "rgba(245,158,11,.2)" : "transparent");
-  return "<div class=\"pro-list-card" + (isPrem ? " tier-premium" : "") + "\" style=\"background:var(--cd);border-radius:var(--r);padding:16px;display:grid;grid-template-columns:80px 1fr auto;gap:11px;align-items:center;box-shadow:var(--sh);cursor:pointer;transition:all .25s;border:1.5px solid " + borderColor + "\""
+  return "<div style=\"background:var(--cd);border-radius:var(--r);padding:16px;display:grid;grid-template-columns:80px 1fr auto;gap:11px;align-items:center;box-shadow:var(--sh);cursor:pointer;transition:all .25s;border:1.5px solid " + (isOutRegion ? "rgba(245,158,11,.2)" : "transparent") + "\""
        + " onclick=\"viewPro('" + p.id + "')\""
-       + " onmouseover=\"this.style.borderColor='" + hoverColor + "'\""
-       + " onmouseout=\"this.style.borderColor='" + outColor + "'\">"
+       + " onmouseover=\"this.style.borderColor='" + (isOutRegion ? "rgba(245,158,11,.5)" : "rgba(234,184,183,.4)") + "'\""
+       + " onmouseout=\"this.style.borderColor='" + (isOutRegion ? "rgba(245,158,11,.2)" : "transparent") + "'\">"
        + "<div style=\"width:80px;height:80px;background:var(--bg2);border-radius:var(--rs);display:flex;align-items:center;justify-content:center;font-size:36px;overflow:hidden;position:relative\">" + img + emo + "</div>"
        + "<div>"
        + "<div style=\"display:flex;align-items:center;gap:8px;margin-bottom:3px;flex-wrap:wrap\">"
        + "<div style=\"font-family:'Cormorant Garamond',serif;font-size:21px;font-weight:700;line-height:1.2\">" + proName(p) + "</div>"
-       + vTag + premBadge + crossBadge + "</div>"
+       + vTag + crossBadge + "</div>"
        + "<div style=\"font-size:14px;color:var(--mu);margin-bottom:5px;font-weight:500\">" + proSpec(p) + " · " + proArea(p) + "</div>"
        + "<span style=\"color:#facc15;font-size:14px;font-weight:600\">★ " + p.rating + "</span>"
        + (p.rating >= 4.9 ? "<span class=\"bdg bdg-g\" style=\"margin-left:4px\">" + t("pcTopRated") + "</span>" : "")
@@ -5427,7 +5239,7 @@ function proListCard(p) {
 
 // ── professionals.js ──
 // ═══════════════════════════════════════════════════════════════
-//  AMODY — Professional Profile View
+//  MODY — Professional Profile View
 //  Load order: 7 (depends on: config.js, i18n.js, ui.js, categories.js)
 // ═══════════════════════════════════════════════════════════════
 
@@ -5641,7 +5453,7 @@ function pickSbTs(el) {
 
 // ── booking.js ──
 // ═══════════════════════════════════════════════════════════════
-//  AMODY — Booking Flow, Detail Modal & Reviews
+//  MODY — Booking Flow, Detail Modal & Reviews
 //  Load order: 8 (depends on: config.js, i18n.js, ui.js, auth.js)
 // ═══════════════════════════════════════════════════════════════
 
@@ -6607,7 +6419,7 @@ function isSlotPast(timeStr) {
 
 // ── client.js ──
 // ═══════════════════════════════════════════════════════════════
-//  AMODY — Client Dashboard
+//  MODY — Client Dashboard
 //  Load order: 9 (depends on: config.js, i18n.js, ui.js, auth.js, booking.js)
 // ═══════════════════════════════════════════════════════════════
 
@@ -6770,7 +6582,7 @@ async function loadClientRevs() {
 
 // ── twilio.js ──
 // ═══════════════════════════════════════════════════════════════
-//  AMODY — Twilio SMS/WhatsApp Notifications (Direct API)
+//  MODY — Twilio SMS/WhatsApp Notifications (Direct API)
 //  Load order: 11.5 (depends on: config.js, ui.js)
 //  Calls Twilio REST API directly — no edge function needed
 // ═══════════════════════════════════════════════════════════════
@@ -6785,10 +6597,10 @@ var TWILIO_MSGS = {
   completed:     function(n, d) { return "გამარჯობა " + n + ", " + d + " მომსახურება დასრულდა! ⭐"; },
   cancelled:     function()     { return "ბოდიშს გიხდით, თქვენი ჯავშანი გაუქმებულია."; },
   declined:      function(n, d) { return "გამარჯობა " + n + ", სამწუხაროდ სპეციალისტმა ვერ მიიღო " + d + " ჯავშანი."; },
-  pro_new:       function(n, d) { return "გამარჯობა " + n + ", ახალი ჯავშანი: " + d + ". გთხოვთ გახსნათ AMODY. 📋"; },
+  pro_new:       function(n, d) { return "გამარჯობა " + n + ", ახალი ჯავშანი: " + d + ". გთხოვთ გახსნათ Le' mody. 📋"; },
   pro_cancelled: function(n, d) { return "გამარჯობა " + n + ", ჯავშანი " + d + " გაუქმებულია. ❌"; },
   pro_completed: function(n, d) { return "გამარჯობა " + n + ", " + d + " შესრულდა! გმადლობთ. ✅"; },
-  travel_fee_request:  function(n, d) { return "გამარჯობა " + n + ", სპეციალისტი " + d + ". გთხოვთ გახსნათ AMODY და დაადასტუროთ. 🚗"; },
+  travel_fee_request:  function(n, d) { return "გამარჯობა " + n + ", სპეციალისტი " + d + ". გთხოვთ გახსნათ Le' mody და დაადასტუროთ. 🚗"; },
   travel_fee_approved: function(n, d) { return "გამარჯობა " + n + ", კლიენტმა " + d + " დაადასტურა. ✓"; },
   travel_fee_declined: function(n, d) { return "გამარჯობა " + n + ", კლიენტმა " + d + " გზის გადასახადი უარყო. ❌"; },
   custom:        function(n, d) { return d; }
@@ -6808,7 +6620,7 @@ async function sendTwilioNotification(phone, type, name, details) {
 
   // Build message text
   var msgFn = TWILIO_MSGS[type];
-  var text = msgFn ? msgFn(name || "კლიენტო", details || "") : "AMODY: " + (details || type);
+  var text = msgFn ? msgFn(name || "კლიენტო", details || "") : "Le' mody: " + (details || type);
 
   // Clean phone number
   var clean = phone.replace(/[\s\-()]/g, "");
@@ -6909,7 +6721,7 @@ async function testTwilio() {
         "Content-Type": "application/x-www-form-urlencoded",
         "Authorization": "Basic " + btoa(sid + ":" + token)
       },
-      body: "To=" + encodeURIComponent(to) + "&From=" + encodeURIComponent(fromNum) + "&Body=" + encodeURIComponent("AMODY Twilio test ✅")
+      body: "To=" + encodeURIComponent(to) + "&From=" + encodeURIComponent(fromNum) + "&Body=" + encodeURIComponent("Le' mody Twilio test ✅")
     });
     var data = await r.json();
     if (r.ok) toast("Test message sent! Check your phone.", "ok");
@@ -6922,7 +6734,7 @@ async function testTwilio() {
 // ── SIMULTANEOUS MULTI-PRO BOOKING ALERT ──────────────────
 async function notifyAdminSimultaneous(newBk, otherBks) {
   var adminPhone = settings.admin_phone || "";
-  var msg = "⚠️ AMODY: " + (newBk.client_name || "A client") + " has booked MULTIPLE professionals simultaneously on " + (newBk.time_slot || "").split(" ")[0] + ":\n"
+  var msg = "⚠️ Le' mody: " + (newBk.client_name || "A client") + " has booked MULTIPLE professionals simultaneously on " + (newBk.time_slot || "").split(" ")[0] + ":\n"
     + "NEW: " + newBk.pro_name + " — " + newBk.service_name + " at " + (newBk.time_slot || "").split(" ")[1] + "\n"
     + otherBks.map(function(b) { return "ALSO: " + b.pro_name + " — " + b.service_name + " at " + (b.time_slot || "").split(" ")[1]; }).join("\n");
 
@@ -6957,7 +6769,7 @@ async function notifyAdminSimultaneous(newBk, otherBks) {
 
 // ── tracking.js ──
 // ═══════════════════════════════════════════════════════════════
-//  AMODY — Floating Tracker & Live Location
+//  MODY — Floating Tracker & Live Location
 //  Load order: 12 (depends on: config.js, ui.js)
 // ═══════════════════════════════════════════════════════════════
 
@@ -7217,7 +7029,7 @@ function cleanupClientMaps() {
 
 // ── realtime.js ──
 // ═══════════════════════════════════════════════════════════════
-//  AMODY — Supabase Realtime Subscriptions
+//  MODY — Supabase Realtime Subscriptions
 //  Load order: 13 (depends on: config.js, dashboards)
 // ═══════════════════════════════════════════════════════════════
 
@@ -7282,7 +7094,7 @@ function subscribeRealtime() {
         // Notify via browser notification if permitted
         if (typeof Notification !== "undefined" && Notification.permission === "granted") {
           try {
-            new Notification("AMODY — " + senderName, { body: preview, icon: "/favicon.ico" });
+            new Notification("Le' mody — " + senderName, { body: preview, icon: "/favicon.ico" });
           } catch(e) { console.warn('[startTracker] Notification API:', e); }
         }
       })
@@ -7305,7 +7117,7 @@ function subscribeRealtime() {
 
 // ── app.js ──
 // ═══════════════════════════════════════════════════════════════
-//  AMODY — Application Entry Point
+//  MODY — Application Entry Point
 //  Load order: 14 (last — depends on all other modules)
 // ═══════════════════════════════════════════════════════════════
 
@@ -7374,7 +7186,7 @@ init();
 
 // ── admin.js (normally lazy-loaded) ──
 // ═══════════════════════════════════════════════════════════════
-//  AMODY — Admin Panel
+//  MODY — Admin Panel
 //  Load order: 11 (depends on: config.js, i18n.js, ui.js, auth.js)
 // ═══════════════════════════════════════════════════════════════
 
@@ -8435,7 +8247,7 @@ async function exportAnalyticsExcel() {
     var clients = profs.filter(function(p) { return !p.role || p.role === "client"; });
 
     var sumRows = [
-      ["AMODY Platform Analytics Report"],
+      ["Le' mody Platform Analytics Report"],
       ["Generated", new Date().toLocaleString()],
       [""],
       ["KEY METRICS",""],
@@ -8650,7 +8462,7 @@ async function exportAnalyticsExcel() {
     var url = URL.createObjectURL(blob);
     var a = document.createElement("a");
     a.href = url;
-    a.download = "AMODY_Analytics_" + new Date().toISOString().slice(0,10) + ".xls";
+    a.download = "LeMody_Analytics_" + new Date().toISOString().slice(0,10) + ".xls";
     a.click();
     URL.revokeObjectURL(url);
     toast("Full report exported!", "ok");
@@ -9624,7 +9436,7 @@ async function processRetentionQueue() {
       try {
         var msg = "Hi " + (item.client_name || "there") + "! It's been a while since your last "
           + (item.service_name || "appointment") + " with " + (item.pro_name || "us")
-          + ". Time to treat yourself again? Book at AMODY 💅";
+          + ". Time to treat yourself again? Book at Le' mody 💅";
         await sendTwilioNotification(item.client_phone, "custom", item.client_name, msg);
         await sb.from("retention_queue").update({ status: "sent", sent_at: new Date().toISOString() }).eq("id", item.id);
         sent++;
@@ -9639,7 +9451,7 @@ async function processRetentionQueue() {
 
 // ── professional.js (normally lazy-loaded) ──
 // ═══════════════════════════════════════════════════════════════
-//  AMODY — Professional Dashboard
+//  MODY — Professional Dashboard
 //  Load order: 10 (depends on: config.js, i18n.js, ui.js, auth.js, booking.js)
 // ═══════════════════════════════════════════════════════════════
 

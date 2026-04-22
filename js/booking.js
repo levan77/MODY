@@ -13,12 +13,6 @@ var selNailColors = [];
 var promoApplied  = null;
 var promoDisc     = 0;
 
-// ── TRAVEL FEE ────────────────────────────────────────────────
-// Flat fee applied when the client's delivery district differs from the
-// professional's home region. Admins can override per-booking via the
-// existing travel_fee_requested flow; this constant covers the auto-detect.
-var TRAVEL_FEE = 15; // GEL
-
 // ── MULTI-SERVICE HELPERS ─────────────────────────────────────
 function selSvcPro()      { return selSvcs[0] || { proId: null, proName: "", proSpec: "" }; }
 function selSvcTotal()    { return selSvcs.reduce(function(s, x) { return s + x.price; }, 0); }
@@ -209,26 +203,8 @@ function clearPromo() {
   updateBkTotal();
 }
 
-function calcTravelFee() {
-  var clientRegion = ge("bkDist") ? ge("bkDist").value : "";
-  if (!clientRegion) return 0;
-  var pro = allPros.find(function(p) { return p.id === selSvcPro().proId; });
-  var proRegion = pro ? (pro.region || pro.area || "") : "";
-  return (proRegion && clientRegion !== proRegion) ? TRAVEL_FEE : 0;
-}
-
 function updateBkTotal() {
-  var fee   = calcTravelFee();
-  var total = selSvcTotal() - promoDisc + 5 + fee;
-
-  // Show / hide the cross-region travel fee row
-  var tfRow = ge("bkCrossRegRow");
-  if (tfRow) {
-    tfRow.style.display = fee > 0 ? "flex" : "none";
-    var tfAmt = ge("bkCrossRegAmt");
-    if (tfAmt) tfAmt.textContent = "+" + fee + "₾";
-  }
-
+  var total = selSvcTotal() - promoDisc + 5;
   var bt = ge("bkTotal"); if (bt) bt.textContent = total + "₾";
   var cb = ge("confirmBtn"); if (cb) cb.textContent = t("confirmBtnTxt") + " — " + total + "₾";
 }

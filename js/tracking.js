@@ -9,7 +9,6 @@ function toggleTrackerMin() {
   trackerMinimized = !trackerMinimized;
   var el = ge("fTracker");
   if (el) {
-    el.classList.toggle("ft-minimized", trackerMinimized);
     var body = el.querySelector(".ft-body");
     var toggle = el.querySelector(".ft-toggle");
     if (trackerMinimized) {

@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════════════════════════════
-//  AMODY — Professional Dashboard
+//  MODY — Professional Dashboard
 //  Load order: 10 (depends on: config.js, i18n.js, ui.js, auth.js, booking.js)
 // ═══════════════════════════════════════════════════════════════
 
@@ -67,8 +67,7 @@ async function loadProDash() {
     if (ge("pEditName"))  ge("pEditName").value  = pro.name;
     if (ge("pEditSpec"))  ge("pEditSpec").value  = pro.specialty;
     if (ge("pEditBio"))   ge("pEditBio").value   = pro.bio || "";
-    if (ge("pEditArea"))   ge("pEditArea").value   = pro.area || "Vake";
-    if (ge("pEditRegion")) ge("pEditRegion").value = pro.region || "";
+    if (ge("pEditArea"))  ge("pEditArea").value  = pro.area || "Vake";
     if (ge("pEditPrice")) ge("pEditPrice").value = pro.price_from || "";
     if (ge("pEditYears")) ge("pEditYears").value = pro.years_experience || "";
     if (ge("pEditBuffer")) { ge("pEditBuffer").value = pro.travel_buffer || 60; var bv = ge("pBufferVal"); if (bv) bv.textContent = (pro.travel_buffer || 60) + " min"; }
@@ -282,8 +281,7 @@ async function saveProProfile() {
   var name  = ge("pEditName").value.trim();
   var spec  = ge("pEditSpec").value;
   var bio   = ge("pEditBio").value.trim();
-  var area   = ge("pEditArea").value;
-  var region = ge("pEditRegion") ? (ge("pEditRegion").value || null) : null;
+  var area  = ge("pEditArea").value;
   var price = parseInt(ge("pEditPrice").value) || 0;
   var years = parseInt(ge("pEditYears").value) || null;
   var buffer = parseInt(ge("pEditBuffer").value) || 60;
@@ -309,11 +307,11 @@ async function saveProProfile() {
     var r;
     if (proId) {
       r = await sb.from("professionals").update({
-        name: name, specialty: spec, bio: bio, area: area, region: region, price_from: price, years_experience: years, travel_buffer: buffer, work_start: workStart, work_end: workEnd, status: "pending"
+        name: name, specialty: spec, bio: bio, area: area, price_from: price, years_experience: years, travel_buffer: buffer, work_start: workStart, work_end: workEnd, status: "pending"
       }).eq("id", proId).select();
     } else {
       r = await sb.from("professionals").insert({
-        user_id: user.id, name: name, specialty: spec, bio: bio, area: area, region: region, price_from: price, years_experience: years, travel_buffer: buffer, work_start: workStart, work_end: workEnd, status: "pending"
+        user_id: user.id, name: name, specialty: spec, bio: bio, area: area, price_from: price, years_experience: years, travel_buffer: buffer, work_start: workStart, work_end: workEnd, status: "pending"
       }).select().single();
       if (r.data && r.data.id) {
         proId = r.data.id;
