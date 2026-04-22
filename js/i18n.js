@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════════════════════════════
-//  Le' mody — Internationalization (i18n)
+//  AMODY — Internationalization (i18n)
 //  Load order: 2 (depends on: config.js)
 // ═══════════════════════════════════════════════════════════════
 
@@ -16,14 +16,14 @@ en: {
   catTitle: "Browse by <span style=\"color:var(--g)\">service</span>",
   catSub: "What are you looking for today?",
   viewAll: "View all", seeAll: "See all",
-  howTitle: "How <em style=\"font-style:italic;color:var(--g)\">Le' mody</em> works",
+  howTitle: "How <em style=\"font-style:italic;color:var(--g)\">AMODY</em> works",
   s1t: "Choose a service", s1d: "Browse professionals by category, rating, and price.",
   s2t: "Pick a time", s2d: "Book ASAP or schedule ahead up to 30 days.",
   s3t: "Professional arrives", s3d: "Your certified pro comes to your door, fully equipped.",
   featTitle: "Featured <span style=\"color:var(--g)\">professionals</span>",
   proTag: "\uD83D\uDC85 For Professionals",
   proTitle: "Are you a beauty professional in Tbilisi?",
-  proSub: "Join Le' mody \u2014 set your own hours, manage bookings, keep 95% of earnings.",
+  proSub: "Join AMODY \u2014 set your own hours, manage bookings, keep 95% of earnings.",
   joinPro: "Sign Up", signIn2: "Sign In",
   fhSvc: "Services", fhCo: "Company", fhSup: "Support",
   footerTag: "Tbilisi\u2019s premium at-home beauty platform.",
@@ -176,7 +176,7 @@ ka: {
   catTitle: "\u10d3\u10d0\u10d0\u10d7\u10d5\u10d0\u10da\u10d8\u10d4\u10e0\u10d4 <span style=\"color:var(--g)\">\u10e1\u10d4\u10e0\u10d5\u10d8\u10e1\u10d8\u10e1</span> \u10db\u10d8\u10ee\u10d4\u10d3\u10d5\u10d8\u10d7",
   catSub: "\u10e0\u10d0 \u10d2\u10ed\u10d8\u10e0\u10d3\u10d4\u10d1\u10d0 \u10d3\u10d8\u10da\u10d4\u10e1?",
   viewAll: "\u10e7\u10d5\u10d4\u10da\u10d0", seeAll: "\u10e7\u10d5\u10d4\u10da\u10d0",
-  howTitle: "\u10e0\u10dd\u10d2\u10dd\u10e0 \u10db\u10e3\u10e8\u10d0\u10dd\u10d1\u10e1 <em style=\"font-style:italic;color:var(--g)\">Le' mody</em>",
+  howTitle: "\u10e0\u10dd\u10d2\u10dd\u10e0 \u10db\u10e3\u10e8\u10d0\u10dd\u10d1\u10e1 <em style=\"font-style:italic;color:var(--g)\">AMODY</em>",
   s1t: "\u10d0\u10d8\u10e0\u10e9\u10d8\u10d4 \u10e1\u10d4\u10e0\u10d5\u10d8\u10e1\u10d8",
   s1d: "\u10d3\u10d0\u10d0\u10d7\u10d5\u10d0\u10da\u10d8\u10d4\u10e0\u10d4 \u10d9\u10d0\u10e2\u10d4\u10d2\u10dd\u10e0\u10d8\u10d8\u10e1, \u10e8\u10d4\u10e4\u10d0\u10e1\u10d4\u10d1\u10d8\u10e1 \u10d3\u10d0 \u10e4\u10d0\u10e1\u10d8\u10e1 \u10db\u10d8\u10ee\u10d4\u10d3\u10d5\u10d8\u10d7.",
   s2t: "\u10d0\u10d8\u10e0\u10e9\u10d8\u10d4 \u10d3\u10e0\u10dd",
@@ -186,7 +186,7 @@ ka: {
   featTitle: "\u10d2\u10d0\u10db\u10dd\u10e0\u10e9\u10d4\u10e3\u10da\u10d8 <span style=\"color:var(--g)\">\u10e1\u10de\u10d4\u10ea\u10d8\u10d0\u10da\u10d8\u10e1\u10e2\u10d4\u10d1\u10d8</span>",
   proTag: "\uD83D\uDC85 \u10e1\u10de\u10d4\u10ea\u10d8\u10d0\u10da\u10d8\u10e1\u10e2\u10d4\u10d1\u10d8\u10e1\u10d7\u10d5\u10d8\u10e1",
   proTitle: "\u10ee\u10d0\u10e0 \u10e1\u10d8\u10da\u10d0\u10db\u10d0\u10d6\u10d8\u10e1 \u10e1\u10de\u10d4\u10ea\u10d8\u10d0\u10da\u10d8\u10e1\u10e2\u10d8 \u10d7\u10d1\u10d8\u10da\u10d8\u10e1\u10e8\u10d8?",
-  proSub: "\u10e8\u10d4\u10e3\u10d4\u10e0\u10d7\u10d3\u10d8 Le' mody-\u10e1 \u2014 \u10e1\u10d0\u10d9\u10e3\u10d7\u10d0\u10e0\u10d8 \u10d2\u10d0\u10dc\u10e0\u10d8\u10d2\u10d8, \u10e8\u10d4\u10d8\u10dc\u10d0\u10ee\u10d4 95%.",
+  proSub: "\u10e8\u10d4\u10e3\u10d4\u10e0\u10d7\u10d3\u10d8 AMODY-\u10e1 \u2014 \u10e1\u10d0\u10d9\u10e3\u10d7\u10d0\u10e0\u10d8 \u10d2\u10d0\u10dc\u10e0\u10d8\u10d2\u10d8, \u10e8\u10d4\u10d8\u10dc\u10d0\u10ee\u10d4 95%.",
   joinPro: "რეგისტრაცია",
   signIn2: "\u10e8\u10d4\u10e1\u10d5\u10da\u10d0",
   fhSvc: "\u10e1\u10d4\u10e0\u10d5\u10d8\u10e1\u10d4\u10d1\u10d8",
@@ -352,7 +352,7 @@ ru: {
   catTitle: "\u0412\u044b\u0431\u0440\u0430\u0442\u044c \u043f\u043e <span style=\"color:var(--g)\">\u0443\u0441\u043b\u0443\u0433\u0435</span>",
   catSub: "\u0427\u0442\u043e \u0432\u0430\u043c \u043d\u0443\u0436\u043d\u043e \u0441\u0435\u0433\u043e\u0434\u043d\u044f?",
   viewAll: "\u0412\u0441\u0435", seeAll: "\u0412\u0441\u0435",
-  howTitle: "\u041a\u0430\u043a \u0440\u0430\u0431\u043e\u0442\u0430\u0435\u0442 <em style=\"font-style:italic;color:var(--g)\">Le' mody</em>",
+  howTitle: "\u041a\u0430\u043a \u0440\u0430\u0431\u043e\u0442\u0430\u0435\u0442 <em style=\"font-style:italic;color:var(--g)\">AMODY</em>",
   s1t: "\u0412\u044b\u0431\u0435\u0440\u0438\u0442\u0435 \u0443\u0441\u043b\u0443\u0433\u0443",
   s1d: "\u041f\u0440\u043e\u0441\u043c\u0430\u0442\u0440\u0438\u0432\u0430\u0439\u0442\u0435 \u043f\u043e \u043a\u0430\u0442\u0435\u0433\u043e\u0440\u0438\u0438, \u0440\u0435\u0439\u0442\u0438\u043d\u0433\u0443 \u0438 \u0446\u0435\u043d\u0435.",
   s2t: "\u0412\u044b\u0431\u0435\u0440\u0438\u0442\u0435 \u0432\u0440\u0435\u043c\u044f",
@@ -362,7 +362,7 @@ ru: {
   featTitle: "\u041b\u0443\u0447\u0448\u0438\u0435 <span style=\"color:var(--g)\">\u0441\u043f\u0435\u0446\u0438\u0430\u043b\u0438\u0441\u0442\u044b</span>",
   proTag: "\uD83D\uDC85 \u0414\u043b\u044f \u0441\u043f\u0435\u0446\u0438\u0430\u043b\u0438\u0441\u0442\u043e\u0432",
   proTitle: "\u0412\u044b \u0441\u043f\u0435\u0446\u0438\u0430\u043b\u0438\u0441\u0442 \u043f\u043e \u043a\u0440\u0430\u0441\u043e\u0442\u0435 \u0432 \u0422\u0431\u0438\u043b\u0438\u0441\u0438?",
-  proSub: "\u041f\u0440\u0438\u0441\u043e\u0435\u0434\u0438\u043d\u044f\u0439\u0442\u0435\u0441\u044c \u043a Le' mody \u2014 \u0441\u0432\u043e\u0451 \u0440\u0430\u0441\u043f\u0438\u0441\u0430\u043d\u0438\u0435, 95% \u0434\u043e\u0445\u043e\u0434\u0430.",
+  proSub: "\u041f\u0440\u0438\u0441\u043e\u0435\u0434\u0438\u043d\u044f\u0439\u0442\u0435\u0441\u044c \u043a AMODY \u2014 \u0441\u0432\u043e\u0451 \u0440\u0430\u0441\u043f\u0438\u0441\u0430\u043d\u0438\u0435, 95% \u0434\u043e\u0445\u043e\u0434\u0430.",
   joinPro: "Регистрация",
   signIn2: "\u0412\u043e\u0439\u0442\u0438",
   fhSvc: "\u0423\u0441\u043b\u0443\u0433\u0438", fhCo: "\u041a\u043e\u043c\u043f\u0430\u043d\u0438\u044f", fhSup: "\u041f\u043e\u0434\u0434\u0435\u0440\u0436\u043a\u0430",

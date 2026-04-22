@@ -14,10 +14,10 @@ var TWILIO_MSGS = {
   completed:     function(n, d) { return "გამარჯობა " + n + ", " + d + " მომსახურება დასრულდა! ⭐"; },
   cancelled:     function()     { return "ბოდიშს გიხდით, თქვენი ჯავშანი გაუქმებულია."; },
   declined:      function(n, d) { return "გამარჯობა " + n + ", სამწუხაროდ სპეციალისტმა ვერ მიიღო " + d + " ჯავშანი."; },
-  pro_new:       function(n, d) { return "გამარჯობა " + n + ", ახალი ჯავშანი: " + d + ". გთხოვთ გახსნათ Le' mody. 📋"; },
+  pro_new:       function(n, d) { return "გამარჯობა " + n + ", ახალი ჯავშანი: " + d + ". გთხოვთ გახსნათ AMODY. 📋"; },
   pro_cancelled: function(n, d) { return "გამარჯობა " + n + ", ჯავშანი " + d + " გაუქმებულია. ❌"; },
   pro_completed: function(n, d) { return "გამარჯობა " + n + ", " + d + " შესრულდა! გმადლობთ. ✅"; },
-  travel_fee_request:  function(n, d) { return "გამარჯობა " + n + ", სპეციალისტი " + d + ". გთხოვთ გახსნათ Le' mody და დაადასტუროთ. 🚗"; },
+  travel_fee_request:  function(n, d) { return "გამარჯობა " + n + ", სპეციალისტი " + d + ". გთხოვთ გახსნათ AMODY და დაადასტუროთ. 🚗"; },
   travel_fee_approved: function(n, d) { return "გამარჯობა " + n + ", კლიენტმა " + d + " დაადასტურა. ✓"; },
   travel_fee_declined: function(n, d) { return "გამარჯობა " + n + ", კლიენტმა " + d + " გზის გადასახადი უარყო. ❌"; },
   custom:        function(n, d) { return d; }
@@ -37,7 +37,7 @@ async function sendTwilioNotification(phone, type, name, details) {
 
   // Build message text
   var msgFn = TWILIO_MSGS[type];
-  var text = msgFn ? msgFn(name || "კლიენტო", details || "") : "Le' mody: " + (details || type);
+  var text = msgFn ? msgFn(name || "კლიენტო", details || "") : "AMODY: " + (details || type);
 
   // Clean phone number
   var clean = phone.replace(/[\s\-()]/g, "");
@@ -138,7 +138,7 @@ async function testTwilio() {
         "Content-Type": "application/x-www-form-urlencoded",
         "Authorization": "Basic " + btoa(sid + ":" + token)
       },
-      body: "To=" + encodeURIComponent(to) + "&From=" + encodeURIComponent(fromNum) + "&Body=" + encodeURIComponent("Le' mody Twilio test ✅")
+      body: "To=" + encodeURIComponent(to) + "&From=" + encodeURIComponent(fromNum) + "&Body=" + encodeURIComponent("AMODY Twilio test ✅")
     });
     var data = await r.json();
     if (r.ok) toast("Test message sent! Check your phone.", "ok");
@@ -151,7 +151,7 @@ async function testTwilio() {
 // ── SIMULTANEOUS MULTI-PRO BOOKING ALERT ──────────────────
 async function notifyAdminSimultaneous(newBk, otherBks) {
   var adminPhone = settings.admin_phone || "";
-  var msg = "⚠️ Le' mody: " + (newBk.client_name || "A client") + " has booked MULTIPLE professionals simultaneously on " + (newBk.time_slot || "").split(" ")[0] + ":\n"
+  var msg = "⚠️ AMODY: " + (newBk.client_name || "A client") + " has booked MULTIPLE professionals simultaneously on " + (newBk.time_slot || "").split(" ")[0] + ":\n"
     + "NEW: " + newBk.pro_name + " — " + newBk.service_name + " at " + (newBk.time_slot || "").split(" ")[1] + "\n"
     + otherBks.map(function(b) { return "ALSO: " + b.pro_name + " — " + b.service_name + " at " + (b.time_slot || "").split(" ")[1]; }).join("\n");
 
