@@ -68,26 +68,34 @@ export async function handleInitiate(request, env) {
     return json({ error: 'Encryption failed' }, 500);
   }
 
+  const keepzReqBody = JSON.stringify({
+    identifier: env.KEEPZ_IDENTIFIER,
+    encryptedData,
+    encryptedKeys,
+  });
+
   let keepzRes;
   try {
     keepzRes = await fetch(env.KEEPZ_API_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        identifier: env.KEEPZ_IDENTIFIER,
-        encryptedData,
-        encryptedKeys,
-      }),
+      body: keepzReqBody,
     });
   } catch (err) {
     console.error('Keepz API request error:', err);
-    return json({ error: 'Failed to reach Keepz API' }, 502);
+    return json({ error: 'Failed to reach Keepz API', detail: String(err) }, 502);
   }
 
   if (!keepzRes.ok) {
     const errText = await keepzRes.text().catch(() => '');
     console.error(`Keepz API error ${keepzRes.status}:`, errText);
-    return json({ error: 'Keepz order creation failed', keepzStatus: keepzRes.status, keepzBody: errText }, 502);
+    return json({
+      error: 'Keepz order creation failed',
+      keepzStatus: keepzRes.status,
+      keepzBody: errText,
+      sentTo: env.KEEPZ_API_URL,
+      identifierUsed: env.KEEPZ_IDENTIFIER ? `${env.KEEPZ_IDENTIFIER.slice(0, 4)}…(${env.KEEPZ_IDENTIFIER.length} chars)` : 'MISSING',
+    }, 502);
   }
 
   let keepzBody;
