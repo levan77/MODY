@@ -53,8 +53,8 @@ export async function handleInitiate(request, env) {
     amount,
     currency,
     receiverId: 'ee35dec5-19d2-453e-8793-36ad6f510da8',
-    successRedirectUrl: `${env.APP_URL}/payment-success`,
-    failRedirectUrl: `${env.APP_URL}/payment-fail`,
+    successRedirectUri: `${env.APP_URL}/payment-success`,
+    failRedirectUri: `${env.APP_URL}/payment-fail`,
     callbackUrl: `${env.APP_URL}/api/payment/webhook`,
   };
 
