@@ -1,16 +1,19 @@
 /**
  * Keepz Hybrid Encryption Utility — Web Crypto API
  *
- * Outgoing: AES-256-CBC encrypts the payload; RSA-OAEP/SHA-256 encrypts
- *           the concatenated AES key (32 b) + IV (16 b) for key transport.
+ * Per Keepz docs (developers.keepz.me/eCommerece integration/cryptography):
  *
- * Incoming: RSA-OAEP/SHA-256 decrypts the key material; AES-256-CBC
- *           decrypts the payload using the recovered key + IV.
+ * Outgoing (encryptPayload):
+ *   1. Generate random AES-256-CBC key + 16-byte IV
+ *   2. Encrypt JSON payload with AES-CBC → encryptedData (base64)
+ *   3. Base64-encode AES key → encodedKey
+ *   4. Base64-encode IV → encodedIV
+ *   5. RSA-OAEP/SHA-256 encrypt the string "encodedKey.encodedIV" → encryptedKeys (base64)
  *
- * MGF1 note: Java's OAEPWithSHA-256AndMGF1Padding uses SHA-1 for MGF1 by
- * default. Web Crypto API ties MGF1 to the same hash as the label hash.
- * Using SHA-1 here matches Java's default OAEP behaviour (hash=SHA-256, mgf1=SHA-1)
- * which is what Keepz's backend almost certainly uses.
+ * Incoming (decryptPayload):
+ *   1. RSA-OAEP/SHA-256 decrypt encryptedKeys → "encodedKey.encodedIV"
+ *   2. Split on ".", base64-decode each part → raw AES key + IV
+ *   3. AES-CBC decrypt encryptedData → JSON
  */
 
 // ─── helpers ────────────────────────────────────────────────────────────────
@@ -44,17 +47,16 @@ function fromBase64(str) {
 // ─── outgoing ───────────────────────────────────────────────────────────────
 
 /**
- * Encrypts `payload` (plain object) using Keepz's RSA public key.
+ * Encrypts `payload` using Keepz's RSA public key.
  * @param {object} payload
  * @param {string} keepzPublicKeyPem  PEM-encoded RSA public key (SPKI)
  * @returns {{ encryptedData: string, encryptedKeys: string }}  both base64
  */
 export async function encryptPayload(payload, keepzPublicKeyPem) {
-  // SHA-1 matches Java's OAEPWithSHA-256AndMGF1Padding default (SHA-1 for MGF1)
   const rsaPublicKey = await crypto.subtle.importKey(
     'spki',
     pemToArrayBuffer(keepzPublicKeyPem),
-    { name: 'RSA-OAEP', hash: 'SHA-1' },
+    { name: 'RSA-OAEP', hash: 'SHA-256' },
     false,
     ['encrypt'],
   );
@@ -73,16 +75,16 @@ export async function encryptPayload(payload, keepzPublicKeyPem) {
     new TextEncoder().encode(JSON.stringify(payload)),
   );
 
-  // Concat raw AES key (32 bytes) + IV (16 bytes) → 48-byte key material
+  // Keepz format: Base64(rawAesKey) + "." + Base64(iv) → RSA-encrypt that string
   const rawAesKey = await crypto.subtle.exportKey('raw', aesKey);
-  const keyMaterial = new Uint8Array(48);
-  keyMaterial.set(new Uint8Array(rawAesKey), 0);
-  keyMaterial.set(iv, 32);
+  const encodedKey = toBase64(rawAesKey);
+  const encodedIV = toBase64(iv.buffer);
+  const keyMaterialStr = `${encodedKey}.${encodedIV}`;
 
   const encryptedKeysBuffer = await crypto.subtle.encrypt(
     { name: 'RSA-OAEP' },
     rsaPublicKey,
-    keyMaterial,
+    new TextEncoder().encode(keyMaterialStr),
   );
 
   return {
@@ -95,7 +97,7 @@ export async function encryptPayload(payload, keepzPublicKeyPem) {
 
 /**
  * Decrypts an incoming Keepz webhook payload using AMODY's RSA private key.
- * @param {string} encryptedKeys   base64 RSA-encrypted key material
+ * @param {string} encryptedKeys   base64 RSA-encrypted "Base64Key.Base64IV"
  * @param {string} encryptedData   base64 AES-encrypted payload
  * @param {string} amodyPrivateKeyPem  PEM-encoded RSA private key (PKCS#8)
  * @returns {object}  parsed JSON payload from Keepz
@@ -109,27 +111,28 @@ export async function decryptPayload(encryptedKeys, encryptedData, amodyPrivateK
     ['decrypt'],
   );
 
+  // Decrypt → "Base64Key.Base64IV"
   const keyMaterialBuffer = await crypto.subtle.decrypt(
     { name: 'RSA-OAEP' },
     rsaPrivateKey,
     fromBase64(encryptedKeys),
   );
 
-  // Split 48-byte material: [0..31] = AES key, [32..47] = IV
-  const keyMaterial = new Uint8Array(keyMaterialBuffer);
-  const rawAesKey = keyMaterial.slice(0, 32);
-  const iv = keyMaterial.slice(32, 48);
+  const keyMaterialStr = new TextDecoder().decode(keyMaterialBuffer);
+  const dotIndex = keyMaterialStr.lastIndexOf('.');
+  const encodedKey = keyMaterialStr.slice(0, dotIndex);
+  const encodedIV = keyMaterialStr.slice(dotIndex + 1);
 
   const aesKey = await crypto.subtle.importKey(
     'raw',
-    rawAesKey,
+    fromBase64(encodedKey),
     { name: 'AES-CBC' },
     false,
     ['decrypt'],
   );
 
   const plaintextBuffer = await crypto.subtle.decrypt(
-    { name: 'AES-CBC', iv },
+    { name: 'AES-CBC', iv: fromBase64(encodedIV) },
     aesKey,
     fromBase64(encryptedData),
   );

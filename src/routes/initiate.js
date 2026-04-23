@@ -73,6 +73,7 @@ export async function handleInitiate(request, env) {
     identifier: env.KEEPZ_IDENTIFIER,
     encryptedData,
     encryptedKeys,
+    aes: true,
   });
 
   let keepzRes;
