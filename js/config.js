@@ -17,7 +17,7 @@ var DEMOS = [
     id:"d1", name:"Nino Beridze", name_ka:"ნინო ბერიძე", name_ru:"Нино Беридзе",
     specialty:"Nails", specialty_ka:"ფრჩხილები", specialty_ru:"Ногти",
     area:"Vake", area_ka:"ვაკე", area_ru:"Ваке",
-    rating:4.9, review_count:128, price_from:45, emoji:"\uD83D\uDC85", status:"approved",
+    rating:4.9, review_count:128, price_from:45, emoji:"💅", status:"approved",
     bio:"5+ years in gel and acrylic nail art. Certified by Georgian Beauty Academy.",
     bio_ka:"5+ წლიანი გამოცდილება გელ და აკრილის ფრჩხილის ხელოვნებაში.",
     bio_ru:"5+ лет опыта в гелевом и акриловом нейл-арте.",
@@ -47,7 +47,7 @@ var DEMOS = [
     id:"d2", name:"Mariam Kiknadze", name_ka:"მარიამ კიკნაძე", name_ru:"Мариам Кикнадзе",
     specialty:"Makeup", specialty_ka:"მაკიაჟი", specialty_ru:"Макияж",
     area:"Saburtalo", area_ka:"საბურთალო", area_ru:"Сабуртало",
-    rating:4.8, review_count:94, price_from:60, emoji:"\uD83D\uDC84", status:"approved",
+    rating:4.8, review_count:94, price_from:60, emoji:"💄", status:"approved",
     bio:"Bridal and editorial makeup specialist. 200+ brides served across Georgia.",
     bio_ka:"საქორწილო და სარედაქციო მაკიაჟის სპეციალისტი. 200+ პატარძალი მთელ საქართველოში.",
     bio_ru:"Специалист по свадебному и редакционному макияжу. 200+ невест по всей Грузии.",
@@ -58,7 +58,7 @@ var DEMOS = [
     ],
     portfolio:[
       "https://images.unsplash.com/photo-1487412947147-5cebf100ffc2?w=400",
-      "https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=400",
+      "https://images.unsplash.com/photo-1522337660859-02fbefca4702?w=400",
       "https://images.unsplash.com/photo-1519415943484-9fa1873496d4?w=400"
     ]
   },
@@ -66,7 +66,7 @@ var DEMOS = [
     id:"d3", name:"Tamar Jibladze", name_ka:"თამარ ჯიბლაძე", name_ru:"Тамар Джибладзе",
     specialty:"Hair", specialty_ka:"თმა", specialty_ru:"Волосы",
     area:"Isani", area_ka:"ისანი", area_ru:"Исани",
-    rating:4.7, review_count:67, price_from:40, emoji:"\uD83D\uDC87", status:"approved",
+    rating:4.7, review_count:67, price_from:40, emoji:"💇", status:"approved",
     bio:"Hair styling expert — blowouts, braids, and color treatments.",
     bio_ka:"თმის სტილისტი — უტყუარი, წნული და ფერის მკურნალობა.",
     bio_ru:"Эксперт по укладке волос — укладки, косы и окрашивание.",
@@ -84,7 +84,7 @@ var DEMOS = [
     id:"d4", name:"Keti Lomidze", name_ka:"ქეთი ლომიძე", name_ru:"Кети Ломидзе",
     specialty:"Lashes", specialty_ka:"წამწამები", specialty_ru:"Ресницы",
     area:"Didi Dighomi", area_ka:"დიდი დიღომი", area_ru:"Диди Дигоми",
-    rating:5.0, review_count:210, price_from:70, emoji:"\uD83D\uDC41", status:"approved",
+    rating:5.0, review_count:210, price_from:70, emoji:"👁", status:"approved",
     bio:"Master lash technician. 5-star rating maintained for 3 years.",
     bio_ka:"მაღალი კლასის წამწამების ტექნიკოსი. 5-ვარსკვლავიანი რეიტინგი 3 წელია.",
     bio_ru:"Мастер-технолог по ресницам. 5-звёздочный рейтинг 3 года подряд.",
@@ -101,7 +101,7 @@ var DEMOS = [
     id:"d5", name:"Lika Mgeladze", name_ka:"ლიკა მგელაძე", name_ru:"Лика Мгеладзе",
     specialty:"Brows", specialty_ka:"წარბები", specialty_ru:"Брови",
     area:"Vera", area_ka:"ვერა", area_ru:"Вера",
-    rating:4.9, review_count:51, price_from:35, emoji:"\u2728", status:"approved",
+    rating:4.9, review_count:51, price_from:35, emoji:"✨", status:"approved",
     bio:"Brow design: threading, waxing, lamination, microblading.",
     bio_ka:"წარბების დიზაინი: თრედინგი, ვაქსი, ლამინირება, მიკრობლეიდინგი.",
     bio_ru:"Дизайн бровей: тридинг, воск, ламинирование, микроблейдинг.",
@@ -116,7 +116,7 @@ var DEMOS = [
     id:"d6", name:"Ana Kvariani", name_ka:"ანა კვარიანი", name_ru:"Ана Квариани",
     specialty:"Makeup", specialty_ka:"მაკიაჟი", specialty_ru:"Макияж",
     area:"Mtatsminda", area_ka:"მთაწმინდა", area_ru:"Мтацминда",
-    rating:4.9, review_count:88, price_from:70, emoji:"\uD83C\uDF1F", status:"approved",
+    rating:4.9, review_count:88, price_from:70, emoji:"🌟", status:"approved",
     bio:"Film and TV makeup artist available for private bookings.",
     bio_ka:"კინო და ტელე მაკიაჟის არტისტი, ხელმისაწვდომია პირადი ჯავშნისთვის.",
     bio_ru:"Визажист кино и ТВ, доступен для частных бронирований.",
@@ -431,10 +431,6 @@ var SETUP_SQL = [
   "",
   "-- Make yourself admin (replace YOUR_EMAIL):",
   "-- update public.profiles set role='admin' where email='YOUR_EMAIL';",
-  "",
-  "-- Keepz payment integration:",
-  "alter table public.bookings add column if not exists payment_status text not null default 'unpaid';",
-  "alter table public.bookings add column if not exists keepz_order_id text;"
 ].join("\n");
 
 function copySQL() {
