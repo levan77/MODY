@@ -507,39 +507,9 @@ async function submitBooking() {
   selNailColors = [];
   clearDesign();
 
-  // ── Initiate Keepz payment ──
-  var cb = ge("confirmBtn");
-  var origTxt = cb ? cb.textContent : "";
-  if (cb) { cb.disabled = true; cb.textContent = t("bkRedirecting"); }
-
-  try {
-    var payRes = await fetch('/api/payment/initiate', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ bookingId: insertedBk.id, amount: total, currency: 'GEL' })
-    });
-    if (!payRes.ok) {
-      var errBody = await payRes.json().catch(function() { return {}; });
-      var parts = [
-        errBody.error || "HTTP " + payRes.status,
-        errBody.keepzStatus ? "Keepz HTTP " + errBody.keepzStatus : null,
-        errBody.keepzBody || null,
-        errBody.sentTo || null,
-        errBody.identifierUsed || null,
-      ].filter(Boolean);
-      throw new Error(parts.join(" | "));
-    }
-    var payData = await payRes.json();
-    if (!payData.paymentUrl) throw new Error("No payment URL received");
-    twilioNotifyBooking(insertedBk, "new_booking");
-    window.location.href = payData.paymentUrl;
-  } catch(e) {
-    console.error("[submitBooking] payment initiate:", e);
-    // Payment failed — delete the booking so it doesn't sit as an orphaned pending
-    sb.from("bookings").delete().eq("id", insertedBk.id).then(function(){}).catch(function(){});
-    toast("Payment error: " + e.message, "err");
-    if (cb) { cb.disabled = false; cb.textContent = origTxt; }
-  }
+  twilioNotifyBooking(insertedBk, "new_booking");
+  toast(t("bkSuccess") || "Booking confirmed!", "ok");
+  closeModal("bookingModal");
 }
 
 // ── BOOKING DETAIL MODAL ──────────────────────────────────────
@@ -937,4 +907,3 @@ function isSlotPast(timeStr) {
   slotDate.setHours(parseInt(parts[0]), parseInt(parts[1] || 0), 0, 0);
   return slotDate <= now;
 }
-
