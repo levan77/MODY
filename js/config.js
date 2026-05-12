@@ -431,6 +431,10 @@ var SETUP_SQL = [
   "",
   "-- Make yourself admin (replace YOUR_EMAIL):",
   "-- update public.profiles set role='admin' where email='YOUR_EMAIL';",
+  "",
+  "-- Flitt payment integration:",
+  "alter table public.bookings add column if not exists payment_status text not null default 'unpaid';",
+  "alter table public.bookings add column if not exists flitt_order_id text;",
 ].join("\n");
 
 function copySQL() {

@@ -507,6 +507,17 @@ async function submitBooking() {
   selNailColors = [];
   clearDesign();
 
+  try {
+    const payRes = await fetch('/api/payment/initiate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ bookingId: insertedBk.id, amount: total, currency: 'GEL' }),
+    });
+    if (payRes.ok) {
+      const { checkoutUrl } = await payRes.json();
+      if (checkoutUrl) { window.location.href = checkoutUrl; return; }
+    }
+  } catch (_) {}
   twilioNotifyBooking(insertedBk, "new_booking");
   toast(t("bkSuccess") || "Booking confirmed!", "ok");
   closeModal("bookingModal");
