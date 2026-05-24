@@ -7365,6 +7365,11 @@ async function init() {
 }
 
 // ── START ─────────────────────────────────────────────────────
+// Hard safety: dismiss loading screen after 8s regardless of init state
+setTimeout(function() {
+  var ls = ge("loadingScreen");
+  if (ls) { ls.style.opacity = "0"; setTimeout(function() { if (ls.parentNode) ls.remove(); }, 500); }
+}, 8000);
 init();
 
 // ── admin.js (normally lazy-loaded) ──
