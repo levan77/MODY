@@ -5178,9 +5178,13 @@ function filterGoSub(cat, sub) { activeFilter = cat; activeServiceFilter = null;
 async function loadCategoryServices() {
   if (allCatSvcs.length) return;
   try {
-    var r = await sb.from("category_services").select("*").eq("visible", true).order("sort_order");
+    var timeout = new Promise(function(_, reject) { setTimeout(function() { reject(new Error("timeout")); }, 4000); });
+    var r = await Promise.race([
+      sb.from("category_services").select("*").eq("visible", true).order("sort_order"),
+      timeout
+    ]);
     allCatSvcs = (r.data || []);
-  } catch(e) { console.warn("[loadCategoryServices]", e); }
+  } catch(e) { console.warn("[loadCategoryServices]", e); allCatSvcs = []; }
 }
 
 function catSvcName(cs) {
