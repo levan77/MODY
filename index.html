@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -211,11 +211,19 @@ a { text-decoration: none; }
   padding: 11px 17px; border-radius: var(--rs);
   font-size: 14px; z-index: 1000;
   transform: translateX(200%); transition: transform .3s;
-  box-shadow: var(--sl); max-width: 300px; pointer-events: none;
+  box-shadow: var(--sl); max-width: min(300px, calc(100vw - 32px)); pointer-events: none;
 }
 #toast.on  { transform: translateX(0); }
 #toast.err { border-left-color: #ef4444; }
 #toast.ok  { border-left-color: #22c55e; }
+@media (max-width: 768px) {
+  .fi2 { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 640px) {
+  #toast { left: 50%; right: auto; transform: translateX(-50%) translateY(-200%); }
+  #toast.on { transform: translateX(-50%) translateY(0); }
+}
 
 /* ── MODALS ── */
 /* Overlay backdrop */
@@ -398,11 +406,14 @@ a { text-decoration: none; }
 .port-del {
   position: absolute; top: 4px; right: 4px;
   background: rgba(0,0,0,.65); color: #fff; border: none;
-  border-radius: 50%; width: 22px; height: 22px;
-  font-size: 11px; cursor: pointer; display: none;
+  border-radius: 50%; width: 36px; height: 36px; min-width: 36px; min-height: 36px;
+  font-size: 14px; cursor: pointer; display: none;
   align-items: center; justify-content: center;
 }
 .port-thumb:hover .port-del { display: flex; }
+@media (hover: none) {
+  .port-del { display: flex; opacity: 0.85; }
+}
 .port-add {
   aspect-ratio: 1; border-radius: var(--rs); border: 2px dashed var(--br);
   display: flex; flex-direction: column; align-items: center; justify-content: center;
@@ -572,7 +583,18 @@ html.dark .bk-dot-now { background: #E8E4DF; color: #1a1a1a; }
 .ts.dis  { opacity: .35; cursor: default; pointer-events: none; }
 
 /* ── MASTER CALENDAR TIMELINE ── */
-.mcal-wrap   { overflow-x: auto; }
+.mcal-wrap   { overflow-x: auto; -webkit-overflow-scrolling: touch; scroll-snap-type: x proximity; position: relative; }
+.mcal-wrap::after {
+  content: '';
+  position: absolute;
+  right: 0; top: 0; bottom: 0;
+  width: 24px;
+  background: linear-gradient(to right, transparent, var(--nv));
+  pointer-events: none;
+}
+@media (max-width: 400px) {
+  .cal-day { font-size: 11px; padding: 2px; }
+}
 .mcal-header { display: flex; align-items: flex-end; margin-bottom: 4px; }
 .mcal-row    { display: flex; align-items: center; margin-bottom: 6px; min-height: 48px; }
 .mcal-label  { width: 140px; min-width: 140px; display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 500; padding-right: 10px; }
@@ -636,7 +658,7 @@ nav {
 }
 .nav-w {
   max-width: 1200px; margin: 0 auto;
-  padding: 0 20px; height: 64px;
+  padding: env(safe-area-inset-top) 20px 0; height: calc(64px + env(safe-area-inset-top));
   display: flex; align-items: center; justify-content: space-between; gap: 12px;
 }
 .logo {
@@ -777,7 +799,10 @@ html.dark .cat-subs { background: rgba(40,40,40,.92); border-color: rgba(255,255
   border-top-color: rgba(255,255,255,.92);
 }
 html.dark .cat-subs::after { border-top-color: rgba(40,40,40,.92); }
-.cat-card:hover .cat-subs { opacity: 1; pointer-events: auto; transform: translateX(-50%) translateY(0); }
+@media (hover: hover) {
+  .cat-card:hover .cat-subs { opacity: 1; pointer-events: auto; transform: translateX(-50%) translateY(0); }
+}
+.cat-card.subs-open .cat-subs { opacity: 1; pointer-events: auto; transform: translateX(-50%) translateY(0); }
 .cat-sub-item {
   display: block; padding: 9px 18px;
   font-family: "Cormorant Garamond", serif; font-size: 17px; font-weight: 600;
@@ -884,11 +909,11 @@ footer        { background: #1A1A1A; color: rgba(255,255,255,.4); padding: 38px 
   .footer-grid  { grid-template-columns: 1fr 1fr; }
 
   /* Chat & dark-mode button */
-  .chat-wrap    { bottom: 70px; }
+  .chat-wrap    { bottom: calc(70px + env(safe-area-inset-bottom)); }
   .dm-btn       { bottom: 126px !important; }
 
   /* Floating booking tracker */
-  .ftracker     { bottom: 72px; left: 10px; right: 10px; max-width: none; width: auto; }
+  .ftracker     { bottom: calc(72px + env(safe-area-inset-bottom)); left: 10px; right: 10px; max-width: none; width: auto; }
 
   /* Nav */
   .hero h1      { font-size: clamp(28px, 5vw, 48px); }
@@ -909,6 +934,10 @@ footer        { background: #1A1A1A; color: rgba(255,255,255,.4); padding: 38px 
 /* ══════════════════════════════════════════════
    RESPONSIVE — MOBILE  (≤ 640px)
    ══════════════════════════════════════════════ */
+@media (max-width: 768px) {
+  .fi2 { grid-template-columns: 1fr; }
+}
+
 @media (max-width: 640px) {
   /* How-it-works tabs stack vertically */
   .hiw-tabs               { flex-direction: column; gap: 4px; }
@@ -928,7 +957,7 @@ footer        { background: #1A1A1A; color: rgba(255,255,255,.4); padding: 38px 
   .pros-grid .pro-card .pro-img + div > div:nth-child(2) { font-size: 13px; margin-bottom: 4px; }
   .pros-grid .pro-card .pro-img + div > div:last-child { font-size: 13px; }
   .pros-grid .pro-card .pro-img + div > div:last-child strong { font-size: 16px; }
-  .stats       { grid-template-columns: 1fr 1fr; }
+  .stats       { grid-template-columns: repeat(3, 1fr); font-size: 11px; }
   .footer-grid { grid-template-columns: 1fr; }
   .port-grid   { grid-template-columns: repeat(2, 1fr); }
   .ts-grid     { grid-template-columns: repeat(3, 1fr); }
@@ -947,7 +976,8 @@ footer        { background: #1A1A1A; color: rgba(255,255,255,.4); padding: 38px 
   .c-hdr { flex-direction: column; align-items: flex-start; gap: 6px; }
 
   /* Modals */
-  .mbox  { width: 95vw; max-width: 95vw; max-height: 90vh; margin: 16px; }
+  .mbox  { width: 95vw; max-width: 95vw; max-height: 90vh; margin: 16px; overflow-y: auto; }
+  .mbg { padding: 8px; }
 
   /* Prevent overflow */
   body { overflow-x: hidden; }
@@ -959,7 +989,7 @@ footer        { background: #1A1A1A; color: rgba(255,255,255,.4); padding: 38px 
 
   /* Booking flow */
   .bk-flow     { gap: 0; }
-  .bk-step-lbl { font-size: 7px; }
+  .bk-step-lbl { font-size: 10px; }
   .bk-dot      { width: 20px; height: 20px; font-size: 8px; }
 
   /* Admin */
@@ -1017,8 +1047,19 @@ footer        { background: #1A1A1A; color: rgba(255,255,255,.4); padding: 38px 
   .mx  { min-width: 40px; min-height: 40px; display: flex; align-items: center; justify-content: center; }
 
   /* Prevent horizontal scroll */
-  body { overflow-x: clip; }
+  body { overflow-x: hidden; overflow-x: clip; }
   .sec-w, .dash-w { overflow-x: hidden; }
+
+  /* FIX 7: Touch targets ≥ 44px WCAG AA */
+  .btn { min-height: 44px; }
+  .btn-sm { min-height: 40px; min-width: 40px; }
+  .mx { min-width: 44px; min-height: 44px; padding: 8px !important; }
+  .dm-btn { width: 44px !important; height: 44px !important; }
+  .star { min-height: 44px; min-width: 44px; display: inline-flex; align-items: center; justify-content: center; }
+  .chat-send { width: 44px !important; height: 44px !important; }
+  #filterChips .btn-sm, #serviceFilterChips .btn-sm { min-height: 40px; padding: 8px 16px !important; font-size: 14px !important; }
+  .atab { min-height: 44px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+  .cal-day { min-height: 44px !important; }
 }
 
 </style>
@@ -1060,7 +1101,7 @@ footer        { background: #1A1A1A; color: rgba(255,255,255,.4); padding: 38px 
         <button class="ltrig" onclick="toggleLdrop(event)">
           <span id="lFlag">🇬🇧</span>
           <span id="lCode" style="font-size:12px;margin-left:2px">EN</span>
-          <span style="font-size:9px;opacity:.5;margin-left:2px">▼</span>
+          <span style="font-size:11px;opacity:.5;margin-left:2px">▼</span>
         </button>
         <div class="ldrop">
           <div class="lopt on" id="lo-en" onclick="setLang('en')">🇬🇧 &nbsp;English</div>
@@ -1076,7 +1117,7 @@ footer        { background: #1A1A1A; color: rgba(255,255,255,.4); padding: 38px 
 <!-- ══ HOME ══ -->
 <div class="pg on" id="pg-home">
   <div class="hero">
-    <video class="hero-vid" autoplay muted loop playsinline>
+    <video class="hero-vid" autoplay muted loop playsinline style="background:#1A1A1A">
       <source src="https://fjlmzaecjxxbukrbohyy.supabase.co/storage/v1/object/public/assets/hero.mp4" type="video/mp4">
     </video>
     <div class="hero-w">
@@ -1209,16 +1250,16 @@ footer        { background: #1A1A1A; color: rgba(255,255,255,.4); padding: 38px 
       <h1 id="listTitle" style="font-size:24px;font-weight:300"></h1>
     </div>
   </div>
-  <div style="background:var(--nv);border-bottom:1px solid var(--br);padding:8px 20px;position:sticky;top:64px;z-index:100">
+  <div style="background:var(--nv);border-bottom:1px solid var(--br);padding:8px 20px;position:sticky;top:56px;z-index:100">
     <div style="max-width:1200px;margin:0 auto">
       <div style="display:flex;gap:10px;flex-wrap:wrap;padding:6px 0" id="filterChips"></div>
       <div id="serviceFilterChips" style="display:flex;gap:8px;flex-wrap:wrap;padding:4px 0 0"></div>
       <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:6px">
-        <select class="fi" id="clientRegionSel" style="width:140px;padding:6px 10px;font-size:13px" onchange="setClientRegion(this.value)">
+        <select class="fi" id="clientRegionSel" style="width:140px;padding:6px 10px" onchange="setClientRegion(this.value)">
           <option value="">All regions</option>
         </select>
-        <input type="date" class="fi" id="availDate" style="width:150px;padding:6px 10px;font-size:13px" onchange="filterByAvailability()">
-        <select class="fi" id="availTime" style="width:100px;padding:6px 10px;font-size:13px" onchange="filterByAvailability()">
+        <input type="date" class="fi" id="availDate" style="width:150px;padding:6px 10px" onchange="filterByAvailability()">
+        <select class="fi" id="availTime" style="width:100px;padding:6px 10px" onchange="filterByAvailability()">
           <option value="">Any time</option>
           <option>09:00</option><option>09:30</option><option>10:00</option><option>10:30</option>
           <option>11:00</option><option>11:30</option><option>12:00</option><option>13:00</option>
@@ -1295,7 +1336,7 @@ footer        { background: #1A1A1A; color: rgba(255,255,255,.4); padding: 38px 
         <div id="designPreview" style="display:none;margin-bottom:8px"></div>
         <div id="designPrompt">
           <span style="font-size:28px;display:block;margin-bottom:4px">📷</span>
-          <span style="font-size:13px;color:var(--mu)">Click or drag to upload design photo</span>
+          <span style="font-size:13px;color:var(--mu)">Tap or click to upload design photo</span>
         </div>
         <input type="file" id="designFile" accept="image/*" onchange="previewDesign(this)">
       </div>
@@ -1350,7 +1391,7 @@ footer        { background: #1A1A1A; color: rgba(255,255,255,.4); padding: 38px 
       </div>
     </div>
 
-    <button class="btn btn-g" id="confirmBtn" style="width:100%;justify-content:center;padding:12px;font-size:15px" onclick="submitBooking()"></button>
+    <button class="btn btn-g" id="confirmBtn" style="width:100%;justify-content:center;padding:14px;font-size:15px;min-height:44px" onclick="submitBooking()"></button>
     <p id="bkCancelNote" style="font-size:12px;color:var(--mu);text-align:center;margin-top:6px"></p>
   </div>
 </div>
@@ -1611,7 +1652,7 @@ footer        { background: #1A1A1A; color: rgba(255,255,255,.4); padding: 38px 
             </div>
             <p style="font-size:12px;color:var(--mu);margin-top:4px">Clients can only book within your working hours.</p>
           </div>
-          <button class="btn btn-g" onclick="saveProProfile()">Submit for Approval</button>
+          <button class="btn btn-g" onclick="saveProProfile()" style="width:100%;justify-content:center">Submit for Approval</button>
         </div>
         <div class="card" style="margin-top:12px">
           <div class="c-hdr"><h3>Cross-Region Travel Fee</h3></div>
@@ -1657,7 +1698,7 @@ footer        { background: #1A1A1A; color: rgba(255,255,255,.4); padding: 38px 
     <button class="mob-tab" onclick="pTab('cal')"><span class="mt-ico">📅</span><span id="pmMobCal"></span></button>
     <button class="mob-tab" onclick="pTab('svcs')"><span class="mt-ico">💆</span><span id="pmMobSvc"></span></button>
     <button class="mob-tab" onclick="pTab('port')"><span class="mt-ico">🖼</span><span id="pmMobPort"></span></button>
-    <button class="mob-tab" onclick="pTab('edit')"><span class="mt-ico">✏️</span><span id="pmMobProf"></span></button>
+    <button class="mob-tab" onclick="proMobMore()"><span class="mt-ico">⚙️</span>More</button>
   </div></div>
 </div>
 
@@ -2246,8 +2287,8 @@ footer        { background: #1A1A1A; color: rgba(255,255,255,.4); padding: 38px 
       <div class="atab" id="atab-pro" onclick="setAuthTab('pro')">Professional</div>
     </div>
     <div id="aForm-in">
-      <div class="fg"><label class="fl" id="lEmail1">Email</label><input class="fi" id="siE" type="email" onkeydown="if(event.key==='Enter')doSignIn()"></div>
-      <div class="fg"><label class="fl" id="lPass1">Password</label><input class="fi" id="siP" type="password" onkeydown="if(event.key==='Enter')doSignIn()"></div>
+      <div class="fg"><label class="fl" id="lEmail1">Email</label><input class="fi" id="siE" type="email" autocomplete="email" onkeydown="if(event.key==='Enter')doSignIn()"></div>
+      <div class="fg"><label class="fl" id="lPass1">Password</label><input class="fi" id="siP" type="password" autocomplete="current-password" onkeydown="if(event.key==='Enter')doSignIn()"></div>
       <div id="siErr" style="color:#ef4444;font-size:13px;min-height:16px;margin-bottom:7px"></div>
       <button class="btn btn-g" id="siBtnEl" style="width:100%;justify-content:center;padding:11px" onclick="doSignIn()">Sign In</button>
       <p style="text-align:center;margin-top:8px;font-size:13px;color:var(--mu)"><span style="color:var(--g);cursor:pointer" onclick="forgotPassword()">Forgot password?</span></p>
@@ -2255,13 +2296,13 @@ footer        { background: #1A1A1A; color: rgba(255,255,255,.4); padding: 38px 
     </div>
     <div id="aForm-client" class="hide">
       <div class="fi2">
-        <div class="fg"><label class="fl" id="lFirst2">First Name</label><input class="fi" id="scF"></div>
-        <div class="fg"><label class="fl" id="lLast2">Last Name</label><input class="fi" id="scL"></div>
+        <div class="fg"><label class="fl" id="lFirst2">First Name</label><input class="fi" id="scF" autocomplete="given-name"></div>
+        <div class="fg"><label class="fl" id="lLast2">Last Name</label><input class="fi" id="scL" autocomplete="family-name"></div>
       </div>
-      <div class="fg"><label class="fl" id="lEmail2">Email</label><input class="fi" id="scE" type="email"></div>
-      <div class="fg"><label class="fl" id="lPhone2">Phone *</label><input class="fi" id="scPh" placeholder="+995..." required></div>
+      <div class="fg"><label class="fl" id="lEmail2">Email</label><input class="fi" id="scE" type="email" autocomplete="email"></div>
+      <div class="fg"><label class="fl" id="lPhone2">Phone *</label><input class="fi" id="scPh" placeholder="+995..." autocomplete="tel" required></div>
       <div class="fg"><label class="fl">Gender *</label><select class="fi" id="scGender"><option value="">Select...</option><option value="female">Female</option><option value="male">Male</option></select></div>
-      <div class="fg"><label class="fl" id="lPass2">Password</label><input class="fi" id="scP" type="password" placeholder="6+ characters"></div>
+      <div class="fg"><label class="fl" id="lPass2">Password</label><input class="fi" id="scP" type="password" autocomplete="new-password" placeholder="6+ characters"></div>
       <div id="scErr" style="color:#ef4444;font-size:13px;min-height:16px;margin-bottom:7px"></div>
       <button class="btn btn-g" id="scBtnEl" style="width:100%;justify-content:center;padding:11px" onclick="doSignUpClient()">Create Account</button>
     </div>
@@ -3992,35 +4033,86 @@ function updateNav() {
 // ── ADMIN MORE MENU (mobile) ─────────────────────────────────
 function aMobMore() {
   var items = [
-    {icon:"👤", label:"Users",      tab:"usr"},
-    {icon:"🏷", label:"Categories", tab:"cats"},
-    {icon:"🎟", label:"Promos",     tab:"promo"},
-    {icon:"⭐", label:"Reviews",    tab:"rev"},
-    {icon:"💬", label:"Support",    tab:"sup"},
-    {icon:"⚙️", label:"Settings",   tab:"set"},
-    {icon:"🌐", label:"Translations", tab:"tr"},
-    {icon:"📈", label:"Analytics", tab:"analytics"},
-    {icon:"📝", label:"Blog", tab:"blog"}
+    {icon:"📊", label:"Overview",    tab:"ov"},
+    {icon:"✅", label:"Approvals",   tab:"app"},
+    {icon:"📋", label:"Bookings",    tab:"bks"},
+    {icon:"💅", label:"Pros",        tab:"pros"},
+    {icon:"👤", label:"Users",       tab:"usr"},
+    {icon:"🏷", label:"Categories",  tab:"cats"},
+    {icon:"🎟", label:"Promos",      tab:"promo"},
+    {icon:"⭐", label:"Reviews",     tab:"rev"},
+    {icon:"💬", label:"Support",     tab:"sup"},
+    {icon:"⚙️", label:"Settings",    tab:"set"},
+    {icon:"🌐", label:"Translations",tab:"tr"},
+    {icon:"📅", label:"MasterCal",   tab:"mcal"},
+    {icon:"🔔", label:"Notifs",      tab:"notifs"},
+    {icon:"👥", label:"CRM",         tab:"crm"},
+    {icon:"🚨", label:"Disputes",    tab:"incidents"},
+    {icon:"💸", label:"Fees",        tab:"fees"},
+    {icon:"📈", label:"Analytics",   tab:"analytics"},
+    {icon:"📝", label:"Blog",        tab:"blog"}
   ];
   var existing = ge("aMobSheet");
-  if (existing) { existing.remove(); return; }
+  if (existing) { existing.remove(); var bd = ge("aMobBackdrop"); if(bd) bd.remove(); return; }
+  var backdrop = document.createElement("div");
+  backdrop.id = "aMobBackdrop";
+  backdrop.style.cssText = "position:fixed;inset:0;z-index:355;background:rgba(0,0,0,.4)";
+  backdrop.onclick = function() { var s=ge("aMobSheet"),b=ge("aMobBackdrop"); if(s)s.remove(); if(b)b.remove(); };
+  document.body.appendChild(backdrop);
   var sheet = document.createElement("div");
   sheet.id = "aMobSheet";
-  sheet.style.cssText = "position:fixed;bottom:52px;left:0;right:0;z-index:360;background:var(--cd);border-top:1px solid var(--br);box-shadow:0 -4px 24px rgba(0,0,0,.15);padding:12px 16px;display:grid;grid-template-columns:repeat(3,1fr);gap:8px";
-  sheet.innerHTML = items.map(function(it) {
-    return "<button style=\"display:flex;flex-direction:column;align-items:center;gap:3px;padding:12px 4px;border:1px solid var(--br);border-radius:var(--rs);background:var(--bg2);color:var(--tx);cursor:pointer;font-size:12px;transition:all .2s\" onclick=\"aTab('" + it.tab + "');var s=document.getElementById('aMobSheet');if(s)s.remove()\">"
-         + "<span style=\"font-size:18px\">" + it.icon + "</span>" + it.label + "</button>";
-  }).join("");
+  sheet.style.cssText = "position:fixed;bottom:52px;left:0;right:0;z-index:360;background:var(--cd);border-top:1px solid var(--br);border-radius:16px 16px 0 0;box-shadow:0 -4px 24px rgba(0,0,0,.2);padding:16px;overflow-y:auto;max-height:70vh";
+  sheet.innerHTML = "<div style='font-size:12px;color:var(--mu);text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px;font-weight:500'>All Sections</div>"
+    + "<div style='display:grid;grid-template-columns:repeat(3,1fr);gap:8px'>"
+    + items.map(function(it) {
+        return "<button style='display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 4px;border:1px solid var(--br);border-radius:var(--rs);background:var(--bg2);color:var(--tx);cursor:pointer;font-size:11px;min-height:64px;transition:all .2s' onclick="aTab('" + it.tab + "');var s=ge('aMobSheet'),b=ge('aMobBackdrop');if(s)s.remove();if(b)b.remove()">"
+               + "<span style='font-size:20px'>" + it.icon + "</span>" + it.label + "</button>";
+      }).join("")
+    + "</div>";
   document.body.appendChild(sheet);
-  // Close on outside click
-  setTimeout(function() {
-    document.addEventListener("click", function closeSheet(e) {
-      if (!sheet.contains(e.target) && !e.target.closest(".mob-tab")) {
-        sheet.remove();
-        document.removeEventListener("click", closeSheet);
-      }
-    });
-  }, 50);
+}
+
+
+// ── CATEGORY SUBS TOGGLE (touch) ────────────────────────────
+function toggleCatSubs(event, catNameEn) {
+  event.stopPropagation();
+  var cards = document.querySelectorAll('.cat-card');
+  cards.forEach(function(card) {
+    if (card !== event.currentTarget && card !== event.target.closest('.cat-card')) {
+      card.classList.remove('subs-open');
+    }
+  });
+  var card = event.target.closest('.cat-card');
+  if (card) card.classList.toggle('subs-open');
+}
+
+// ── PRO MORE MENU (mobile) ───────────────────────────────────
+function proMobMore() {
+  var items = [
+    {icon:"✏️", label:"Profile",   tab:"edit"},
+    {icon:"💰", label:"Earnings",  tab:"earn"},
+    {icon:"⭐", label:"Reviews",   tab:"reviews"},
+    {icon:"💅", label:"Nail Colors",tab:"nailcolors"},
+    {icon:"💬", label:"Support",   tab:"sup"}
+  ];
+  var existing = ge("pMobSheet");
+  if (existing) { existing.remove(); var bd = ge("pMobBackdrop"); if(bd) bd.remove(); return; }
+  var backdrop = document.createElement("div");
+  backdrop.id = "pMobBackdrop";
+  backdrop.style.cssText = "position:fixed;inset:0;z-index:355;background:rgba(0,0,0,.4)";
+  backdrop.onclick = function() { var s=ge("pMobSheet"),b=ge("pMobBackdrop"); if(s)s.remove(); if(b)b.remove(); };
+  document.body.appendChild(backdrop);
+  var sheet = document.createElement("div");
+  sheet.id = "pMobSheet";
+  sheet.style.cssText = "position:fixed;bottom:52px;left:0;right:0;z-index:360;background:var(--cd);border-top:1px solid var(--br);border-radius:16px 16px 0 0;box-shadow:0 -4px 24px rgba(0,0,0,.2);padding:16px;overflow-y:auto;max-height:60vh";
+  sheet.innerHTML = "<div style='font-size:12px;color:var(--mu);text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px;font-weight:500'>More Options</div>"
+    + "<div style='display:grid;grid-template-columns:repeat(3,1fr);gap:8px'>"
+    + items.map(function(it) {
+        return "<button style='display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 4px;border:1px solid var(--br);border-radius:var(--rs);background:var(--bg2);color:var(--tx);cursor:pointer;font-size:11px;min-height:64px;transition:all .2s' onclick="pTab('" + it.tab + "');var s=ge('pMobSheet'),b=ge('pMobBackdrop');if(s)s.remove();if(b)b.remove()">"
+               + "<span style='font-size:20px'>" + it.icon + "</span>" + it.label + "</button>";
+      }).join("")
+    + "</div>";
+  document.body.appendChild(sheet);
 }
 
 // ── DISTRICT MANAGEMENT ──────────────────────────────────────
@@ -5023,7 +5115,7 @@ function renderCatGrid() {
         + "<div class=\"cat-sub-item\" onclick=\"event.stopPropagation();filterGo('" + c.name_en + "')\" style=\"opacity:.7\">View all " + catName(c) + " →</div>"
         + "</div>";
     }
-    return "<div class=\"cat-card\" onclick=\"filterGo('" + c.name_en + "')\">"
+    return "<div class=\"cat-card\" onclick=\"window.matchMedia('(hover:none)').matches&&" + (subsHtml ? "true" : "false") + "?toggleCatSubs(event,'" + c.name_en + "'):filterGo('" + c.name_en + "')\">"
          + (c.icon_url ? "<div class=\"cat-card-bg\" style=\"background-image:url('" + c.icon_url + "')\"></div>" : "")
          + subsHtml
          + "<div class=\"cat-card-content\">"
