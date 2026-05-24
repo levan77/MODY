@@ -1212,6 +1212,7 @@ footer        { background: #1A1A1A; color: rgba(255,255,255,.4); padding: 38px 
   <div style="background:var(--nv);border-bottom:1px solid var(--br);padding:8px 20px;position:sticky;top:64px;z-index:100">
     <div style="max-width:1200px;margin:0 auto">
       <div style="display:flex;gap:10px;flex-wrap:wrap;padding:6px 0" id="filterChips"></div>
+      <div id="serviceFilterChips" style="display:flex;gap:8px;flex-wrap:wrap;padding:4px 0 0"></div>
       <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:6px">
         <select class="fi" id="clientRegionSel" style="width:140px;padding:6px 10px;font-size:13px" onchange="setClientRegion(this.value)">
           <option value="">All regions</option>
@@ -1745,6 +1746,17 @@ footer        { background: #1A1A1A; color: rgba(255,255,255,.4); padding: 38px 
           <div class="c-hdr"><h3>Subcategories</h3><button class="btn btn-g" style="font-size:13px" onclick="openSubCatModal(null)">+ Add Subcategory</button></div>
           <p style="font-size:13px;color:var(--mu);margin-bottom:10px">Subcategories appear on hover over category cards. Each one links to its parent category for filtering.</p>
           <div id="aSubCatList"></div>
+        </div>
+        <div class="card">
+          <div class="c-hdr"><h3>Predefined Services</h3><button class="btn btn-g" style="font-size:13px" onclick="openCatSvcModal(null)">+ Add Service</button></div>
+          <p style="font-size:13px;color:var(--mu);margin-bottom:10px">Predefined services appear in the professional's service-add dropdown. Filter by category:</p>
+          <select class="fi" id="catSvcFilter" style="width:200px;margin-bottom:10px;font-size:13px" onchange="renderAdminCatSvcs()"><option value="">All categories</option></select>
+          <div id="aCatSvcList"></div>
+        </div>
+        <div class="card">
+          <div class="c-hdr"><h3>Pending Custom Services</h3><button class="btn btn-g" style="font-size:13px" onclick="loadPendingSvcs()">Refresh</button></div>
+          <p style="font-size:13px;color:var(--mu);margin-bottom:10px">Custom services submitted by professionals awaiting approval.</p>
+          <div id="aPendingSvcList"></div>
         </div>
       </div>
       <div id="aTab-promo" class="hide">
@@ -2321,7 +2333,9 @@ footer        { background: #1A1A1A; color: rgba(255,255,255,.4); padding: 38px 
     <button class="mx" onclick="closeM('svc')">✕</button>
     <h2 id="svcModalTitle" style="font-size:20px;font-weight:300;margin-bottom:14px">Add Service</h2>
     <input type="hidden" id="svcId">
-    <div class="fg"><label class="fl">Service Name</label><input class="fi" id="sN" placeholder="e.g. Classic Gel Manicure"></div>
+    <input type="hidden" id="svcCatSvcId">
+    <div class="fg"><label class="fl" id="lChoseSvc">Choose a Service</label><select class="fi" id="svcSelect" onchange="onSvcSelectChange()"><option value="">-- select --</option></select></div>
+    <div class="fg" id="customSvcRow" style="display:none"><label class="fl">Custom Service Name</label><input class="fi" id="sN" placeholder="e.g. Classic Gel Manicure"><p style="font-size:11px;color:var(--mu);margin-top:3px">Custom services require admin approval before clients can see them.</p></div>
     <div class="fg"><label class="fl">Description</label><input class="fi" id="sD" placeholder="Short description"></div>
     <div class="fi2">
       <div class="fg"><label class="fl">Price (₾)</label><input class="fi" id="sP" type="number" min="0"></div>
@@ -2419,6 +2433,20 @@ footer        { background: #1A1A1A; color: rgba(255,255,255,.4); padding: 38px 
     <div class="fg"><label class="fl">Name (Russian)</label><input class="fi" id="subCatRu" placeholder=""></div>
     <div class="fg"><label class="fl">Emoji (optional)</label><input class="fi" id="subCatEmoji" placeholder="💅" maxlength="4" style="font-size:20px;text-align:center;width:70px"></div>
     <button class="btn btn-g" style="width:100%;justify-content:center;padding:11px;margin-top:4px" onclick="saveSubCat()">Save Subcategory</button>
+  </div>
+</div>
+
+<!-- ══ MODAL: CATEGORY SERVICE (admin predefined service) ══ -->
+<div class="mbg" id="modal-catsvc">
+  <div class="mbox">
+    <button class="mx" onclick="closeM('catsvc')">✕</button>
+    <h2 id="catSvcModalTitle" style="font-size:20px;font-weight:300;margin-bottom:14px">Add Predefined Service</h2>
+    <input type="hidden" id="catSvcEditId">
+    <div class="fg"><label class="fl">Category *</label><select class="fi" id="catSvcCatId"></select></div>
+    <div class="fg"><label class="fl">Name (English) *</label><input class="fi" id="catSvcEn" placeholder="Classic Gel Manicure"></div>
+    <div class="fg"><label class="fl">Name (Georgian)</label><input class="fi" id="catSvcKa" placeholder="კლასიკური გელის მანიკური"></div>
+    <div class="fg"><label class="fl">Name (Russian)</label><input class="fi" id="catSvcRu" placeholder="Классический гель-маникюр"></div>
+    <button class="btn btn-g" style="width:100%;justify-content:center;padding:11px;margin-top:4px" onclick="saveCatSvc()">Save Service</button>
   </div>
 </div>
 
@@ -2862,6 +2890,10 @@ function proBio(p) {
   return p.bio || "";
 }
 function svcName(s) {
+  if (s.category_service_id) {
+    var cs = allCatSvcs.find(function(c) { return c.id === s.category_service_id; });
+    if (cs) return catSvcName(cs);
+  }
   if (lang === "ka" && s.name_ka) return s.name_ka;
   if (lang === "ru" && s.name_ru) return s.name_ru;
   return s.name;
@@ -3038,6 +3070,16 @@ var SETUP_SQL = [
   "alter table public.services add column if not exists name_ru text;",
   "alter table public.services add column if not exists description_ka text;",
   "alter table public.services add column if not exists description_ru text;",
+  "create table if not exists public.category_services (id uuid default gen_random_uuid() primary key, category_id uuid references public.categories(id) on delete cascade, name_en text not null, name_ka text, name_ru text, sort_order int default 0, visible boolean default true, created_at timestamptz default now());",
+  "alter table public.category_services enable row level security;",
+  "grant all on public.category_services to anon, authenticated;",
+  "alter table public.services add column if not exists category_service_id uuid references public.category_services(id) on delete set null;",
+  "alter table public.services add column if not exists status text not null default 'approved';",
+  "insert into public.category_services (id, category_id, name_en, name_ka, name_ru, sort_order) select '11111111-1111-1111-1111-000000000001', c.id, 'Classic Manicure', 'კლასიკური მანიკური', 'Классический маникюр', 1 from public.categories c where c.name_en='Nails' limit 1 on conflict do nothing;",
+  "insert into public.category_services (id, category_id, name_en, name_ka, name_ru, sort_order) select '11111111-1111-1111-1111-000000000002', c.id, 'Gel Manicure', 'გელის მანიკური', 'Гель-маникюр', 2 from public.categories c where c.name_en='Nails' limit 1 on conflict do nothing;",
+  "insert into public.category_services (id, category_id, name_en, name_ka, name_ru, sort_order) select '11111111-1111-1111-1111-000000000003', c.id, 'Nail Art', 'ნეილ-არტი', 'Nail-арт', 3 from public.categories c where c.name_en='Nails' limit 1 on conflict do nothing;",
+  "insert into public.category_services (id, category_id, name_en, name_ka, name_ru, sort_order) select '11111111-1111-1111-1111-000000000004', c.id, 'Classic Makeup', 'კლასიკური მაკიაჟი', 'Классический макияж', 1 from public.categories c where c.name_en='Makeup' limit 1 on conflict do nothing;",
+  "insert into public.category_services (id, category_id, name_en, name_ka, name_ru, sort_order) select '11111111-1111-1111-1111-000000000005', c.id, 'Bridal Makeup', 'საქორწილო მაკიაჟი', 'Свадебный макияж', 2 from public.categories c where c.name_en='Makeup' limit 1 on conflict do nothing;",
   "",
   "alter table public.profiles enable row level security;",
   "alter table public.categories enable row level security;",
@@ -3299,7 +3341,10 @@ en: {
   pcNailColors: "Nail Color Catalog",
   pcNailSub: "Select colors during booking.",
   pcReviewsTitle: "Reviews",
-  pcBook: "Book"
+  pcBook: "Book",
+  noProsSvc: "No professionals offer this service yet.",
+  chooseSvc: "Choose a Service",
+  customSvcOpt: "Other (Custom Service)"
 },
 ka: {
   heroBadge: "\u2726 \u10d7\u10d1\u10d8\u10da\u10d8\u10e1\u10d8\u10e1 \u10de\u10e0\u10d4\u10db\u10d8\u10e3\u10db\u10d8 \u10e1\u10d8\u10da\u10d0\u10db\u10d0\u10d6\u10d8\u10e1 \u10de\u10da\u10d0\u10e2\u10e4\u10dd\u10e0\u10db\u10d0",
@@ -3475,7 +3520,10 @@ ka: {
   pcNailColors: "ფრჩხილის ფერების კატალოგი",
   pcNailSub: "აირჩიეთ ფერები დაჯავშნისას.",
   pcReviewsTitle: "შეფასებები",
-  pcBook: "დაჯავშნა"
+  pcBook: "დაჯავშნა",
+  noProsSvc: "ამ სერვისს ჯერ არ სთავაზობს არცერთი სპეციალისტი.",
+  chooseSvc: "აირჩიეთ სერვისი",
+  customSvcOpt: "სხვა (საკუთარი სერვისი)"
 },
 ru: {
   heroBadge: "\u2726 \u041f\u0440\u0435\u043c\u0438\u0443\u043c \u043f\u043b\u0430\u0442\u0444\u043e\u0440\u043c\u0430 \u043a\u0440\u0430\u0441\u043e\u0442\u044b \u0432 \u0422\u0431\u0438\u043b\u0438\u0441\u0438",
@@ -3646,7 +3694,10 @@ ru: {
   pcNailColors: "Каталог цветов ногтей",
   pcNailSub: "Выберите цвета при бронировании.",
   pcReviewsTitle: "Отзывы",
-  pcBook: "Записаться"
+  pcBook: "Записаться",
+  noProsSvc: "Пока ни один специалист не предлагает эту услугу.",
+  chooseSvc: "Выберите услугу",
+  customSvcOpt: "Другое (своя услуга)"
 }
 };
 
@@ -3722,6 +3773,7 @@ function applyLang() {
   // re-render dynamic content with new lang
   renderCatGrid();
   renderFilterChips();
+  renderServiceFilterChips();
   renderFooterSvcs();
   populateSpecSelects();
   // Sync duplicate step titles for interactive how-it-works
@@ -5022,9 +5074,60 @@ async function loadPros() {
   renderPros();
 }
 
-function setFilter(cat)   { activeFilter = cat; document.body.classList.toggle("viewing-category", cat !== "All"); renderPros(); }
-function filterGo(cat)    { activeFilter = cat; document.body.classList.toggle("viewing-category", cat !== "All"); show("list"); renderPros(); }
-function filterGoSub(cat, sub) { activeFilter = cat; document.body.classList.toggle("viewing-category", cat !== "All"); show("list"); renderPros(); toast("Showing: " + sub); }
+function setFilter(cat)   { activeFilter = cat; activeServiceFilter = null; _svcFilterProIds = null; document.body.classList.toggle("viewing-category", cat !== "All"); renderServiceFilterChips(); renderPros(); }
+function filterGo(cat)    { activeFilter = cat; activeServiceFilter = null; _svcFilterProIds = null; document.body.classList.toggle("viewing-category", cat !== "All"); show("list"); renderServiceFilterChips(); renderPros(); }
+function filterGoSub(cat, sub) { activeFilter = cat; activeServiceFilter = null; _svcFilterProIds = null; document.body.classList.toggle("viewing-category", cat !== "All"); show("list"); renderServiceFilterChips(); renderPros(); toast("Showing: " + sub); }
+
+// ── CATEGORY SERVICES (predefined) ───────────────────────────
+var allCatSvcs = [];
+var activeServiceFilter = null; // category_service_id or null
+var _svcFilterProIds = null;    // null = no filter, array = cached pro IDs
+
+async function loadCategoryServices() {
+  if (allCatSvcs.length) return;
+  try {
+    var r = await sb.from("category_services").select("*").eq("visible", true).order("sort_order");
+    allCatSvcs = (r.data || []);
+  } catch(e) { console.warn("[loadCategoryServices]", e); }
+}
+
+function catSvcName(cs) {
+  if (lang === "ka" && cs.name_ka) return cs.name_ka;
+  if (lang === "ru" && cs.name_ru) return cs.name_ru;
+  return cs.name_en;
+}
+
+function getCatSvcsForCat(categoryNameEn) {
+  return allCatSvcs.filter(function(cs) {
+    var cat = (allCats || []).find(function(c) { return c.id === cs.category_id; });
+    return cat && cat.name_en === categoryNameEn;
+  });
+}
+
+function renderServiceFilterChips() {
+  var el = ge("serviceFilterChips"); if (!el) return;
+  if (activeFilter === "All" || !activeFilter) { el.innerHTML = ""; return; }
+  var svcs = getCatSvcsForCat(activeFilter);
+  if (!svcs.length) { el.innerHTML = ""; return; }
+  el.innerHTML = svcs.map(function(cs) {
+    var active = activeServiceFilter === cs.id;
+    return "<button class=\"btn-sm " + (active ? "btn-g" : "btn-gh") + "\" onclick=\"setServiceFilter('" + cs.id + "')\">" + catSvcName(cs) + "</button>";
+  }).join("");
+}
+
+async function setServiceFilter(catSvcId) {
+  if (activeServiceFilter === catSvcId) {
+    activeServiceFilter = null; _svcFilterProIds = null;
+    renderServiceFilterChips(); renderPros(); return;
+  }
+  activeServiceFilter = catSvcId;
+  try {
+    var r = await sb.from("services").select("pro_id").eq("category_service_id", catSvcId).eq("status", "approved");
+    _svcFilterProIds = (r.data || []).map(function(s) { return s.pro_id; });
+  } catch(e) { _svcFilterProIds = []; }
+  renderServiceFilterChips();
+  renderPros();
+}
 
 var unavailableProIds = [];
 var availFilterActive = false;
@@ -5138,6 +5241,11 @@ function renderPros() {
     ? allPros
     : allPros.filter(function(p) { return p.specialty === activeFilter; });
 
+  // Apply service filter
+  if (_svcFilterProIds !== null) {
+    filtered = filtered.filter(function(p) { return _svcFilterProIds.indexOf(p.id) > -1; });
+  }
+
   // Apply availability filter
   if (availFilterActive && unavailableProIds.length) {
     filtered = filtered.filter(function(p) { return unavailableProIds.indexOf(p.id) === -1; });
@@ -5155,7 +5263,8 @@ function renderPros() {
   var le = ge("prosList");
   if (le) {
     if (!filtered.length) {
-      le.innerHTML = "<p style=\"color:var(--mu);padding:20px\">" + (availFilterActive ? "No professionals available at this time. Try a different date/time." : "No professionals found.") + "</p>";
+      var emptyMsg = activeServiceFilter ? t("noProsSvc") : (availFilterActive ? "No professionals available at this time. Try a different date/time." : "No professionals found.");
+      le.innerHTML = "<p style=\"color:var(--mu);padding:20px\">" + emptyMsg + "</p>";
     } else {
       var sorted = filtered;
       if (clientRegion) {
@@ -5278,7 +5387,7 @@ async function viewPro(proId) {
       ]);
       if (res[0].error) { toast("Could not load professional: " + res[0].error.message, "err"); return; }
       pro        = res[0].data;
-      svcs       = (res[1].data || []).filter(function(s) { return s.visible !== false; });
+      svcs       = (res[1].data || []).filter(function(s) { return s.visible !== false && s.status !== "pending" && s.status !== "rejected"; });
       portfolio  = (res[2].data || []).map(function(i) { return i.url; });
       nailColors = res[3].data || [];
       reviews    = res[4].data || [];
@@ -7112,6 +7221,7 @@ async function init() {
   // Load DB-driven categories (falls back to hardcoded)
   await loadCategories();
   await loadSubCategories();
+  await loadCategoryServices();
 
   // Load professionals from DB and merge with demos
   loadPros();
@@ -7604,6 +7714,10 @@ async function loadAdminCats() {
   var el = ge("aCatList"); if (!el) return;
   await loadCategories();
   await loadSubCategories();
+  allCatSvcs = []; await loadCategoryServices();
+  populateCatSvcFilter();
+  renderAdminCatSvcs();
+  loadPendingSvcs();
   if (!categories.length) { el.innerHTML = "<p style=\"color:var(--mu);font-size:14px\">No categories yet.</p>"; return; }
   el.innerHTML = categories.map(function(c) {
     var subs = getSubsForCat(c.id);
@@ -7731,6 +7845,130 @@ async function deleteSubCat(id) {
 
 async function toggleSubCatVis(id, visible) {
   try { await sb.from("subcategories").update({ visible: visible }).eq("id", id); await loadAdminCats(); } catch(e) { toast("Error", "err"); }
+}
+
+// ── PREDEFINED CATEGORY SERVICES (admin) ─────────────────────
+function populateCatSvcFilter() {
+  var sel = ge("catSvcFilter"); if (!sel) return;
+  sel.innerHTML = "<option value=\"\">All categories</option>"
+    + (allCats || []).map(function(c) {
+        return "<option value=\"" + c.id + "\">" + (c.name_en) + "</option>";
+      }).join("");
+}
+
+function renderAdminCatSvcs() {
+  var el = ge("aCatSvcList"); if (!el) return;
+  var sel = ge("catSvcFilter");
+  var filterCatId = sel ? sel.value : "";
+  var list = filterCatId ? allCatSvcs.filter(function(cs) { return cs.category_id === filterCatId; }) : allCatSvcs;
+  if (!list.length) { el.innerHTML = "<p style=\"color:var(--mu);font-size:13px\">No predefined services yet.</p>"; return; }
+  el.innerHTML = list.map(function(cs) {
+    var cat = (allCats || []).find(function(c) { return c.id === cs.category_id; });
+    return "<div class=\"svc-item\">"
+         + "<div><div style=\"font-size:14px;font-weight:500\">" + escapeHtml(cs.name_en) + "</div>"
+         + "<div style=\"font-size:12px;color:var(--mu)\">" + (cat ? cat.name_en : "?") + (cs.name_ka ? " · " + escapeHtml(cs.name_ka) : "") + (cs.name_ru ? " · " + escapeHtml(cs.name_ru) : "") + "</div></div>"
+         + "<div style=\"display:flex;gap:6px;align-items:center\">"
+         + "<button class=\"btn-sm btn-gh\" onclick=\"toggleCatSvcVis('" + cs.id + "'," + !cs.visible + ")\">" + (cs.visible ? "Hide" : "Show") + "</button>"
+         + "<button class=\"btn-sm btn-gh\" onclick=\"openCatSvcModal('" + cs.id + "')\">Edit</button>"
+         + "<button class=\"btn-sm btn-no\" onclick=\"deleteCatSvc('" + cs.id + "')\">Del</button>"
+         + "</div></div>";
+  }).join("");
+}
+
+function openCatSvcModal(id) {
+  ge("catSvcEditId").value = id || "";
+  ge("catSvcModalTitle").textContent = id ? "Edit Predefined Service" : "Add Predefined Service";
+  var sel = ge("catSvcCatId");
+  sel.innerHTML = (allCats || []).map(function(c) { return "<option value=\"" + c.id + "\">" + c.name_en + "</option>"; }).join("");
+  if (!id) {
+    ge("catSvcEn").value = ""; ge("catSvcKa").value = ""; ge("catSvcRu").value = "";
+  } else {
+    var cs = allCatSvcs.find(function(c) { return c.id === id; });
+    if (cs) {
+      sel.value = cs.category_id || "";
+      ge("catSvcEn").value = cs.name_en || "";
+      ge("catSvcKa").value = cs.name_ka || "";
+      ge("catSvcRu").value = cs.name_ru || "";
+    }
+  }
+  openM("catsvc");
+}
+
+async function saveCatSvc() {
+  var id     = ge("catSvcEditId").value;
+  var catId  = ge("catSvcCatId").value;
+  var nameEn = ge("catSvcEn").value.trim();
+  var nameKa = ge("catSvcKa").value.trim();
+  var nameRu = ge("catSvcRu").value.trim();
+  if (!catId) { toast("Select a category", "err"); return; }
+  if (!nameEn) { toast("English name is required", "err"); return; }
+  try {
+    var r;
+    if (id) {
+      r = await sb.from("category_services").update({ category_id: catId, name_en: nameEn, name_ka: nameKa || null, name_ru: nameRu || null }).eq("id", id);
+    } else {
+      r = await sb.from("category_services").insert({ category_id: catId, name_en: nameEn, name_ka: nameKa || null, name_ru: nameRu || null });
+    }
+    if (r.error) { toast("Error: " + r.error.message, "err"); return; }
+    toast("Saved!", "ok"); closeM("catsvc");
+    allCatSvcs = []; await loadCategoryServices();
+    renderAdminCatSvcs();
+  } catch(e) { toast("Error: " + e.message, "err"); }
+}
+
+async function deleteCatSvc(id) {
+  if (!confirm("Delete this predefined service?")) return;
+  try {
+    var r = await sb.from("category_services").delete().eq("id", id);
+    if (r.error) { toast("Error: " + r.error.message, "err"); return; }
+    toast("Deleted.", "ok");
+    allCatSvcs = []; await loadCategoryServices();
+    renderAdminCatSvcs();
+  } catch(e) { toast("Error", "err"); }
+}
+
+async function toggleCatSvcVis(id, visible) {
+  try {
+    await sb.from("category_services").update({ visible: visible }).eq("id", id);
+    allCatSvcs = []; await loadCategoryServices();
+    renderAdminCatSvcs();
+  } catch(e) { toast("Error", "err"); }
+}
+
+// ── PENDING CUSTOM SERVICES (admin approval) ──────────────────
+async function loadPendingSvcs() {
+  var el = ge("aPendingSvcList"); if (!el) return;
+  try {
+    var r = await sb.from("services").select("*, professionals(name)").eq("status", "pending").order("created_at");
+    var svcs = r.data || [];
+    if (!svcs.length) { el.innerHTML = "<p style=\"color:var(--mu);font-size:13px\">No pending custom services.</p>"; return; }
+    el.innerHTML = svcs.map(function(s) {
+      var proName = (s.professionals && s.professionals.name) ? s.professionals.name : "Unknown Pro";
+      return "<div class=\"svc-item\">"
+           + "<div><div style=\"font-size:14px;font-weight:500\">" + escapeHtml(s.name) + "</div>"
+           + "<div style=\"font-size:12px;color:var(--mu)\">" + escapeHtml(proName) + " · " + s.price + "₾ · " + s.duration + " min</div></div>"
+           + "<div style=\"display:flex;gap:6px\">"
+           + "<button class=\"btn-sm btn-g\" onclick=\"approveSvc('" + s.id + "')\">Approve</button>"
+           + "<button class=\"btn-sm btn-no\" onclick=\"rejectSvc('" + s.id + "')\">Reject</button>"
+           + "</div></div>";
+    }).join("");
+  } catch(e) { el.innerHTML = "<p style=\"color:#ef4444;font-size:13px\">Error: " + e.message + "</p>"; }
+}
+
+async function approveSvc(id) {
+  try {
+    var r = await sb.from("services").update({ status: "approved" }).eq("id", id);
+    if (r.error) { toast("Error: " + r.error.message, "err"); return; }
+    toast("Service approved!", "ok"); loadPendingSvcs();
+  } catch(e) { toast("Error", "err"); }
+}
+
+async function rejectSvc(id) {
+  try {
+    var r = await sb.from("services").update({ status: "rejected" }).eq("id", id);
+    if (r.error) { toast("Error: " + r.error.message, "err"); return; }
+    toast("Service rejected.", "ok"); loadPendingSvcs();
+  } catch(e) { toast("Error", "err"); }
 }
 
 // ── COMMISSION RATES ─────────────────────────────────────────
@@ -9845,6 +10083,7 @@ async function deletePortImg(id, url) {
 
 // ── SERVICES ──────────────────────────────────────────────────
 async function loadProSvcs() {
+  await loadCategoryServices();
   var el = ge("pSvcList"); if (!el) return;
   var proId = profile ? profile.pro_id : null;
 
@@ -9876,8 +10115,9 @@ async function loadProSvcs() {
       ? "<p style=\"color:var(--mu);font-size:14px\">No services yet. Click <strong>+ Add</strong> above to create your first service.</p>"
       : svcs.map(function(s) {
           var vis = s.visible !== false;
+          var isPending = s.status === "pending";
           return "<div class=\"svc-item\" style=\"" + (vis ? "" : "opacity:.5") + "\">"
-               + "<div><div style=\"font-size:14px;font-weight:500\">" + s.name + (vis ? "" : " <span style=\"font-size:11px;color:var(--mu)\">(hidden)</span>") + "</div>"
+               + "<div><div style=\"font-size:14px;font-weight:500\">" + svcName(s) + (vis ? "" : " <span style=\"font-size:11px;color:var(--mu)\">(hidden)</span>") + (isPending ? " <span style=\"font-size:11px;background:#fef3c7;color:#92400e;padding:1px 6px;border-radius:4px\">pending approval</span>" : "") + "</div>"
                + "<div style=\"font-size:12px;color:var(--mu)\">" + (s.description || "") + " · " + s.duration + " min</div></div>"
                + "<div style=\"text-align:right;display:flex;align-items:center;gap:7px\">"
                + "<div style=\"font-family:'Cormorant Garamond',serif;font-size:19px;font-weight:600\">" + s.price + "₾</div>"
@@ -9892,10 +10132,13 @@ async function loadProSvcs() {
 }
 
 async function openSvcModal(id) {
+  await loadCategoryServices();
   ge("svcId").value = id || "";
+  ge("svcCatSvcId").value = "";
   ge("svcModalTitle").textContent = id ? "Edit Service" : "Add Service";
   if (!id) {
     ge("sN").value = ""; ge("sD").value = ""; ge("sP").value = ""; ge("sDr").value = "60";
+    populateSvcSelect(null);
   } else {
     // Load existing service data for editing
     try {
@@ -9905,21 +10148,53 @@ async function openSvcModal(id) {
         ge("sD").value  = r.data.description || "";
         ge("sP").value  = r.data.price || "";
         ge("sDr").value = r.data.duration || "60";
+        ge("svcCatSvcId").value = r.data.category_service_id || "";
+        populateSvcSelect(r.data.category_service_id);
       }
     } catch(e) {
       ge("sN").value = ""; ge("sD").value = ""; ge("sP").value = ""; ge("sDr").value = "60";
+      populateSvcSelect(null);
     }
   }
   openM("svc");
 }
 
+function populateSvcSelect(existingCatSvcId) {
+  var sel = ge("svcSelect"); if (!sel) return;
+  var proSpec = profile && profile.specialty ? profile.specialty : null;
+  var svcs = proSpec
+    ? allCatSvcs.filter(function(cs) {
+        var cat = (allCats || []).find(function(c) { return c.id === cs.category_id; });
+        return cat && cat.name_en === proSpec;
+      })
+    : allCatSvcs;
+  sel.innerHTML = "<option value=\"\">-- select --</option>"
+    + svcs.map(function(cs) {
+        return "<option value=\"" + cs.id + "\"" + (existingCatSvcId === cs.id ? " selected" : "") + ">" + catSvcName(cs) + "</option>";
+      }).join("")
+    + "<option value=\"__custom__\"" + (existingCatSvcId === "__custom__" || (!existingCatSvcId && ge("svcId") && ge("svcId").value && !svcs.find(function(cs){ return cs.id===existingCatSvcId; })) ? " selected" : "") + ">" + t("customSvcOpt") + "</option>";
+  onSvcSelectChange();
+}
+
+function onSvcSelectChange() {
+  var sel = ge("svcSelect"); if (!sel) return;
+  var row = ge("customSvcRow"); if (!row) return;
+  var isCustom = sel.value === "__custom__";
+  row.style.display = isCustom ? "" : "none";
+  ge("svcCatSvcId").value = isCustom ? "" : sel.value;
+}
+
 async function saveSvc() {
-  var id   = ge("svcId").value;
-  var name = ge("sN").value.trim();
+  var id        = ge("svcId").value;
+  var selVal    = ge("svcSelect") ? ge("svcSelect").value : "";
+  var isCustom  = selVal === "__custom__";
+  var catSvcId  = (!isCustom && selVal) ? selVal : null;
+  var name      = isCustom ? ge("sN").value.trim() : (catSvcId ? (function(){ var cs=allCatSvcs.find(function(c){return c.id===catSvcId;}); return cs?cs.name_en:""; })() : ge("sN").value.trim());
   var desc = ge("sD").value.trim();
   var price= parseInt(ge("sP").value) || 0;
   var dur  = parseInt(ge("sDr").value) || 60;
-  if (!name) { toast("Service name is required", "err"); return; }
+  var status = isCustom ? "pending" : "approved";
+  if (!name && !catSvcId) { toast("Please choose a service or enter a custom name", "err"); return; }
   if (!price) { toast("Price is required", "err"); return; }
   if (!dur || dur < 15) { toast("Duration is required — minimum 15 minutes", "err"); return; }
 
@@ -9945,11 +10220,13 @@ async function saveSvc() {
     var r;
     if (id) {
       r = await sb.from("services").update({
-        name: name, description: desc, price: price, duration: dur
+        name: name, description: desc, price: price, duration: dur,
+        category_service_id: catSvcId, status: status
       }).eq("id", id).select();
     } else {
       r = await sb.from("services").insert({
-        pro_id: proId, name: name, description: desc, price: price, duration: dur
+        pro_id: proId, name: name, description: desc, price: price, duration: dur,
+        category_service_id: catSvcId, status: status
       }).select();
     }
     if (r.error) {
