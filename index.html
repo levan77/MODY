@@ -4108,7 +4108,7 @@ function proMobMore() {
   sheet.innerHTML = "<div style='font-size:12px;color:var(--mu);text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px;font-weight:500'>More Options</div>"
     + "<div style='display:grid;grid-template-columns:repeat(3,1fr);gap:8px'>"
     + items.map(function(it) {
-        return "<button style='display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 4px;border:1px solid var(--br);border-radius:var(--rs);background:var(--bg2);color:var(--tx);cursor:pointer;font-size:11px;min-height:64px;transition:all .2s' onclick="pTab('" + it.tab + "');var s=ge('pMobSheet'),b=ge('pMobBackdrop');if(s)s.remove();if(b)b.remove()">"
+        return "<button style='display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 4px;border:1px solid var(--br);border-radius:var(--rs);background:var(--bg2);color:var(--tx);cursor:pointer;font-size:11px;min-height:64px;transition:all .2s' onclick=\"pTab('" + it.tab + "');var s=ge('pMobSheet'),b=ge('pMobBackdrop');if(s)s.remove();if(b)b.remove()\">"
                + "<span style='font-size:20px'>" + it.icon + "</span>" + it.label + "</button>";
       }).join("")
     + "</div>";
