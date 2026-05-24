@@ -5074,14 +5074,14 @@ async function loadPros() {
   renderPros();
 }
 
-function setFilter(cat)   { activeFilter = cat; activeServiceFilter = null; _svcFilterProIds = null; document.body.classList.toggle("viewing-category", cat !== "All"); renderServiceFilterChips(); renderPros(); }
-function filterGo(cat)    { activeFilter = cat; activeServiceFilter = null; _svcFilterProIds = null; document.body.classList.toggle("viewing-category", cat !== "All"); show("list"); renderServiceFilterChips(); renderPros(); }
-function filterGoSub(cat, sub) { activeFilter = cat; activeServiceFilter = null; _svcFilterProIds = null; document.body.classList.toggle("viewing-category", cat !== "All"); show("list"); renderServiceFilterChips(); renderPros(); toast("Showing: " + sub); }
-
 // ── CATEGORY SERVICES (predefined) ───────────────────────────
 var allCatSvcs = [];
 var activeServiceFilter = null; // category_service_id or null
 var _svcFilterProIds = null;    // null = no filter, array = cached pro IDs
+
+function setFilter(cat)   { activeFilter = cat; activeServiceFilter = null; _svcFilterProIds = null; document.body.classList.toggle("viewing-category", cat !== "All"); renderServiceFilterChips(); renderPros(); }
+function filterGo(cat)    { activeFilter = cat; activeServiceFilter = null; _svcFilterProIds = null; document.body.classList.toggle("viewing-category", cat !== "All"); show("list"); renderServiceFilterChips(); renderPros(); }
+function filterGoSub(cat, sub) { activeFilter = cat; activeServiceFilter = null; _svcFilterProIds = null; document.body.classList.toggle("viewing-category", cat !== "All"); show("list"); renderServiceFilterChips(); renderPros(); toast("Showing: " + sub); }
 
 async function loadCategoryServices() {
   if (allCatSvcs.length) return;
@@ -7715,9 +7715,9 @@ async function loadAdminCats() {
   await loadCategories();
   await loadSubCategories();
   allCatSvcs = []; await loadCategoryServices();
-  populateCatSvcFilter();
-  renderAdminCatSvcs();
-  loadPendingSvcs();
+  if (ge("catSvcFilter"))   populateCatSvcFilter();
+  if (ge("aCatSvcList"))    renderAdminCatSvcs();
+  if (ge("aPendingSvcList")) loadPendingSvcs();
   if (!categories.length) { el.innerHTML = "<p style=\"color:var(--mu);font-size:14px\">No categories yet.</p>"; return; }
   el.innerHTML = categories.map(function(c) {
     var subs = getSubsForCat(c.id);
@@ -10172,7 +10172,7 @@ function populateSvcSelect(existingCatSvcId) {
     + svcs.map(function(cs) {
         return "<option value=\"" + cs.id + "\"" + (existingCatSvcId === cs.id ? " selected" : "") + ">" + catSvcName(cs) + "</option>";
       }).join("")
-    + "<option value=\"__custom__\"" + (existingCatSvcId === "__custom__" || (!existingCatSvcId && ge("svcId") && ge("svcId").value && !svcs.find(function(cs){ return cs.id===existingCatSvcId; })) ? " selected" : "") + ">" + t("customSvcOpt") + "</option>";
+    + "<option value=\"__custom__\"" + (existingCatSvcId === "__custom__" ? " selected" : "") + ">" + t("customSvcOpt") + "</option>";
   onSvcSelectChange();
 }
 
@@ -10189,7 +10189,10 @@ async function saveSvc() {
   var selVal    = ge("svcSelect") ? ge("svcSelect").value : "";
   var isCustom  = selVal === "__custom__";
   var catSvcId  = (!isCustom && selVal) ? selVal : null;
-  var name      = isCustom ? ge("sN").value.trim() : (catSvcId ? (function(){ var cs=allCatSvcs.find(function(c){return c.id===catSvcId;}); return cs?cs.name_en:""; })() : ge("sN").value.trim());
+  var _predefined = (!isCustom && catSvcId) ? allCatSvcs.find(function(c){ return c.id === catSvcId; }) : null;
+  var name      = isCustom ? ge("sN").value.trim() : (_predefined ? _predefined.name_en : ge("sN").value.trim());
+  var name_ka   = _predefined ? (_predefined.name_ka || null) : null;
+  var name_ru   = _predefined ? (_predefined.name_ru || null) : null;
   var desc = ge("sD").value.trim();
   var price= parseInt(ge("sP").value) || 0;
   var dur  = parseInt(ge("sDr").value) || 60;
@@ -10220,12 +10223,14 @@ async function saveSvc() {
     var r;
     if (id) {
       r = await sb.from("services").update({
-        name: name, description: desc, price: price, duration: dur,
+        name: name, name_ka: name_ka, name_ru: name_ru,
+        description: desc, price: price, duration: dur,
         category_service_id: catSvcId, status: status
       }).eq("id", id).select();
     } else {
       r = await sb.from("services").insert({
-        pro_id: proId, name: name, description: desc, price: price, duration: dur,
+        pro_id: proId, name: name, name_ka: name_ka, name_ru: name_ru,
+        description: desc, price: price, duration: dur,
         category_service_id: catSvcId, status: status
       }).select();
     }
