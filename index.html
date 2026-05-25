@@ -2327,6 +2327,17 @@ footer        { background: #1A1A1A; color: rgba(255,255,255,.4); padding: 38px 
   </div>
 </div>
 
+<!-- ══ MODAL: SET NEW PASSWORD (PASSWORD_RECOVERY) ══ -->
+<div class="mbg" id="modal-newpw">
+  <div class="mbox" style="max-width:400px">
+    <h2 style="font-size:20px;font-weight:300;margin-bottom:16px">Set New Password</h2>
+    <input class="fi" id="newPwInp" type="password" placeholder="New password (6+ characters)" style="margin-bottom:10px">
+    <input class="fi" id="newPwConf" type="password" placeholder="Confirm new password" style="margin-bottom:10px">
+    <div id="newPwErr" style="color:#e57;font-size:13px;min-height:18px;margin-bottom:8px"></div>
+    <button class="btn btn-g" style="width:100%" id="newPwBtn" onclick="submitNewPassword()">Update Password</button>
+  </div>
+</div>
+
 <!-- ══ MODAL: BOOKING DETAIL ══ -->
 <div class="mbg" id="modal-bkd">
   <div class="mbox mbox-lg">
@@ -4022,8 +4033,8 @@ function updateNav() {
       "<button class=\"btn btn-g\" style=\"padding:8px 12px;font-size:12px;min-height:36px\" onclick=\"" + dst + "\">⊞</button>";
   } else {
     nb.innerHTML =
-      "<span style=\"font-size:13px;color:var(--mu)\">Hi, " + nm + "</span>" +
-      "<span style=\"background:rgba(234,184,183,.15);color:var(--gd);padding:3px 10px;border-radius:50px;font-size:12px;font-weight:500\">" + rl + "</span>" +
+      "<span style=\"font-size:13px;color:var(--mu)\">Hi, " + escapeHtml(nm) + "</span>" +
+      "<span style=\"background:rgba(234,184,183,.15);color:var(--gd);padding:3px 10px;border-radius:50px;font-size:12px;font-weight:500\">" + escapeHtml(rl) + "</span>" +
       "<button id=\"navNotif\" class=\"btn btn-o\" style=\"position:relative\" onclick=\"toggleChat()\" title=\"Messages\">🔔</button>" +
       "<button class=\"btn btn-g\" onclick=\"" + dst + "\">Dashboard</button>" +
       "<button class=\"btn btn-o\" onclick=\"signOut()\">" + t("cmOutLbl") + "</button>";
@@ -4554,6 +4565,23 @@ async function forgotPassword() {
   } catch(e) { ge("siErr").textContent = "Error: " + e.message; }
 }
 
+// ── SET NEW PASSWORD (after PASSWORD_RECOVERY link) ──────────
+async function submitNewPassword() {
+  var pw   = (ge("newPwInp")  || {}).value || "";
+  var conf = (ge("newPwConf") || {}).value || "";
+  var err  = ge("newPwErr");
+  var btn  = ge("newPwBtn");
+  if (pw.length < 6)    { err.textContent = "Password must be 6+ characters."; return; }
+  if (pw !== conf)       { err.textContent = "Passwords do not match."; return; }
+  btn.textContent = "⏳..."; btn.disabled = true;
+  try {
+    var r = await sb.auth.updateUser({ password: pw });
+    if (r.error) { err.textContent = r.error.message; btn.textContent = "Update Password"; btn.disabled = false; return; }
+    closeM("newpw");
+    toast("Password updated! You can now sign in.", "ok");
+  } catch(e) { err.textContent = e.message; btn.textContent = "Update Password"; btn.disabled = false; }
+}
+
 // ── CHANGE PASSWORD / EMAIL / PHONE ──────────────────────────
 async function changePassword(inputId) {
   var pw = ge(inputId).value;
@@ -4836,6 +4864,8 @@ async function sendChatMsg() {
       content: txt,
       is_read: false
     });
+    // Rely on realtime subscription for update — avoids double-render flash
+    // Optimistic: append immediately for perceived speed
     loadChatMessages(chatThread);
   } catch(e) { toast("Could not send message", "err"); }
 }
@@ -7292,9 +7322,13 @@ function subscribeRealtime() {
         // Update unread badge on chat float button
         updateChatBadge();
 
-        // If chat window is open on this thread, just reload
+        // If chat window is open on this thread, reload messages and mark read
         var win = ge("chatWin");
-        if (win && win.classList.contains("on") && chatThread === msg.thread_id) return;
+        if (win && win.classList.contains("on") && chatThread === msg.thread_id) {
+          loadChatMessages(chatThread);
+          markMessagesRead(chatThread);
+          return;
+        }
 
         // Show notification toast
         var senderName = msg.sender_name || "Someone";
@@ -7333,19 +7367,17 @@ function subscribeRealtime() {
 
 // ── MAIN INIT ─────────────────────────────────────────────────
 async function init() {
-  // Load saved translations from DB first
-  await loadSavedTranslations();
+  // Parallelise all startup DB fetches for fast load
+  await Promise.all([
+    loadSavedTranslations(),
+    loadSettings(),
+    loadCategories(),
+    loadSubCategories(),
+    loadCategoryServices()
+  ]);
 
   // Apply language (populates all text)
   applyLang();
-
-  // Load platform settings (promo, nail colors, commission)
-  await loadSettings();
-
-  // Load DB-driven categories (falls back to hardcoded)
-  await loadCategories();
-  await loadSubCategories();
-  await loadCategoryServices();
 
   // Load professionals from DB and merge with demos
   loadPros();
@@ -7374,6 +7406,10 @@ async function init() {
 
   // Listen for future auth changes
   sb.auth.onAuthStateChange(async function(event, session) {
+    if (event === "PASSWORD_RECOVERY") {
+      openM("newpw");
+      return;
+    }
     if (event === "SIGNED_IN" && session && session.user && !user) {
       await loadProfile(session.user);
       updateNav();
@@ -7390,6 +7426,24 @@ async function init() {
       show("home");
       renderPros();
     }
+  });
+}
+
+// ── VISIBILITY REFRESH ───────────────────────────────────────
+document.addEventListener("visibilitychange", function() {
+  if (document.visibilityState !== "visible" || !user) return;
+  if (typeof loadClientDash === "function" && ge("pg-dash-client") && ge("pg-dash-client").classList.contains("on")) loadClientDash();
+  if (typeof loadProDash    === "function" && ge("pg-dash-pro")    && ge("pg-dash-pro").classList.contains("on"))    loadProDash();
+  if (typeof updateChatBadge === "function") updateChatBadge();
+});
+
+// ── CHAT KEYBOARD FIX (iOS/Android visual viewport) ──────────
+if (window.visualViewport) {
+  window.visualViewport.addEventListener("resize", function() {
+    var cw = ge("chatWin");
+    if (!cw || !cw.classList.contains("on")) return;
+    var gap = window.innerHeight - window.visualViewport.height;
+    cw.style.bottom = (gap + 80) + "px";
   });
 }
 
