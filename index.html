@@ -1340,7 +1340,7 @@ footer        { background: #1A1A1A; color: rgba(255,255,255,.4); padding: 38px 
         </div>
         <input type="file" id="designFile" accept="image/*" onchange="previewDesign(this)">
       </div>
-      <div id="designActions" style="display:none;margin-top:8px;display:flex;gap:6px">
+      <div id="designActions" style="display:none;margin-top:8px;gap:6px">
         <button class="btn-sm btn-no" onclick="clearDesign()">✕ Remove</button>
       </div>
     </div>
@@ -5728,7 +5728,7 @@ function updateSvcCart() {
   }
 
   const platformFee = parseInt(settings.platform_fee) || 5;
-  const total = selSvcTotal() + platformFee;
+  const total = selSvcTotal() - (promoDisc || 0) + platformFee;
 
   const walletHint = ge('sbWalletHint');
   if (user && walletHint) {
@@ -5759,7 +5759,7 @@ async function gotoBooking() {
 
   const pro = selSvcPro();
 
-  promoApplied = null; promoDisc = 0; selNailColors = [];
+  promoApplied = null; promoDisc = 0; selNailColors = []; bkSelDateStr = "";
   const pi = ge('promoInp'); if (pi) pi.value = '';
   const pr = ge('promoResult'); if (pr) pr.textContent = '';
   const dr = ge('bkDiscRow'); if (dr) dr.style.display = 'none';
@@ -5775,6 +5775,13 @@ async function gotoBooking() {
   if (pc) pc.style.display = settings.promo_enabled === false ? 'none' : 'block';
 
   await setupNailCard();
+  // Show designCard only for visual/design services
+  const dc = ge('designCard');
+  if (dc) {
+    const designSpecs = ['Nails', 'MUA', 'Eyebrows', 'Lashes', 'Tattoo', 'Henna'];
+    const hasDesign = selSvcs.some(function(s) { return designSpecs.indexOf(s.proSpec) > -1; });
+    dc.style.display = hasDesign ? 'block' : 'none';
+  }
   buildCal();
   show('booking');
 }
@@ -5821,8 +5828,9 @@ function toggleNailColor(el) {
   const id   = el.dataset.id;
   const name = el.dataset.name;
   const idx  = selNailColors.findIndex(c => c.id === id);
+  const hex = el.dataset.hex || '';
   if (idx > -1) { selNailColors.splice(idx, 1); el.classList.remove('on'); }
-  else          { selNailColors.push({ id, name }); el.classList.add('on'); }
+  else          { selNailColors.push({ id, name, hex_code: hex }); el.classList.add('on'); }
   const txt = ge('nailSelTxt');
   if (txt) txt.textContent = selNailColors.length
     ? `Selected: ${selNailColors.map(c => c.name).join(', ')}`
@@ -5992,8 +6000,8 @@ async function buildTimeSlots() {
           const [sh, sm]  = tt.split(':').map(Number);
           const slotStart = sh * 60 + sm;
           const slotEnd   = slotStart + svcDuration;
-          if (slotEnd + travelBuffer > bkStart - ARRIVAL_BUF &&
-              slotStart - ARRIVAL_BUF < bkEnd + travelBuffer) {
+          if (slotEnd + travelBuffer > bkStart &&
+              slotStart < bkEnd + travelBuffer) {
             blockedSlots[tt] = true;
           }
         });
@@ -6110,7 +6118,7 @@ async function submitBooking() {
     const { data, error } = await sb.rpc('create_booking', {
       p_client_id:            user.id,
       p_pro_id:               proId,
-      p_time_slot:            `${bkSelDateStr} ${slot.textContent}`,
+      p_time_slot:            `${bkSelDateStr} ${slot.textContent.trim()}`,
       p_service_duration:     selSvcDuration(),
       p_client_name:          profile?.full_name ?? user.email,
       p_client_phone:         profile?.phone ?? '',
@@ -6170,11 +6178,15 @@ async function submitBooking() {
 
   // Increment promo usage counter
   if (promoApplied) {
-    sb.from('promo_codes')
-      .update({ used_count: (promoApplied.used_count || 0) + 1 })
-      .eq('id', promoApplied.id)
+    sb.rpc('increment_promo_usage', { p_code_id: promoApplied.id })
       .then(({ error }) => {
-        if (error) console.error('[submitBooking] promo increment:', error);
+        if (error) {
+          // fallback: non-atomic increment
+          sb.from('promo_codes')
+            .update({ used_count: (promoApplied.used_count || 0) + 1 })
+            .eq('id', promoApplied.id)
+            .then(({ error: e2 }) => { if (e2) console.error('[submitBooking] promo increment:', e2); });
+        }
       });
   }
 
@@ -6199,12 +6211,16 @@ async function submitBooking() {
 
   twilioNotifyBooking(insertedBk, 'new_booking');
   toast(t('bkSuccess') || 'Booking confirmed!', 'ok');
-  closeModal('bookingModal');
+  // Reset stale state
+  bkSelDateStr = "";
+  document.querySelectorAll('#bkSlots .ts.on').forEach(function(e) { e.classList.remove('on'); });
+  show('dash-client');
+  loadClientDash();
 }
 
 // ── BOOKING DETAIL MODAL ──────────────────────────────────────
 function openBkDetail(bkJson, role) {
-  var bk = typeof bkJson === "string" ? JSON.parse(bkJson) : bkJson;
+  var bk = typeof bkJson === "string" ? JSON.parse(decodeURIComponent(bkJson)) : bkJson;
   var isC = role === "client";
   var isP = role === "pro";
   var isA = role === "admin";
@@ -6357,6 +6373,7 @@ async function chBkStatus(id, status, actor) {
     // Same-day validation for on_the_way
     if (status === "on_the_way") {
       var bkCheck = await sb.from("bookings").select("time_slot").eq("id", id).single();
+      if (bkCheck.error) throw bkCheck.error;
       if (bkCheck.data) {
         var bkDate = (bkCheck.data.time_slot || "").substring(0, 10);
         var nowDate = new Date().getFullYear() + "-" + String(new Date().getMonth()+1).padStart(2,"0") + "-" + String(new Date().getDate()).padStart(2,"0");
@@ -6714,7 +6731,7 @@ async function loadClientDash() {
     return;
   }
   body.innerHTML = bks.map(function(b) {
-    var safe = JSON.stringify(b).replace(/\\/g,"\\\\").replace(/"/g,"&quot;");
+    var safe = encodeURIComponent(JSON.stringify(b));
     var actionBtn = "";
     if (b.status === "arrived") {
       actionBtn = "<button class=\"btn-sm btn-ok\" style=\"font-size:11px;margin-right:4px\" onclick=\"event.stopPropagation();confirmArrival('" + b.id + "')\">✓ " + t("cbConfirm") + "</button>";
@@ -7007,7 +7024,7 @@ async function renderTracker() {
   var dotColors = { pending:"#a16207", accepted:"#15803d", on_the_way:"#7e22ce", arrived:"#22c55e", in_progress:"#3b82f6" };
 
   var pills = bks.map(function(b) {
-    var safe = JSON.stringify(b).replace(/\\/g,"\\\\").replace(/"/g,"&quot;");
+    var safe = encodeURIComponent(JSON.stringify(b));
     var role = profile.role === "pro" ? "pro" : "client";
     var who = profile.role === "client" ? (b.pro_name || "Pro") : (b.client_name || "Client");
     var statusText = ST_LABEL[b.status] ? ST_LABEL[b.status]() : b.status.replace(/_/g," ");
@@ -9968,7 +9985,7 @@ async function loadProDash() {
       }
 
       inc.innerHTML = pend.map(function(b) {
-        var safe = JSON.stringify(b).replace(/\\/g,"\\\\").replace(/"/g,"&quot;");
+        var safe = encodeURIComponent(JSON.stringify(b));
         var cd = clientData[b.client_id] || {};
         var cRating = parseFloat(cd.avgRating) || 0;
         var cRevCount = cd.revCount || 0;
@@ -10031,7 +10048,7 @@ async function loadProDash() {
     pb2.innerHTML = !bks.length
       ? "<tr><td colspan=\"6\" style=\"text-align:center;padding:18px;color:var(--mu)\">No bookings yet.</td></tr>"
       : bks.map(function(b) {
-          var safe = JSON.stringify(b).replace(/\\/g,"\\\\").replace(/"/g,"&quot;");
+          var safe = encodeURIComponent(JSON.stringify(b));
           var statusCol = sBadge(b.status);
           if (b.status === "arrived") statusCol += "<div style=\"font-size:10px;color:#a16207;margin-top:2px\">⏳ Awaiting client</div>";
           return "<tr>"
