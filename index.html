@@ -917,7 +917,7 @@ footer        { background: #1A1A1A; color: rgba(255,255,255,.4); padding: 38px 
 
   /* Nav */
   .hero h1      { font-size: clamp(28px, 5vw, 48px); }
-  .nav-w        { height: 56px; padding: 0 14px; }
+  .nav-w        { height: calc(56px + env(safe-area-inset-top)); padding: env(safe-area-inset-top) 14px 0; }
   .logo         { font-size: 22px; }
   nav .btn      { padding: 7px 13px; font-size: 12px; }
 
@@ -936,6 +936,8 @@ footer        { background: #1A1A1A; color: rgba(255,255,255,.4); padding: 38px 
    ══════════════════════════════════════════════ */
 @media (max-width: 768px) {
   .fi2 { grid-template-columns: 1fr; }
+  /* Prevent iOS auto-zoom on input focus (requires font-size ≥ 16px) */
+  .fi, input, select, textarea { font-size: 16px !important; }
 }
 
 @media (max-width: 640px) {
@@ -985,7 +987,7 @@ footer        { background: #1A1A1A; color: rgba(255,255,255,.4); padding: 38px 
 
   /* Chat */
   .chat-wrap { bottom: 80px; right: 12px; }
-  .chat-win { width: calc(100vw - 24px); right: 0; bottom: 54px; height: 60vh; max-height: 420px; left: auto; position: fixed; right: 12px; bottom: 140px; z-index: 401; }
+  .chat-win { position: fixed; width: calc(100vw - 24px); left: 12px; right: 12px; bottom: calc(80px + env(safe-area-inset-bottom)); height: min(60vh, 380px); max-height: 380px; z-index: 401; }
 
   /* Booking flow */
   .bk-flow     { gap: 0; }
@@ -1064,7 +1066,6 @@ footer        { background: #1A1A1A; color: rgba(255,255,255,.4); padding: 38px 
 
 </style>
 </head>
-<body>
 <body>
 
 <!-- LOADING SCREEN -->
@@ -3866,7 +3867,8 @@ async function loadSavedTranslations() {
 // ═══════════════════════════════════════════════════════════════
 
 // ── DARK MODE ─────────────────────────────────────────────────
-if (localStorage.getItem("mody-dark") === "1") {
+if (localStorage.getItem("mody-dark") === "1" ||
+    (localStorage.getItem("mody-dark") === null && window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches)) {
   document.documentElement.classList.add("dark");
   document.querySelector(".dm-btn") && (document.querySelector(".dm-btn").textContent = "☀️");
 }
@@ -4061,7 +4063,7 @@ function aMobMore() {
   document.body.appendChild(backdrop);
   var sheet = document.createElement("div");
   sheet.id = "aMobSheet";
-  sheet.style.cssText = "position:fixed;bottom:52px;left:0;right:0;z-index:360;background:var(--cd);border-top:1px solid var(--br);border-radius:16px 16px 0 0;box-shadow:0 -4px 24px rgba(0,0,0,.2);padding:16px;overflow-y:auto;max-height:70vh";
+  sheet.style.cssText = "position:fixed;bottom:52px;left:0;right:0;z-index:360;background:var(--cd);border-top:1px solid var(--br);border-radius:16px 16px 0 0;box-shadow:0 -4px 24px rgba(0,0,0,.2);padding:16px 16px calc(16px + env(safe-area-inset-bottom,0px));overflow-y:auto;max-height:70vh";
   sheet.innerHTML = "<div style='font-size:12px;color:var(--mu);text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px;font-weight:500'>All Sections</div>"
     + "<div style='display:grid;grid-template-columns:repeat(3,1fr);gap:8px'>"
     + items.map(function(it) {
@@ -4091,8 +4093,8 @@ function proMobMore() {
   var items = [
     {icon:"✏️", label:"Profile",   tab:"edit"},
     {icon:"💰", label:"Earnings",  tab:"earn"},
-    {icon:"⭐", label:"Reviews",   tab:"reviews"},
-    {icon:"💅", label:"Nail Colors",tab:"nailcolors"},
+    {icon:"⭐", label:"Reviews",   tab:"rev"},
+    {icon:"💅", label:"Nail Colors",tab:"colors"},
     {icon:"💬", label:"Support",   tab:"sup"}
   ];
   var existing = ge("pMobSheet");
@@ -4104,7 +4106,7 @@ function proMobMore() {
   document.body.appendChild(backdrop);
   var sheet = document.createElement("div");
   sheet.id = "pMobSheet";
-  sheet.style.cssText = "position:fixed;bottom:52px;left:0;right:0;z-index:360;background:var(--cd);border-top:1px solid var(--br);border-radius:16px 16px 0 0;box-shadow:0 -4px 24px rgba(0,0,0,.2);padding:16px;overflow-y:auto;max-height:60vh";
+  sheet.style.cssText = "position:fixed;bottom:52px;left:0;right:0;z-index:360;background:var(--cd);border-top:1px solid var(--br);border-radius:16px 16px 0 0;box-shadow:0 -4px 24px rgba(0,0,0,.2);padding:16px 16px calc(16px + env(safe-area-inset-bottom,0px));overflow-y:auto;max-height:60vh";
   sheet.innerHTML = "<div style='font-size:12px;color:var(--mu);text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px;font-weight:500'>More Options</div>"
     + "<div style='display:grid;grid-template-columns:repeat(3,1fr);gap:8px'>"
     + items.map(function(it) {
@@ -4351,9 +4353,12 @@ async function routeByRole() {
     await loadScript("js/dashboards/admin.js");
     show("admin");
     loadAdminData();
+  } else if (profile.role === "pro") {
+    show("dash-pro");
+    if (typeof loadProDash === "function") loadProDash();
   } else {
-    // All signed-in users (client & pro) land on homepage
-    show("home");
+    show("dash-client");
+    if (typeof loadClientDash === "function") loadClientDash();
   }
 }
 
@@ -4381,7 +4386,7 @@ async function doSignIn() {
       closeM("auth");
       await loadProfile(r.data.user);
       updateNav();
-      routeByRole();
+      await routeByRole();
       toast("Welcome back, " + (profile.full_name || email).split(" ")[0] + "!", "ok");
       return;
     } catch(e) {
@@ -4433,7 +4438,7 @@ async function doSignUpClient() {
   profile = { id: uid, full_name: fn, email: email, phone: phone, gender: gender, role: "client" };
   closeM("auth");
   updateNav();
-  routeByRole();
+  await routeByRole();
   toast("Welcome, " + first + "!", "ok");
 }
 
@@ -4485,13 +4490,15 @@ async function doSignUpPro() {
   profile = { id: uid, full_name: fn, email: email, gender: gender, role: "pro", pro_id: proId };
   closeM("auth");
   updateNav();
-  routeByRole();
+  await routeByRole();
   toast("Application submitted! Awaiting admin approval.", "ok");
 }
 
 // ── SIGN OUT ──────────────────────────────────────────────────
 async function signOut() {
-  if (chatSub) sb.removeChannel(chatSub);
+  sb.removeAllChannels();
+  chatSub = null;
+  realtimeSubscribed = false;
   stopLocSharing();
   cleanupClientMaps();
   await sb.auth.signOut();
@@ -6731,7 +6738,7 @@ async function loadClientDash() {
     return;
   }
   body.innerHTML = bks.map(function(b) {
-    var safe = encodeURIComponent(JSON.stringify(b));
+    var safe = encodeURIComponent(JSON.stringify(b)).replace(/'/g, "%27");
     var actionBtn = "";
     if (b.status === "arrived") {
       actionBtn = "<button class=\"btn-sm btn-ok\" style=\"font-size:11px;margin-right:4px\" onclick=\"event.stopPropagation();confirmArrival('" + b.id + "')\">✓ " + t("cbConfirm") + "</button>";
@@ -7024,7 +7031,7 @@ async function renderTracker() {
   var dotColors = { pending:"#a16207", accepted:"#15803d", on_the_way:"#7e22ce", arrived:"#22c55e", in_progress:"#3b82f6" };
 
   var pills = bks.map(function(b) {
-    var safe = encodeURIComponent(JSON.stringify(b));
+    var safe = encodeURIComponent(JSON.stringify(b)).replace(/'/g, "%27");
     var role = profile.role === "pro" ? "pro" : "client";
     var who = profile.role === "client" ? (b.pro_name || "Pro") : (b.client_name || "Client");
     var statusText = ST_LABEL[b.status] ? ST_LABEL[b.status]() : b.status.replace(/_/g," ");
@@ -7232,8 +7239,11 @@ function cleanupClientMaps() {
 //  Load order: 13 (depends on: config.js, dashboards)
 // ═══════════════════════════════════════════════════════════════
 
+var realtimeSubscribed = false;
 function subscribeRealtime() {
   if (!user || !profile) return;
+  if (realtimeSubscribed) return;
+  realtimeSubscribed = true;
 
   // Bookings channel — notify based on role
   sb.channel("bookings-realtime")
@@ -7275,6 +7285,7 @@ function subscribeRealtime() {
   sb.channel("messages-realtime")
     .on("postgres_changes", { event: "INSERT", schema: "public", table: "messages" },
       function(payload) {
+        if (!user) return;
         var msg = payload.new || {};
         if (!msg.sender_id || msg.sender_id === user.id) return;
 
@@ -7371,6 +7382,7 @@ async function init() {
       buildChatThreads();
       updateChatBadge();
     } else if (event === "SIGNED_OUT") {
+      sb.removeAllChannels(); chatSub = null; realtimeSubscribed = false;
       user = null; profile = null;
       if (ftInterval) { clearInterval(ftInterval); ftInterval = null; }
       var ft = ge("fTracker"); if (ft) ft.innerHTML = "";
@@ -7562,7 +7574,7 @@ function renderAdminBks() {
          + "<td>" + (b.time_slot || "ASAP") + "</td>"
          + "<td>" + (b.total || 0) + "₾</td>"
          + "<td>" + sBadge(b.status) + "</td>"
-         + "<td><select class=\"fi\" style=\"font-size:12px;padding:3px 6px\" onchange=\"chBkStatus('" + b.id + "',this.value,'admin')\">"
+         + "<td><select class=\"fi\" style=\"font-size:12px;padding:3px 6px\" onchange=\"chBkStatus('" + b.id + "',this.value,'admin');this.value=''\">"
          + "<option value=\"\">Change…</option>"
          + opts.map(function(s) { return "<option value=\"" + s + "\">" + s.replace(/_/g," ") + "</option>"; }).join("")
          + "</select></td>"
@@ -7731,8 +7743,8 @@ async function loadAdminPros() {
            + "<button class=\"btn-sm btn-gh\" onclick=\"gotoMasterCal()\" title=\"Master Calendar — all pros\">🗓</button>"
            + (p.status !== "approved" ? "<button class=\"btn-sm btn-ok\" onclick=\"approvePro('" + p.id + "')\">Approve</button>" : "")
            + (p.status !== "rejected" ? "<button class=\"btn-sm btn-no\" onclick=\"rejectPro('" + p.id + "')\">Reject</button>" : "")
-           + "<button class=\"btn-sm btn-gh\" onclick=\"suspendUser('" + p.user_id + "')\">Suspend</button>"
-           + "<button class=\"btn-sm \" + (p.verified ? \"btn-no\" : \"btn-ok\") + \"\" onclick=\"toggleVerify('" + p.id + "'," + !p.verified + ")\">" + (p.verified ? "Unverify" : "Verify") + "</button>"
+           + (p.user_id ? "<button class=\"btn-sm btn-gh\" onclick=\"suspendUser('" + p.user_id + "')\">Suspend</button>" : "")
+           + "<button class=\"btn-sm " + (p.verified ? "btn-no" : "btn-ok") + "\" onclick=\"toggleVerify('" + p.id + "'," + !p.verified + ")\">" + (p.verified ? "Unverify" : "Verify") + "</button>"
            + "<button class=\"btn-sm " + (p.featured ? "btn-g" : "btn-gh") + "\" onclick=\"toggleFeatured('" + p.id + "'," + !p.featured + ")\">" + (p.featured ? "★ Featured" : "☆ Feature") + "</button>"
            + "</td></tr>";
     }).join("");
@@ -7757,7 +7769,7 @@ async function loadAdminUsers() {
            + "<td>" + new Date(u.created_at).toLocaleDateString() + "</td>"
            + "<td>"
            + "<button class=\"btn-sm btn-no\" onclick=\"suspendUser('" + u.id + "')\">" + (u.suspended ? "Unsuspend" : "Suspend") + "</button> "
-           + "<button class=\"btn-sm btn-gh\" onclick=\"adminResetPassword('" + (u.email||"") + "')\">🔑 Reset PW</button>"
+           + "<button class=\"btn-sm btn-gh\" onclick=\"adminResetPassword('" + (u.email||"").replace(/'/g,"\\'") + "')\">🔑 Reset PW</button>"
            + "</td>"
            + "</tr>";
     }).join("");
@@ -9831,6 +9843,8 @@ async function loadProDash() {
   if (proId) {
     try { var r = await sb.from("professionals").select("*").eq("id", proId).single(); pro = r.data; } catch(e) { console.error('[loadProDash] pro fetch:', e); }
   }
+  // Store for use by populateSvcSelect and other pro-context functions
+  window._currentPro = pro;
 
   var name = pro ? pro.name : (profile ? profile.full_name : user.email);
   var pw = ge("pWelcome"); if (pw) pw.textContent = t("welcomeBack") + ", " + name.split(" ")[0];
@@ -9884,12 +9898,16 @@ async function loadProDash() {
   var bks  = res.data || [];
   var pend = bks.filter(function(b) { return b.status === "pending"; });
   var done = bks.filter(function(b) { return b.status === "completed"; });
-  var earned = done.reduce(function(s, b) { return s + Math.round((b.total || 0) * 0.95); }, 0);
+  var commRate = (pro && pro.commission_rate != null) ? pro.commission_rate : 5;
+  var earned = done.reduce(function(s, b) { return s + Math.round((b.pro_earn != null ? b.pro_earn : (b.total || 0) * (1 - commRate / 100))); }, 0);
+  var now = new Date(); var thisMonth = now.getFullYear() + "-" + String(now.getMonth()+1).padStart(2,"0");
+  var earnedMonth = done.filter(function(b) { return (b.time_slot||b.created_at||"").startsWith(thisMonth); })
+    .reduce(function(s, b) { return s + Math.round((b.pro_earn != null ? b.pro_earn : (b.total || 0) * (1 - commRate / 100))); }, 0);
 
   if (ge("pS1")) ge("pS1").textContent = earned + "₾";
   if (ge("pS2")) ge("pS2").textContent = bks.length;
   if (ge("pS4")) ge("pS4").textContent = pend.length;
-  if (ge("pE1")) ge("pE1").textContent = earned + "₾";
+  if (ge("pE1")) ge("pE1").textContent = earnedMonth + "₾";
   if (ge("pE2")) ge("pE2").textContent = earned + "₾";
   if (ge("pE4")) ge("pE4").textContent = done.length;
   var ppb = ge("pPendBadge"); if (ppb) ppb.textContent = pend.length + " pending";
@@ -9985,7 +10003,7 @@ async function loadProDash() {
       }
 
       inc.innerHTML = pend.map(function(b) {
-        var safe = encodeURIComponent(JSON.stringify(b));
+        var safe = encodeURIComponent(JSON.stringify(b)).replace(/'/g, "%27");
         var cd = clientData[b.client_id] || {};
         var cRating = parseFloat(cd.avgRating) || 0;
         var cRevCount = cd.revCount || 0;
@@ -10048,7 +10066,7 @@ async function loadProDash() {
     pb2.innerHTML = !bks.length
       ? "<tr><td colspan=\"6\" style=\"text-align:center;padding:18px;color:var(--mu)\">No bookings yet.</td></tr>"
       : bks.map(function(b) {
-          var safe = encodeURIComponent(JSON.stringify(b));
+          var safe = encodeURIComponent(JSON.stringify(b)).replace(/'/g, "%27");
           var statusCol = sBadge(b.status);
           if (b.status === "arrived") statusCol += "<div style=\"font-size:10px;color:#a16207;margin-top:2px\">⏳ Awaiting client</div>";
           return "<tr>"
@@ -10279,7 +10297,8 @@ async function openSvcModal(id) {
 
 function populateSvcSelect(existingCatSvcId) {
   var sel = ge("svcSelect"); if (!sel) return;
-  var proSpec = profile && profile.specialty ? profile.specialty : null;
+  var proSpec = (window._currentPro && window._currentPro.specialty) ? window._currentPro.specialty
+              : (profile && profile.specialty ? profile.specialty : null);
   var svcs = proSpec
     ? allCatSvcs.filter(function(cs) {
         var cat = (allCats || []).find(function(c) { return c.id === cs.category_id; });
