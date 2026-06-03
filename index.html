@@ -941,6 +941,10 @@ footer        { background: #1A1A1A; color: rgba(255,255,255,.4); padding: 38px 
 }
 
 @media (max-width: 640px) {
+  /* Hero search: let the button wrap full-width below the input so its text never clips */
+  #heroSearchBox          { flex-wrap: wrap; }
+  #heroSearchBox #heroBtn { flex-basis: 100%; margin-top: 4px; justify-content: center; }
+
   /* How-it-works tabs stack vertically */
   .hiw-tabs               { flex-direction: column; gap: 4px; }
   .hiw-tabs::before       { display: none; }
@@ -1125,10 +1129,10 @@ footer        { background: #1A1A1A; color: rgba(255,255,255,.4); padding: 38px 
       <div id="heroBadge" style="display:inline-flex;align-items:center;gap:7px;background:rgba(234,184,183,.15);border:1px solid rgba(234,184,183,.3);color:var(--g);padding:5px 13px;border-radius:50px;font-size:13px;margin-bottom:16px"></div>
       <h1 id="heroTitle"></h1>
       <p id="heroSub" style="color:rgba(255,255,255,.6);font-size:15px;margin-bottom:24px;line-height:1.75;max-width:490px"></p>
-      <div style="background:var(--cd);border-radius:var(--r);padding:5px;display:flex;gap:6px;max-width:440px;box-shadow:var(--sl)">
+      <div id="heroSearchBox" style="background:var(--cd);border-radius:var(--r);padding:5px;display:flex;gap:6px;max-width:440px;box-shadow:var(--sl)">
         <span style="font-size:17px;padding-left:6px">📍</span>
-        <input id="searchInp" type="text" style="flex:1;border:none;outline:none;padding:7px 11px;font-size:14px;color:var(--tx);background:transparent">
-        <button class="btn btn-g" id="heroBtn" onclick="show('list')"></button>
+        <input id="searchInp" type="text" style="flex:1;min-width:0;border:none;outline:none;padding:7px 11px;font-size:14px;color:var(--tx);background:transparent">
+        <button class="btn btn-g" id="heroBtn" onclick="show('list')" style="flex-shrink:0;white-space:nowrap"></button>
       </div>
       <div style="display:flex;gap:16px;margin-top:14px;flex-wrap:wrap">
         <span id="trust1" style="font-size:13px;color:rgba(255,255,255,.4)"></span>
@@ -5232,7 +5236,7 @@ function catSvcName(cs) {
 
 function getCatSvcsForCat(categoryNameEn) {
   return allCatSvcs.filter(function(cs) {
-    var cat = (allCats || []).find(function(c) { return c.id === cs.category_id; });
+    var cat = (categories || []).find(function(c) { return c.id === cs.category_id; });
     return cat && cat.name_en === categoryNameEn;
   });
 }
@@ -8035,7 +8039,7 @@ async function toggleSubCatVis(id, visible) {
 function populateCatSvcFilter() {
   var sel = ge("catSvcFilter"); if (!sel) return;
   sel.innerHTML = "<option value=\"\">All categories</option>"
-    + (allCats || []).map(function(c) {
+    + (categories || []).map(function(c) {
         return "<option value=\"" + c.id + "\">" + (c.name_en) + "</option>";
       }).join("");
 }
@@ -8047,7 +8051,7 @@ function renderAdminCatSvcs() {
   var list = filterCatId ? allCatSvcs.filter(function(cs) { return cs.category_id === filterCatId; }) : allCatSvcs;
   if (!list.length) { el.innerHTML = "<p style=\"color:var(--mu);font-size:13px\">No predefined services yet.</p>"; return; }
   el.innerHTML = list.map(function(cs) {
-    var cat = (allCats || []).find(function(c) { return c.id === cs.category_id; });
+    var cat = (categories || []).find(function(c) { return c.id === cs.category_id; });
     return "<div class=\"svc-item\">"
          + "<div><div style=\"font-size:14px;font-weight:500\">" + escapeHtml(cs.name_en) + "</div>"
          + "<div style=\"font-size:12px;color:var(--mu)\">" + (cat ? cat.name_en : "?") + (cs.name_ka ? " · " + escapeHtml(cs.name_ka) : "") + (cs.name_ru ? " · " + escapeHtml(cs.name_ru) : "") + "</div></div>"
@@ -8063,7 +8067,7 @@ function openCatSvcModal(id) {
   ge("catSvcEditId").value = id || "";
   ge("catSvcModalTitle").textContent = id ? "Edit Predefined Service" : "Add Predefined Service";
   var sel = ge("catSvcCatId");
-  sel.innerHTML = (allCats || []).map(function(c) { return "<option value=\"" + c.id + "\">" + c.name_en + "</option>"; }).join("");
+  sel.innerHTML = (categories || []).map(function(c) { return "<option value=\"" + c.id + "\">" + c.name_en + "</option>"; }).join("");
   if (!id) {
     ge("catSvcEn").value = ""; ge("catSvcKa").value = ""; ge("catSvcRu").value = "";
   } else {
@@ -10355,7 +10359,7 @@ function populateSvcSelect(existingCatSvcId) {
               : (profile && profile.specialty ? profile.specialty : null);
   var svcs = proSpec
     ? allCatSvcs.filter(function(cs) {
-        var cat = (allCats || []).find(function(c) { return c.id === cs.category_id; });
+        var cat = (categories || []).find(function(c) { return c.id === cs.category_id; });
         return cat && cat.name_en === proSpec;
       })
     : allCatSvcs;
