@@ -897,7 +897,11 @@ footer        { background: #1A1A1A; color: rgba(255,255,255,.4); padding: 38px 
   .stats       { grid-template-columns: repeat(2, 1fr); }
 
   /* Dashboard */
-  .dash-w      { grid-template-columns: 1fr; padding-bottom: 68px; }
+  /* minmax(0,1fr) prevents the single column from blowing out to the
+     min-content width of wide children (e.g. booking tables), which caused
+     horizontal page overflow on phones. Tables scroll inside their .tw wrapper. */
+  .dash-w      { grid-template-columns: minmax(0, 1fr); padding-bottom: 68px; }
+  .dash-w .card, .dash-w .stats { min-width: 0; }
   .d-side      { display: none; }
   .mob-nav     { display: block; }
 
@@ -3947,7 +3951,11 @@ function show(p) {
   var targetNav = navMap[p];
   if (targetNav) {
     var mn = document.getElementById(targetNav);
-    if (mn && window.innerWidth <= 1024) mn.style.display = "";
+    // Clear the inline display so the CSS media query controls visibility
+    // (hidden on desktop, shown ≤1024px). Gating on innerWidth here baked in a
+    // sticky display:none when a dashboard was first opened at desktop width,
+    // leaving the mobile bottom nav permanently hidden after resizing to mobile.
+    if (mn) mn.style.display = "";
   }
   var sheet = document.getElementById("aMobSheet"); if (sheet) sheet.remove();
   // Toggle back button
@@ -7439,6 +7447,22 @@ document.addEventListener("visibilitychange", function() {
   if (typeof loadClientDash === "function" && ge("pg-dash-client") && ge("pg-dash-client").classList.contains("on")) loadClientDash();
   if (typeof loadProDash    === "function" && ge("pg-dash-pro")    && ge("pg-dash-pro").classList.contains("on"))    loadProDash();
   if (typeof updateChatBadge === "function") updateChatBadge();
+});
+
+// ── RESPONSIVE NAV REFRESH ───────────────────────────────────
+// updateNav() bakes the desktop/mobile header layout based on innerWidth at
+// render time. Re-render (debounced) when the viewport crosses the breakpoint
+// so the header switches between full and compact layouts on rotate/resize.
+var _navRzT = null, _navWasMobile = window.innerWidth <= 768;
+window.addEventListener("resize", function() {
+  clearTimeout(_navRzT);
+  _navRzT = setTimeout(function() {
+    var isMobile = window.innerWidth <= 768;
+    if (isMobile !== _navWasMobile) {
+      _navWasMobile = isMobile;
+      if (typeof updateNav === "function") updateNav();
+    }
+  }, 160);
 });
 
 // ── CHAT KEYBOARD FIX (iOS/Android visual viewport) ──────────
