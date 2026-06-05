@@ -1,0 +1,47 @@
+# robots.txt for AMODY — https://amody.ge
+# Beauty professionals at home, Tbilisi
+
+# ── Default: allow healthy crawling ──────────────────────────
+User-agent: *
+Allow: /
+# Block source, serverless functions, and backend config
+Disallow: /functions/
+Disallow: /src/
+Disallow: /js/
+Disallow: /css/
+Disallow: /supabase/
+Disallow: /package.json
+Disallow: /wrangler.jsonc
+# Avoid duplicate-content indexing of the modular build
+Disallow: /index-modular.html
+# Hash-routed app state and auth flows carry no unique indexable content
+Disallow: /*?*
+Disallow: /*#
+
+# ── AI / Generative-search crawlers (explicitly welcomed) ────
+User-agent: GPTBot
+Allow: /
+
+User-agent: OAI-SearchBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: Claude-Web
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: Applebot-Extended
+Allow: /
+
+# ── Sitemap ──────────────────────────────────────────────────
+Sitemap: https://amody.ge/sitemap.xml

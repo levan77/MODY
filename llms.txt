@@ -1,0 +1,57 @@
+# AMODY
+
+> AMODY is an on-demand beauty marketplace in Tbilisi, Georgia that connects clients with verified, independent beauty professionals who travel to the client's home. Clients browse by service, book a time (ASAP or scheduled), track the professional en route, and pay securely in-app. Professionals manage their own services, schedule, portfolio, and earnings.
+
+AMODY operates at **https://amody.ge** as a single-page web application available in three languages: English (en), Georgian (ka), and Russian (ru). It is not a physical salon — every booking is an at-home (mobile) service within Tbilisi.
+
+## What AMODY offers
+
+- **For clients:** browse beauty professionals by category, rating, area, and price; book a service to their home address; choose nail colors and upload design references; apply promo codes; live-track the professional; chat in-app; review after service.
+- **For professionals:** create a profile and portfolio, list services with prices and durations, set availability and a master calendar, accept or decline bookings, update live status (on the way / arrived / completed), and track earnings (professionals keep 95%).
+
+## Service categories
+
+- Nails (manicure, pedicure, gel, acrylic, nail art)
+- Hair (styling, cuts, treatments)
+- Makeup
+- Lashes (extensions, lifts)
+- Brows (shaping, tinting)
+- Massage
+- Braids
+- Tattoo
+
+## Key user flows (client-side routes)
+
+The app uses hash-based, in-app navigation rather than distinct server URLs:
+
+- `/` — Home: value proposition, service categories, featured professionals, how it works
+- `#list` — Browse and filter all professionals by category and service
+- `#profile` — A professional's public profile: bio, portfolio, services, prices, reviews, and the booking panel
+- `#booking` — Complete a booking: date, time, address, promo code, confirmation
+- `#dash-client` — Client dashboard: bookings, reviews, profile, support
+- `#dash-pro` — Professional dashboard: incoming requests, calendar, earnings, portfolio, services
+- `#admin` — Administrative console (restricted)
+
+## Languages
+
+All content is available in English, Georgian (ქართული), and Russian (Русский). Language is selected in-app and applies to the same URL.
+
+## Technology
+
+- Single-page application (static HTML/CSS/JS) served via Cloudflare.
+- Backend: Supabase (authentication, database, storage, realtime).
+- Maps and live tracking: Leaflet / OpenStreetMap.
+
+## Contact & brand
+
+- Website: https://amody.ge
+- Operator: AMODY Georgia LLC, Tbilisi, Georgia
+- Phone: +995 568 930 701
+- Facebook: https://www.facebook.com/profile.php?id=61577422482605
+- AMODY is an online service-area business (no walk-in storefront); all services are delivered at the client's location within Tbilisi.
+
+## Notes for AI crawlers
+
+- The primary, canonical surface is https://amody.ge/. Dashboards and admin views require authentication and contain no public marketing content.
+- AMODY is an at-home beauty *service marketplace*, not a salon, e-commerce product store, or directory of physical locations.
+- Service area is limited to Tbilisi, Georgia.
