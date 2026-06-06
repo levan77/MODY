@@ -1,15 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!--
-  AMODY sitemap.
-  AMODY is a single-page app served entirely from https://amody.ge/.
-  Views (browse, professional profiles, booking, dashboards) and the three
-  languages (EN / KA / RU) are rendered client-side at the same URL, so the
-  canonical indexable surface is the homepage. Language is selected in-app,
-  therefore distinct hreflang URLs are intentionally not declared.
--->
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
-        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-        xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://amody.ge/</loc>
     <lastmod>2026-06-06</lastmod>
