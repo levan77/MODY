@@ -6418,15 +6418,10 @@ async function submitBooking() {
 // Starts a hold on the client's card by redirecting to Flitt checkout.
 async function payForBooking(bookingId) {
   try {
-    var r = await fetch('/api/payment/initiate', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ bookingId: bookingId })
-    });
-    var j = await r.json().catch(function() { return {}; });
-    if (r.ok && j.checkoutUrl) { window.location.href = j.checkoutUrl; return true; }
-    console.warn('[payForBooking]', j);
-    toast(j.error ? ('Payment: ' + j.error) : 'Online payment is not available yet.', 'err');
+    var resp = await sb.functions.invoke('payment-initiate', { body: { bookingId: bookingId } });
+    if (resp.data && resp.data.checkoutUrl) { window.location.href = resp.data.checkoutUrl; return true; }
+    console.warn('[payForBooking]', resp.error || resp.data);
+    toast('Online payment is not available yet.', 'err');
     return false;
   } catch (e) {
     console.warn('[payForBooking]', e);
@@ -6438,9 +6433,8 @@ async function payForBooking(bookingId) {
 // Capture held funds after a completed service (best-effort; server re-verifies state).
 function capturePayment(bookingId) {
   try {
-    fetch('/api/payment/capture', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ bookingId: bookingId }) })
-      .then(function(r) { return r.json(); })
-      .then(function(j) { if (j && j.error) console.warn('[capturePayment]', j); })
+    sb.functions.invoke('payment-capture', { body: { bookingId: bookingId } })
+      .then(function(r) { if (r && r.error) console.warn('[capturePayment]', r.error); })
       .catch(function(e) { console.warn('[capturePayment]', e); });
   } catch (e) {}
 }
@@ -6448,9 +6442,8 @@ function capturePayment(bookingId) {
 // Release a held authorization after a cancellation (best-effort; server re-verifies state).
 function reversePayment(bookingId) {
   try {
-    fetch('/api/payment/reverse', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ bookingId: bookingId }) })
-      .then(function(r) { return r.json(); })
-      .then(function(j) { if (j && j.error) console.warn('[reversePayment]', j); })
+    sb.functions.invoke('payment-reverse', { body: { bookingId: bookingId } })
+      .then(function(r) { if (r && r.error) console.warn('[reversePayment]', r.error); })
       .catch(function(e) { console.warn('[reversePayment]', e); });
   } catch (e) {}
 }
