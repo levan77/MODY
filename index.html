@@ -1866,6 +1866,7 @@ footer        { background: #1A1A1A; color: rgba(255,255,255,.4); padding: 38px 
       <button class="ni" id="aN-crm" onclick="aTab('crm')">👥 Client CRM</button>
       <button class="ni" id="aN-incidents" onclick="aTab('incidents')">🚨 Disputes</button>
       <button class="ni" id="aN-fees" onclick="aTab('fees')">💸 Fee Requests <span id="feeBadge" style="background:rgba(234,184,183,.2);color:#C9918F;padding:1px 6px;border-radius:50px;font-size:11px;margin-left:2px;display:none">0</span></button>
+      <button class="ni" id="aN-payments" onclick="aTab('payments')">💳 Payments</button>
       <button class="ni" id="aN-analytics" onclick="aTab('analytics')">📈 Analytics</button>
       <button class="ni" id="aN-blog" onclick="aTab('blog')">📝 Blog / Pages</button>
     </div>
@@ -2337,6 +2338,17 @@ footer        { background: #1A1A1A; color: rgba(255,255,255,.4); padding: 38px 
           </div>
           <p style="font-size:13px;color:var(--mu);margin-bottom:12px">Professionals can request a custom cross-region travel fee. Admin approvals go live immediately; rejections revert to the default.</p>
           <div id="pendingFeesList"><p style="color:var(--mu);font-size:13px;padding:16px 0">Loading...</p></div>
+        </div>
+      </div>
+      <div id="aTab-payments" class="hide">
+        <div class="card" style="margin-bottom:12px">
+          <div class="c-hdr">
+            <h3>💳 Payments Log</h3>
+            <button class="btn btn-g" style="font-size:13px" onclick="loadAdminPayments()">↻ Refresh</button>
+          </div>
+          <div id="aPaymentStats" class="stats" style="margin-bottom:14px"></div>
+          <p style="font-size:13px;color:var(--mu);margin-bottom:10px">Every payment — who paid, which professional earns, amount, the platform cut, status and transaction id.</p>
+          <div class="tw"><table class="tbl"><thead><tr><th>Date</th><th>Client</th><th>Professional</th><th>Amount</th><th>Pro earns</th><th>Platform</th><th>Status</th><th>Txn</th></tr></thead><tbody id="aPaymentsBody"></tbody></table></div>
         </div>
       </div>
     </div>
@@ -4200,6 +4212,7 @@ function aMobMore() {
     {icon:"👥", label:"CRM",         tab:"crm"},
     {icon:"🚨", label:"Disputes",    tab:"incidents"},
     {icon:"💸", label:"Fees",        tab:"fees"},
+    {icon:"💳", label:"Payments",    tab:"payments"},
     {icon:"📈", label:"Analytics",   tab:"analytics"},
     {icon:"📝", label:"Blog",        tab:"blog"}
   ];
@@ -6383,14 +6396,77 @@ async function submitBooking() {
   // Reset transient state
   selNailColors = [];
   clearDesign();
-
-  twilioNotifyBooking(insertedBk, 'new_booking');
-  toast(t('bkSuccess') || 'Booking confirmed!', 'ok');
-  // Reset stale state
   bkSelDateStr = "";
   document.querySelectorAll('#bkSlots .ts.on').forEach(function(e) { e.classList.remove('on'); });
+
+  twilioNotifyBooking(insertedBk, 'new_booking');
+
+  // ── Payment: place a HOLD (authorization) on the card now. ──
+  // Funds are blocked at booking and only captured after the service is completed.
+  if (finalTotal > 0) {
+    toast('Redirecting to secure payment…', 'ok');
+    var started = await payForBooking(booking_id);
+    if (started) return; // browser is navigating to the Flitt checkout page
+  }
+  // Fallback: payment not configured yet, or nothing to pay (wallet covered it).
+  toast(t('bkSuccess') || 'Booking confirmed!', 'ok');
   show('dash-client');
   loadClientDash();
+}
+
+// ── ONLINE PAYMENT (Flitt authorization → capture) ───────────
+// Starts a hold on the client's card by redirecting to Flitt checkout.
+async function payForBooking(bookingId) {
+  try {
+    var r = await fetch('/api/payment/initiate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ bookingId: bookingId })
+    });
+    var j = await r.json().catch(function() { return {}; });
+    if (r.ok && j.checkoutUrl) { window.location.href = j.checkoutUrl; return true; }
+    console.warn('[payForBooking]', j);
+    toast(j.error ? ('Payment: ' + j.error) : 'Online payment is not available yet.', 'err');
+    return false;
+  } catch (e) {
+    console.warn('[payForBooking]', e);
+    toast('Online payment is not available right now.', 'err');
+    return false;
+  }
+}
+
+// Capture held funds after a completed service (best-effort; server re-verifies state).
+function capturePayment(bookingId) {
+  try {
+    fetch('/api/payment/capture', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ bookingId: bookingId }) })
+      .then(function(r) { return r.json(); })
+      .then(function(j) { if (j && j.error) console.warn('[capturePayment]', j); })
+      .catch(function(e) { console.warn('[capturePayment]', e); });
+  } catch (e) {}
+}
+
+// Release a held authorization after a cancellation (best-effort; server re-verifies state).
+function reversePayment(bookingId) {
+  try {
+    fetch('/api/payment/reverse', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ bookingId: bookingId }) })
+      .then(function(r) { return r.json(); })
+      .then(function(j) { if (j && j.error) console.warn('[reversePayment]', j); })
+      .catch(function(e) { console.warn('[reversePayment]', e); });
+  } catch (e) {}
+}
+
+// Handle the redirect back from the Flitt checkout page.
+function handlePaymentReturn() {
+  try {
+    var qs = new URLSearchParams(location.search);
+    if (qs.get('pay') !== 'return') return;
+    history.replaceState({}, '', location.pathname); // clean URL so refresh won't re-trigger
+    toast('Confirming your payment… your booking status will update shortly.', 'ok');
+    if (typeof user !== 'undefined' && user) {
+      show('dash-client');
+      if (typeof loadClientDash === 'function') loadClientDash();
+    }
+  } catch (e) { console.warn('[handlePaymentReturn]', e); }
 }
 
 // ── BOOKING DETAIL MODAL ──────────────────────────────────────
@@ -6417,6 +6493,15 @@ function openBkDetail(bkJson, role) {
       acts += "<div style=\"background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.3);border-radius:var(--rs);padding:10px 14px;font-size:13px;color:#15803d;margin-bottom:8px\">✓ Travel fee of " + bk.travel_fee_requested + "₾ approved</div>";
     if (bk.travel_fee_status === "declined")
       acts += "<div style=\"background:var(--bg2);border:1px solid var(--br);border-radius:var(--rs);padding:10px 14px;font-size:13px;color:var(--mu);margin-bottom:8px\">Travel fee request was declined</div>";
+    // ── Payment status / "secure your booking" ──
+    if (bk.payment_status === "authorized")
+      acts += "<div style=\"background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.3);border-radius:var(--rs);padding:10px 14px;font-size:13px;color:#15803d;margin-bottom:8px\">🔒 Payment secured — " + (bk.total || 0) + "₾ held, charged after the service.</div>";
+    else if (bk.payment_status === "paid")
+      acts += "<div style=\"background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.3);border-radius:var(--rs);padding:10px 14px;font-size:13px;color:#15803d;margin-bottom:8px\">✓ Paid — " + (bk.total || 0) + "₾</div>";
+    else if (bk.payment_status === "refunded")
+      acts += "<div style=\"background:var(--bg2);border:1px solid var(--br);border-radius:var(--rs);padding:10px 14px;font-size:13px;color:var(--mu);margin-bottom:8px\">↩ Payment released</div>";
+    else if (["pending","accepted"].includes(bk.status) && (bk.total || 0) > 0)
+      acts += "<button class=\"btn btn-g\" style=\"display:block;width:100%;padding:14px;font-size:15px;justify-content:center;border-radius:var(--rs);margin-bottom:6px;font-weight:600;min-height:50px;background:#1A1A1A;color:#fff\" onclick=\"payForBooking('" + bk.id + "')\">🔒 Secure your booking — pay " + (bk.total || 0) + "₾</button>";
     if (bk.status === "arrived")
       acts += "<button class=\"btn btn-g\" style=\"display:block;width:100%;padding:14px;font-size:15px;justify-content:center;border-radius:var(--rs);margin-bottom:6px;font-weight:600;min-height:50px;background:#22c55e;color:#fff\" onclick=\"chBkStatus('" + bk.id + "','in_progress','client')\">✓ " + t("confirmArrText") + "</button>";
     if (bk.status === "completed" && bk.pro_id)
@@ -6561,6 +6646,9 @@ async function chBkStatus(id, status, actor) {
     var r = await sb.from("bookings").update({ status: status }).eq("id", id);
     if (r.error) throw r.error;
     toast("Status: " + status.replace(/_/g, " "), "ok");
+    // ── Payment lifecycle: capture held funds on completion, release on cancellation ──
+    if (status === "completed") capturePayment(id);
+    else if (status === "cancelled") reversePayment(id);
     closeM("bkd");
     if (actor === "pro" && status === "on_the_way") startLocSharing(id);
     if (actor === "pro" && (status === "arrived" || status === "completed" || status === "cancelled")) stopLocSharing();
@@ -7542,6 +7630,9 @@ async function init() {
   var ls = ge("loadingScreen");
   if (ls) { ls.style.opacity = "0"; setTimeout(function() { ls.remove(); }, 500); }
 
+  // Handle return from the Flitt payment page (?pay=return)
+  handlePaymentReturn();
+
   // Listen for future auth changes
   sb.auth.onAuthStateChange(async function(event, session) {
     if (event === "PASSWORD_RECOVERY") {
@@ -7623,7 +7714,7 @@ var adminAllBks = [];
 
 // ── TAB SWITCHER ──────────────────────────────────────────────
 function aTab(tab) {
-  ["ov","app","bks","pros","usr","cats","promo","rev","sup","set","tr","analytics","blog","mcal","notifs","crm","incidents","fees"].forEach(function(x) {
+  ["ov","app","bks","pros","usr","cats","promo","rev","sup","set","tr","analytics","blog","mcal","notifs","crm","incidents","fees","payments"].forEach(function(x) {
     var el = ge("aTab-" + x), ni = ge("aN-" + x);
     if (el) el.classList.toggle("hide", x !== tab);
     if (ni) ni.classList.toggle("on",   x === tab);
@@ -7670,6 +7761,9 @@ function aTab(tab) {
   }
   if (tab === "fees") {
     loadPendingFees();
+  }
+  if (tab === "payments") {
+    loadAdminPayments();
   }
 }
 
@@ -9808,6 +9902,45 @@ function renderIncidents() {
       + "<button class=\"btn-sm btn-gh\" onclick=\"editIncidentCredit('" + inc.id + "')\">Credit</button>"
       + "</td></tr>";
   }).join("");
+}
+
+// ── ADMIN PAYMENTS LOG ────────────────────────────────────────
+async function loadAdminPayments() {
+  var body = ge("aPaymentsBody"); if (!body) return;
+  body.innerHTML = "<tr><td colspan=\"8\" style=\"text-align:center;padding:18px;color:var(--mu)\">Loading…</td></tr>";
+  try {
+    var r = await sb.from("payments").select("*").order("created_at", { ascending: false }).limit(300);
+    if (r.error) throw r.error;
+    var list = r.data || [];
+    var captured = list.filter(function(p) { return p.status === "captured" || p.status === "paid"; });
+    var held     = list.filter(function(p) { return p.status === "authorized"; });
+    var totalCaptured = captured.reduce(function(s, p) { return s + (p.amount || 0); }, 0);
+    var totalHeld     = held.reduce(function(s, p) { return s + (p.amount || 0); }, 0);
+    var platformRev   = captured.reduce(function(s, p) { return s + (p.platform_revenue || 0); }, 0);
+    var st = ge("aPaymentStats");
+    if (st) st.innerHTML =
+        "<div class=\"st\"><div class=\"st-v\">" + totalCaptured + "₾</div><div class=\"st-l\">Captured</div></div>"
+      + "<div class=\"st\"><div class=\"st-v\">" + totalHeld + "₾</div><div class=\"st-l\">Held</div></div>"
+      + "<div class=\"st\"><div class=\"st-v\">" + platformRev + "₾</div><div class=\"st-l\">Platform revenue</div></div>"
+      + "<div class=\"st\"><div class=\"st-v\">" + list.length + "</div><div class=\"st-l\">Transactions</div></div>";
+    if (!list.length) { body.innerHTML = "<tr><td colspan=\"8\" style=\"text-align:center;padding:18px;color:var(--mu)\">No payments recorded yet.</td></tr>"; return; }
+    var col = { authorized:"#a16207", captured:"#15803d", paid:"#15803d", failed:"#b91c1c", voided:"#6b7280", refunded:"#6b7280", pending:"#a16207" };
+    body.innerHTML = list.map(function(p) {
+      var d = p.created_at ? new Date(p.created_at).toLocaleString() : "—";
+      return "<tr>"
+        + "<td style=\"white-space:nowrap;font-size:12px\">" + d + "</td>"
+        + "<td>" + escapeHtml(p.client_name || "—") + "</td>"
+        + "<td>" + escapeHtml(p.pro_name || "—") + "</td>"
+        + "<td>" + (p.amount || 0) + "₾</td>"
+        + "<td>" + (p.pro_earnings || 0) + "₾</td>"
+        + "<td>" + (p.platform_revenue || 0) + "₾</td>"
+        + "<td><span style=\"color:" + (col[p.status] || "#6b7280") + ";font-weight:600;text-transform:capitalize\">" + escapeHtml(p.status || "") + "</span></td>"
+        + "<td style=\"font-size:11px;color:var(--mu)\">" + escapeHtml(p.provider_payment_id || "—") + "</td>"
+        + "</tr>";
+    }).join("");
+  } catch(e) {
+    body.innerHTML = "<tr><td colspan=\"8\" style=\"text-align:center;padding:18px;color:var(--mu)\">Could not load payments (" + escapeHtml(e.message || "") + ")</td></tr>";
+  }
 }
 
 async function loadPendingFees() {
