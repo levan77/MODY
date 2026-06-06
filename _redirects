@@ -1,0 +1,3 @@
+# Serve the Google Search Console verification file at a direct 200
+# (override Cloudflare Pages' automatic .html -> extensionless 307 redirect).
+/google4c12aca633d05da5.html  /google4c12aca633d05da5  200
